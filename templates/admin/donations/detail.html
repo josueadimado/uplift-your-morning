@@ -1,0 +1,38 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<div class="mb-6"><h1 class="text-2xl font-bold" style="color: var(--text);">Donation Details</h1></div>
+<div class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    <div class="space-y-4">
+        <div><p class="text-sm" style="color: var(--text_light);">Donor Name</p><p class="text-lg font-semibold" style="color: var(--text);">{{ donation.name }}</p></div>
+        <div><p class="text-sm" style="color: var(--text_light);">Email</p><p class="text-lg" style="color: var(--text);">{{ donation.email }}</p></div>
+        <div><p class="text-sm" style="color: var(--text_light);">Amount</p><p class="text-lg font-semibold" style="color: var(--primary);">{{ donation.amount_ghs }} GHS</p></div>
+        <div>
+            <p class="text-sm" style="color: var(--text_light);">Status</p>
+            <div class="flex items-center space-x-3 mt-1">
+                {% if donation.status == 'success' %}
+                <span class="px-3 py-1 text-sm font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">{{ donation.get_status_display }}</span>
+                {% elif donation.status == 'pending' %}
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">{{ donation.get_status_display }}</span>
+                <form method="post" action="{% url 'manage:donations_verify' donation.pk %}" class="inline">{% csrf_token %}
+                    <button type="submit" class="px-4 py-1 text-sm font-semibold rounded-lg text-white" style="background: var(--primary);" title="Check with Paystack to verify if payment was successful">Verify Now</button>
+                </form>
+                {% else %}
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">{{ donation.get_status_display }}</span>
+                {% endif %}
+            </div>
+            {% if donation.status == 'pending' %}
+            <p class="text-xs mt-2" style="color: var(--text_light);">
+                ⓘ This donation is pending verification. Click "Verify Now" to check with Paystack if the payment was successful.
+            </p>
+            {% endif %}
+        </div>
+        <div><p class="text-sm" style="color: var(--text_light);">Paystack Reference</p><p class="text-lg font-mono" style="color: var(--text);">{{ donation.paystack_reference }}</p></div>
+        <div><p class="text-sm" style="color: var(--text_light);">Date</p><p class="text-lg" style="color: var(--text);">{{ donation.created_at|date:"F d, Y H:i" }}</p></div>
+        {% if donation.note %}<div><p class="text-sm" style="color: var(--text_light);">Note</p><p class="text-lg" style="color: var(--text);">{{ donation.note }}</p></div>{% endif %}
+    </div>
+    <div class="mt-6 flex items-center space-x-4">
+        <a href="{% url 'manage:donations_list' %}" class="px-6 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">Back to List</a>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Give to UPLIFT Afrika{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-16" style="background: linear-gradient(135deg, var(--background_tint) 0%, #ffffff 60%, #fef3c7 100%);">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold tracking-wide mb-4"
+              style="background: rgba(7,89,68,0.06); color: var(--primary);">
+            Partner with UPLIFT Afrika
+        </span>
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4" style="color: var(--accent);">
+            Your generosity fuels prayer, discipleship &amp; mission
+        </h1>
+        <p class="text-base md:text-lg max-w-3xl mx-auto" style="color: var(--text_secondary);">
+            Give a one-time seed or partner with us regularly to support daily devotions,
+            leadership development and outreach across Afrika and the diaspora.
+        </p>
+    </div>
+</section>
+
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left: Donation Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2" style="color: var(--text);">
+                    Give a Gift
+                </h2>
+                <p class="text-sm md:text-base mb-6" style="color: var(--text_secondary);">
+                    All donations are processed securely via Paystack and settled in Ghana Cedis (GHS).
+                    Your bank will handle any currency conversion automatically.
+                </p>
+
+                <form method="post" action="{% url 'pages:donate-checkout' %}" class="space-y-6">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium mb-2" style="color: var(--text);">
+                                Full Name
+                            </label>
+                            <input type="text" name="name" id="name" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 transition-colors"
+                                   style="--tw-ring-color: var(--primary); border-color: #d1d5db;"
+                                   placeholder="Your full name">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium mb-2" style="color: var(--text);">
+                                Email Address
+                            </label>
+                            <input type="email" name="email" id="email" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 transition-colors"
+                                   style="--tw-ring-color: var(--primary); border-color: #d1d5db;"
+                                   placeholder="you@example.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="amount" class="block text-sm font-medium mb-2" style="color: var(--text);">
+                            Amount (GHS)
+                        </label>
+                        <div class="flex items-center gap-3 mb-3">
+                            <input type="number" name="amount" id="amount" min="1" step="0.01" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 transition-colors"
+                                   style="--tw-ring-color: var(--primary); border-color: #d1d5db;"
+                                   placeholder="e.g. 50">
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-sm">
+                            <button type="button"
+                                    class="px-3 py-1 rounded-full border text-xs font-semibold"
+                                    style="border-color: #e5e7eb; color: var(--text_secondary);"
+                                    onclick="document.getElementById('amount').value='50'">
+                                GHS 50
+                            </button>
+                            <button type="button"
+                                    class="px-3 py-1 rounded-full border text-xs font-semibold"
+                                    style="border-color: #e5e7eb; color: var(--text_secondary);"
+                                    onclick="document.getElementById('amount').value='100'">
+                                GHS 100
+                            </button>
+                            <button type="button"
+                                    class="px-3 py-1 rounded-full border text-xs font-semibold"
+                                    style="border-color: #e5e7eb; color: var(--text_secondary);"
+                                    onclick="document.getElementById('amount').value='200'">
+                                GHS 200
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="reference" class="block text-sm font-medium mb-2" style="color: var(--text);">
+                            Note / Reference (optional)
+                        </label>
+                        <input type="text" name="reference" id="reference"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 transition-colors"
+                               style="--tw-ring-color: var(--primary); border-color: #d1d5db;"
+                               placeholder="E.g. Daily Devotions, Missions, General Support">
+                    </div>
+
+                    <button type="submit"
+                            class="w-full text-white px-8 py-4 rounded-lg font-semibold transform hover:scale-[1.01] transition-all shadow-lg"
+                            style="background: var(--primary);">
+                        Give Securely
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Impact Info -->
+        <div class="space-y-5">
+            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold mb-3" style="color: var(--text);">How your gift helps</h3>
+                <ul class="space-y-2 text-sm" style="color: var(--text_secondary);">
+                    <li>• Supporting online and in‑person prayer gatherings.</li>
+                    <li>• Equipping leaders with training and resources.</li>
+                    <li>• Helping us set up and improve studio spaces for better content production.</li>
+                    <li>• Enabling us to create and print more books, guides and other ministry materials.</li>
+                </ul>
+            </div>
+            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold mb-3" style="color: var(--text);">Currency &amp; security</h3>
+                <p class="text-sm mb-2" style="color: var(--text_secondary);">
+                    Payments are processed by Paystack in Ghana Cedis (GHS). If you are giving
+                    from outside Ghana, your bank will convert from your local currency.
+                </p>
+                <p class="text-xs" style="color: var(--text_light);">
+                    We never store your card details on this site.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

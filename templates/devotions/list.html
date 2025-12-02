@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Daily Devotions - Uplift Your Morning | Browse All Devotions{% endblock %}
+
+{% block meta_description %}Browse our collection of daily devotions from Uplift Your Morning. Find spiritual inspiration, Bible studies, and uplifting content to start your day right.{% endblock %}
+
+{% block meta_keywords %}daily devotions, Bible study, spiritual inspiration, devotionals, Christian content, morning devotion, faith, prayer{% endblock %}
+
+{% block og_title %}Daily Devotions - Uplift Your Morning{% endblock %}
+
+{% block og_description %}Browse our collection of daily devotions designed to inspire and uplift your spiritual journey.{% endblock %}
+
+{% block content %}
+
+{% if current_series_obj %}
+<!-- Series-specific banner (e.g., 40 Days of Prayer) -->
+<section class="mb-10" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <!-- Left: Full banner image -->
+            <div class="w-full">
+                <div class="w-full h-64 md:h-80 lg:h-96 bg-white flex items-center justify-center overflow-hidden rounded-xl shadow-md border border-gray-100">
+                    {% if current_series_obj.banner_image %}
+                    <img src="{{ current_series_obj.banner_image.url }}"
+                         alt="{{ current_series_obj.title }}"
+                         class="max-w-full max-h-full object-contain">
+                    {% else %}
+                    <!-- Fallback static banner image; update this path if you upload the 40 days artwork to static -->
+                    <img src="{% static 'images/general/optimized_3O8A9512.jpg' %}"
+                         alt="{{ current_series_obj.title }}"
+                         class="max-w-full max-h-full object-contain">
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right: Text details -->
+            <div>
+                <!-- Series title -->
+                <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--text);">
+                    {{ current_series_obj.title }}
+                </h1>
+
+                <!-- Meta info pills -->
+                <div class="flex flex-wrap gap-3 mb-4">
+                    {% if current_series_obj.start_date and current_series_obj.end_date %}
+                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"
+                          style="background: #f3f4f6; color: var(--text_secondary);">
+                        {{ current_series_obj.start_date|date:"j F Y" }} – {{ current_series_obj.end_date|date:"j F Y" }}
+                    </span>
+                    {% endif %}
+
+                    {% if is_40_days_series %}
+                    <span class="inline-flex flex-col gap-1 px-4 py-2 rounded-full text-sm font-medium"
+                          style="background: #ecfdf3; color: #166534;">
+                        <span>Mornings: 5:00am GMT (7:00am CAT, 8:00am EAT)</span>
+                        <span>Evenings: 6:00pm GMT (8:00pm CAT, 9:00pm EAT)</span>
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if current_series_obj.description %}
+                <p class="font-medium leading-relaxed" style="color: var(--text); font-size: 18px;">
+                    {{ current_series_obj.description }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    {% if not current_series_obj %}
+    <h1 class="text-4xl font-bold mb-8">Daily Devotions</h1>
+    {% endif %}
+    
+    <!-- Filters / Categories -->
+    {% if not current_series_obj %}
+    <!-- All devotions view: show search and category pills -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form method="get" class="flex flex-wrap gap-4 mb-4">
+            <input type="text" name="search" placeholder="Search devotions..." 
+                   value="{{ search_query }}" 
+                   class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg">
+            <button type="submit"
+                    class="px-6 py-2 rounded-lg font-semibold"
+                    style="background: var(--primary); color: white;">
+                Search
+            </button>
+        </form>
+
+        <!-- Category pills based on devotion series -->
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'devotions:list' %}"
+               class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border"
+               style="border-color: #e5e7eb; {% if not current_series %}background: #111827; color: white;{% else %}color: var(--text_secondary); background: #f9fafb;{% endif %}">
+                All Devotions
+            </a>
+            {% for series in series_list %}
+            <a href="?series={{ series.slug }}"
+               class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border"
+               style="border-color: #e5e7eb; {% if current_series == series.slug %}background: #111827; color: white;{% else %}color: var(--text_secondary); background: #f9fafb;{% endif %}">
+                {{ series.title }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Within a specific series: keep simple search bar scoped to that series -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form method="get" class="flex flex-wrap gap-4">
+            <input type="hidden" name="series" value="{{ current_series }}">
+            <input type="text" name="search" placeholder="Search in this series..." 
+                   value="{{ search_query }}" 
+                   class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg">
+            <button type="submit"
+                    class="px-6 py-2 rounded-lg font-semibold"
+                    style="background: var(--primary); color: white;">
+                Search
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Devotions List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for devotion in devotions %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            {% if devotion.image %}
+            <!-- Post-specific image at the top of the card -->
+            <a href="{% url 'devotions:detail' devotion.slug %}">
+                <img src="{{ devotion.image.url }}"
+                     alt="{{ devotion.title }}"
+                     class="w-full h-40 object-cover">
+            </a>
+            {% endif %}
+            <div class="p-6">
+            <h3 class="text-xl font-semibold mb-2">
+                <a href="{% url 'devotions:detail' devotion.slug %}"
+                   class="font-semibold"
+                   style="color: var(--primary);">
+                    {{ devotion.title }}
+                </a>
+            </h3>
+            {% if devotion.scripture_reference %}
+            <p class="text-gray-600 mb-2 italic">{{ devotion.scripture_reference }}</p>
+            {% endif %}
+            <p class="text-gray-700 mb-4">{{ devotion.body|truncatewords:30 }}</p>
+                <div class="flex justify-between items-center gap-2">
+                    <span class="text-sm text-gray-500">{{ devotion.publish_date|date:"M d, Y" }}</span>
+                    <div class="flex items-center gap-3">
+                        <button type="button"
+                                onclick="shareLink('{% url 'devotions:detail' devotion.slug %}', '{{ devotion.title|escapejs }}')"
+                                class="inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full border transition-colors"
+                                style="border-color: #e5e7eb; color: var(--text_secondary);"
+                                onmouseover="this.style.background='var(--background_tint)'; this.style.color='var(--primary)'"
+                                onmouseout="this.style.background='transparent'; this.style.color='var(--text_secondary)'">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="8" stroke-width="2"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 9h4v4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 13l4-4"/>
+                            </svg>
+                            Share
+                        </button>
+                        <a href="{% url 'devotions:detail' devotion.slug %}"
+                           class="font-semibold"
+                           style="color: var(--primary);">
+                            Read More →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-500 text-lg">No devotions found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="px-4 py-2 rounded-lg text-white font-semibold"
+               style="background: var(--primary);">
+                Previous
+            </a>
+            {% endif %}
+            <span class="px-4 py-2 bg-gray-200 rounded-lg">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="px-4 py-2 rounded-lg text-white font-semibold"
+               style="background: var(--primary);">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

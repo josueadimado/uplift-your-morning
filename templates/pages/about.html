@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us - Uplift Your Morning | Our Mission & Vision{% endblock %}
+
+{% block meta_description %}Learn about Uplift Your Morning's mission to empower Africa through spiritual development, leadership, community service, and knowledge dissemination. Discover our vision for a transformed Africa.{% endblock %}
+
+{% block meta_keywords %}about us, mission, vision, Africa, spiritual development, leadership, community service, empowerment, faith-based organization{% endblock %}
+
+{% block og_title %}About Uplift Your Morning - Our Mission & Vision{% endblock %}
+
+{% block og_description %}Learn about our mission to empower Africa through spiritual development, leadership, and community service. Discover how we're transforming lives across the continent.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative py-24 overflow-hidden" style="background: #FFFFFF !important;">
+    <div class="absolute inset-0">
+        <img src="{% static 'images/general/optimized_3O8A0049.jpg' %}" 
+             alt="UPLIFT Afrika" 
+             class="w-full h-full object-cover"
+             onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0049.jpg' %}';">
+    </div>
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6 text-white">About UPLIFT Afrika</h1>
+        <p class="text-xl text-white/90 max-w-3xl mx-auto font-medium" style="font-size: 18px;">
+            Empowering Africa's Future Through Faith, Leadership, and Community Service
+        </p>
+    </div>
+</section>
+
+<!-- Mission & Vision Section -->
+<section class="py-20 bg-white relative overflow-hidden" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <!-- Image -->
+            <div class="relative h-96 md:h-[500px] rounded-lg overflow-hidden shadow-lg">
+                <img src="{% static 'images/general/optimized_395423102_325278640289136_3667017215925678285_n.jpg' %}" 
+                     alt="UPLIFT Mission" 
+                     class="w-full h-full object-cover"
+                     onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+            </div>
+            
+            <!-- Content -->
+            <div>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6" style="color: var(--text);">Our Mission</h2>
+                <p class="mb-6 leading-relaxed font-medium" style="color: var(--text); font-size: 18px;">
+                    UPLIFT Afrika is dedicated to empowering Africa's future one step at a time through spiritual development, 
+                    leadership & community service, African-centered solutions, and knowledge dissemination. We provide daily 
+                    devotions, resources, and programs that inspire spiritual growth and positive change across the continent.
+                </p>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 mt-10" style="color: var(--text);">Our Vision</h2>
+                <p class="leading-relaxed font-medium" style="color: var(--text); font-size: 18px;">
+                    To see a transformed Africa where individuals and communities are empowered through biblical principles, 
+                    strong leadership, and dedicated service to others. We envision a continent where faith, knowledge, and 
+                    community service work together to create lasting positive impact.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Pillars Section -->
+<section class="py-20 bg-white relative overflow-hidden" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--text);">Our Core Pillars</h2>
+            <p class="text-xl leading-relaxed font-medium max-w-3xl mx-auto" style="color: var(--text_secondary); font-size: 18px;">
+                The foundation of everything we do
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Pillar 1: Spiritual Development -->
+            <div class="bg-white rounded-lg p-8 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background: #e5e7eb;">
+                    <svg class="w-8 h-8" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4" style="color: var(--text);">Spiritual Development</h3>
+                <p class="leading-relaxed font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                    Fostering deep spiritual growth through daily devotions, biblical teachings, and transformative 
+                    programs like our 40 Days of Prayer series. We believe that strong faith is the foundation for 
+                    personal and community transformation.
+                </p>
+            </div>
+            
+            <!-- Pillar 2: Leadership & Community Service -->
+            <div class="bg-white rounded-lg p-8 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background: #e5e7eb;">
+                    <svg class="w-8 h-8" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4" style="color: var(--text);">Leadership & Community Service</h3>
+                <p class="leading-relaxed font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                    Equipping leaders to serve their communities with excellence and integrity. Through our programs, 
+                    conferences, and Youth Academy, we develop leaders who are committed to making a positive impact 
+                    in their communities.
+                </p>
+            </div>
+            
+            <!-- Pillar 3: African-Centered Solutions -->
+            <div class="bg-white rounded-lg p-8 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background: #e5e7eb;">
+                    <svg class="w-8 h-8" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4" style="color: var(--text);">African-Centered Solutions</h3>
+                <p class="leading-relaxed font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                    Addressing challenges with solutions that are relevant to the African context. We understand 
+                    the unique needs and opportunities across the continent and tailor our programs accordingly.
+                </p>
+            </div>
+            
+            <!-- Pillar 4: Knowledge Dissemination -->
+            <div class="bg-white rounded-lg p-8 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background: #e5e7eb;">
+                    <svg class="w-8 h-8" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4" style="color: var(--text);">Knowledge Dissemination</h3>
+                <p class="leading-relaxed font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                    Sharing resources, teachings, and insights to empower individuals and communities. Our resource 
+                    library includes PDFs, audio teachings, videos, and study materials accessible to all.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What We Do Section -->
+<section class="py-20 bg-white relative overflow-hidden" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--text);">What We Do</h2>
+            <p class="text-xl leading-relaxed font-medium max-w-3xl mx-auto" style="color: var(--text_secondary); font-size: 18px;">
+                Our programs and initiatives that transform lives
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-lg p-8 text-center shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="text-5xl mb-6">📖</div>
+                <h3 class="text-xl font-bold mb-4" style="color: var(--text);">Daily Devotions</h3>
+                <p class="leading-relaxed font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                    Fresh biblical insights delivered daily via web, email, and WhatsApp to inspire and guide your spiritual journey.
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-lg p-8 text-center shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="text-5xl mb-6">🙏</div>
+                <h3 class="text-xl font-bold mb-4" style="color: var(--text);">40 Days Programs</h3>
+                <p class="leading-relaxed font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                    Intensive spiritual growth programs like 40 Days of Prayer that bring transformation and renewal.
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-lg p-8 text-center shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="text-5xl mb-6">🎓</div>
+                <h3 class="text-xl font-bold mb-4" style="color: var(--text);">Conferences & Events</h3>
+                <p class="leading-relaxed font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                    Transformative conferences, Bible studies, and Youth Academy programs that equip and empower.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Join Our Mission CTA -->
+<section class="py-20" style="background: #1f2937 !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">Join Our Mission</h2>
+        <p class="text-xl mb-8 text-white/90 max-w-2xl mx-auto font-medium" style="font-size: 18px;">
+            Be part of a movement that's transforming lives across Africa. Subscribe to receive daily devotions, 
+            participate in our programs, and connect with our growing community.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <a href="{% url 'subscriptions:subscribe' %}" 
+               class="inline-flex items-center font-semibold transition-colors" 
+               style="padding: 14px 32px; background: #e5e7eb; color: #1f2937; font-size: 18px; border-radius: 8px;"
+               onmouseover="this.style.background='#d1d5db'" 
+               onmouseout="this.style.background='#e5e7eb'">
+                Subscribe Now
+            </a>
+            <a href="{% url 'pages:donate' %}" 
+               class="inline-flex items-center font-semibold transition-colors" 
+               style="padding: 14px 32px; background: var(--primary); color: white; font-size: 18px; border-radius: 8px;"
+               onmouseover="this.style.background='var(--primary_hover)'" 
+               onmouseout="this.style.background='var(--primary)'">
+                Contact Us
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

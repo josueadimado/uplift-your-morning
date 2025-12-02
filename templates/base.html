@@ -1,0 +1,904 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}uplift your morning{% endblock %}</title>
+    
+    {% if not hide_main_nav %}
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}Start your day right with daily devotions, spiritual resources, and uplifting content from Uplift Your Morning. Empowering Africa through faith, leadership, and community service.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}daily devotions, spiritual growth, Africa, prayer, Bible study, Christian resources, uplifting content, morning devotion{% endblock %}">
+    <meta name="author" content="Uplift Your Morning">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}uplift your morning{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Start your day right with daily devotions, spiritual resources, and uplifting content from Uplift Your Morning.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo/Uplift-your-morning_logo_2.png' %}{% endblock %}">
+    <meta property="og:site_name" content="Uplift Your Morning">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{% block twitter_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}uplift your morning{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Start your day right with daily devotions, spiritual resources, and uplifting content.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo/Uplift-your-morning_logo_2.png' %}{% endblock %}">
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#075944">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Uplift Your Morning">
+    {% endif %}
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+        
+        /* Page Loader */
+        #page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        
+        #page-loader.hidden {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            display: none !important;
+            pointer-events: none;
+        }
+        
+        .loader-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(7, 89, 68, 0.1);
+            border-top-color: #075944;
+            border-right-color: #075944;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+            display: block !important;
+            visibility: visible !important;
+        }
+        
+        .loader-logo-wrap {
+            position: relative;
+            width: 84px;
+            height: 84px;
+            border-radius: 9999px;
+            background: radial-gradient(circle at 30% 20%, rgba(150, 250, 126, 0.25), transparent 60%),
+                        radial-gradient(circle at 70% 80%, rgba(73, 182, 148, 0.25), transparent 60%),
+                        #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 30px rgba(7, 89, 68, 0.18);
+            animation: pulse 1.4s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loader-ring {
+            position: absolute;
+            inset: -6px;
+            border-radius: 9999px;
+            border: 3px solid rgba(229, 231, 235, 0.8);
+            border-top-color: #075944;
+            border-right-color: #0a6b52;
+            border-bottom-color: rgba(229, 231, 235, 0.8);
+            border-left-color: rgba(229, 231, 235, 0.8);
+            animation: spin 1s linear infinite;
+        }
+        
+        .loader-logo {
+            height: 42px;
+            width: auto;
+            max-width: 60px;
+            display: block;
+            position: relative;
+            z-index: 1;
+            object-fit: contain;
+        }
+        
+        .loader-logo-wrap.hidden {
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.96);
+                box-shadow: 0 8px 20px rgba(7, 89, 68, 0.12);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 14px 30px rgba(7, 89, 68, 0.18);
+            }
+            100% {
+                transform: scale(0.96);
+                box-shadow: 0 8px 20px rgba(7, 89, 68, 0.12);
+            }
+        }
+        
+        /* Smooth page transitions */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500; /* Medium weight as default */
+        }
+        
+        body:not(.loaded) {
+            overflow: hidden;
+        }
+        
+        body.loaded {
+            opacity: 1;
+        }
+        
+        /* Smooth content fade-in */
+        main {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Scroll to Top Button */
+        #scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(7, 89, 68, 0.3);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        #scroll-to-top.show {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        #scroll-to-top:hover {
+            background: var(--primary_hover);
+            box-shadow: 0 6px 16px rgba(7, 89, 68, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        #scroll-to-top:active {
+            transform: translateY(0);
+        }
+        
+        #scroll-to-top svg {
+            width: 24px;
+            height: 24px;
+        }
+        /* Ensure all text uses medium weight unless explicitly overridden */
+        p, span, div, a, li, td, th, label, input, textarea, select, button {
+            font-weight: 500; /* Medium weight */
+        }
+        /* Allow headings and bold elements to override */
+        h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold, .font-black, .font-extrabold {
+            font-weight: inherit;
+        }
+        :root {
+            /* Logo Colors (base) */
+            --logo-dark-green: #075944;
+            --logo-medium-green: #49b694;
+            --logo-light-green: #96fa7e;
+            
+            /* Primary Brand Colors */
+            --primary: #075944; /* Deep teal green from logo */
+            --primary_hover: #054030; /* Darker green for hover states */
+            --primary_light: #0a6b52; /* Lighter green variant */
+            
+            /* Secondary Colors */
+            --secondary: #2c3e50; /* Dark slate for secondary elements */
+            --secondary_hover: #1a252e; /* Darker slate for hover */
+            
+            /* Accent Colors */
+            --accent: #075944; /* Use primary green for accents */
+            --accent_light: #49b694; /* Medium green for highlights */
+            
+            /* Text Colors */
+            --text: #1a1a1a; /* Near black for main text - excellent readability */
+            --text_secondary: #4a4a4a; /* Medium gray for secondary text */
+            --text_light: #6b7280; /* Light gray for muted text */
+            --text_muted: #9ca3af; /* Very light gray for subtle text */
+            
+            /* UI Colors */
+            --border: #e5e7eb; /* Light gray border */
+            --border_light: #f3f4f6; /* Very light border */
+            --background: #FFFFFF;
+            --background_light: #f9fafb; /* Very light gray background */
+            --background_tint: #f0f7f5; /* Subtle green tint for hover states */
+            
+            /* Footer Colors */
+            --footer_bg: #1f2937; /* Dark gray for footer */
+            --footer_bg_light: #374151; /* Lighter gray for footer sections */
+            --footer_text: #d1d5d9; /* Light gray for footer text */
+            --footer_text_light: #9ca3af; /* Muted gray for footer links */
+        }
+        .watercolor-bg {
+            background: var(--background_light);
+            position: relative;
+            overflow: hidden;
+        }
+        .watercolor-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(255, 107, 107, 0.12) 0%, transparent 60%),
+                        radial-gradient(circle at center right, rgba(255, 206, 84, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .watercolor-bg::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50%;
+            height: 70%;
+            background: radial-gradient(circle at bottom left, rgba(255, 206, 84, 0.12) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .watercolor-bg > * {
+            position: relative;
+            z-index: 1;
+        }
+        .yellow-badge {
+            background: #e5e7eb;
+            color: var(--text);
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .heading-large {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--accent);
+            margin-bottom: 32px;
+        }
+        @media (max-width: 768px) {
+            .heading-large {
+                font-size: 42px;
+            }
+        }
+        /* Navigation improvements */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: calc(100% - 16px);
+            left: 8px;
+        }
+        /* Dropdown Menu Styling */
+        .dropdown-menu {
+            z-index: 1000;
+        }
+        .dropdown-item {
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background-color: var(--background_tint);
+            color: var(--primary) !important;
+        }
+        /* Mobile menu hover */
+        #mobile-menu a:hover {
+            background-color: var(--background_tint);
+            color: var(--primary) !important;
+        }
+        /* Dropdown improvements */
+        .dropdown-menu {
+            min-width: 220px;
+            padding: 8px 0;
+        }
+        .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.2s;
+        }
+        .dropdown-item:hover {
+            background: var(--background_light);
+            padding-left: 24px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body style="background: var(--background); color: var(--text); {% if hide_main_nav %}opacity: 1;{% endif %}">
+    <!-- Page Loader -->
+    <div id="page-loader" {% if hide_main_nav %}style="display: none;"{% endif %}>
+        <div class="loader-wrapper">
+            <!-- Logo with spinning ring -->
+            <div class="loader-logo-wrap">
+                <div class="loader-ring"></div>
+                <img src="{% static 'images/logo/Uplift-your-morning_logo_2.png' %}" 
+                     alt="uplift your morning" 
+                     class="loader-logo">
+            </div>
+            <p class="mt-4 text-xs tracking-[0.2em] uppercase" style="color: #6b7280 !important;">
+                Loading...
+            </p>
+        </div>
+    </div>
+    {% if not hide_main_nav %}
+    <!-- Top Bar - Mission Statement -->
+    <div class="text-white py-2.5 text-xs" style="background: var(--secondary);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div class="text-white/90 font-medium">Start Your Day Right. Uplift Your Morning.</div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="tel:+2341234567890" class="flex items-center space-x-2 hover:text-white transition-colors text-xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                        <span>Call us: <span class="font-semibold">+234 123 456 7890</span></span>
+                    </a>
+                    <a href="mailto:contact@upliftafrika.org" class="flex items-center space-x-2 hover:text-white transition-colors text-xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <span>contact@upliftafrika.org</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-24">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{% url 'pages:home' %}" class="flex items-center">
+                        <img src="{% static 'images/logo/Uplift-your-morning_logo_2.png' %}" 
+                             alt="uplift your morning" 
+                             class="h-14 w-auto"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <span class="text-2xl font-bold hidden" style="color: var(--secondary);">uplift your morning</span>
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden lg:flex lg:items-center lg:space-x-4">
+                    <a href="{% url 'pages:home' %}" class="nav-link font-semibold transition-colors px-2 py-2" style="font-size: 15px; color: var(--text);">Home</a>
+                    
+                    <!-- Devotions Dropdown -->
+                    <div class="relative group">
+                        <button class="nav-link font-semibold transition-colors flex items-center px-2 py-2" style="font-size: 15px; color: var(--text);">
+                            Devotions
+                            <svg class="w-3.5 h-3.5 ml-1 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-gray-100 dropdown-menu py-2">
+                            <a href="{% url 'devotions:today' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">
+                                <span class="font-semibold block">Today's Devotion</span>
+                                <p class="text-sm mt-1 font-medium" style="color: var(--text_light);">Start your day with God's word</p>
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="{% url 'devotions:list' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">All Devotions</a>
+                            <a href="{% url 'devotions:list' %}?series=40-days-of-prayer" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">40 Days of Prayer</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Resources Dropdown -->
+                    <div class="relative group">
+                        <button class="nav-link font-semibold transition-colors flex items-center px-2 py-2" style="font-size: 15px; color: var(--text);">
+                            Resources
+                            <svg class="w-3.5 h-3.5 ml-1 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-gray-100 dropdown-menu py-2">
+                            <a href="{% url 'resources:list' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">All Resources</a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="{% url 'resources:list' %}?type=pdf" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">PDF Downloads</a>
+                            <a href="{% url 'resources:list' %}?type=audio" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Audio Teachings</a>
+                            <a href="{% url 'resources:list' %}?type=video" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Videos</a>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'events:list' %}" class="nav-link font-semibold transition-colors px-2 py-2" style="font-size: 15px; color: var(--text);">Events</a>
+                    
+                    <!-- Community Dropdown -->
+                    <div class="relative group">
+                        <button class="nav-link font-semibold transition-colors flex items-center px-2 py-2" style="font-size: 15px; color: var(--text);">
+                            Community
+                            <svg class="w-3.5 h-3.5 ml-1 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-gray-100 dropdown-menu py-2">
+                            <a href="{% url 'community:testimonies' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Testimonies</a>
+                            <a href="{% url 'community:prayer-request' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Prayer Requests</a>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2.5 ml-5 pl-5 border-l" style="border-color: var(--border);">
+                        {% if request.user.is_authenticated and request.user.is_staff %}
+                            <a href="{% url 'pages:admin_dashboard' %}"
+                               class="px-3 py-2 rounded-md font-semibold transition-all border"
+                               style="border-color: var(--border); color: var(--text_secondary); font-size: 13px;">
+                                Dashboard
+                            </a>
+                            <form method="post" action="{% url 'admin_logout' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="px-3 py-2 rounded-md font-semibold text-xs transition-colors border-0 bg-transparent cursor-pointer"
+                                        style="color: var(--text_secondary); font-size: 13px;">
+                                    Logout
+                                </button>
+                            </form>
+                        {% elif not request.user.is_authenticated %}
+                            <a href="{% url 'admin_login' %}"
+                               class="px-3 py-2 rounded-md font-semibold text-xs transition-colors"
+                               style="color: var(--text_secondary); font-size: 13px;">
+                                Login
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'pages:donate' %}" 
+                           class="px-5 py-2 rounded-md font-semibold transition-all border hover:text-white hover:border-[var(--primary)]"
+                           style="border-color: var(--primary); color: var(--primary); font-size: 15px;"
+                           onmouseover="this.style.background='var(--primary)'; this.style.color='white'" 
+                           onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
+                            Give
+                        </a>
+                        <a href="{% url 'subscriptions:subscribe' %}" 
+                           class="px-5 py-2 rounded-md font-semibold text-white transition-colors shadow-sm hover:shadow-md"
+                           style="background: var(--primary);"
+                           onmouseover="this.style.background='var(--primary_hover)'" 
+                           onmouseout="this.style.background='var(--primary)'" 
+                           style="background: var(--primary); font-size: 15px;">
+                            Subscribe
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="lg:hidden p-2 rounded-md transition-colors" style="color: var(--text);" onmouseover="this.style.color='var(--primary)'; this.style.backgroundColor='var(--background_tint)'" onmouseout="this.style.color='var(--text)'; this.style.backgroundColor='transparent'">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-gray-200 bg-white shadow-lg">
+            <div class="px-4 py-6 space-y-1">
+                <a href="{% url 'pages:home' %}" class="block px-4 py-3 font-semibold transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Home</a>
+                
+                <div class="px-4 py-2">
+                    <div class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2" style="font-size: 18px;">Devotions</div>
+                    <a href="{% url 'devotions:today' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Today's Devotion</a>
+                    <a href="{% url 'devotions:list' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">All Devotions</a>
+                    <a href="{% url 'devotions:list' %}?series=40-days-of-prayer" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">40 Days of Prayer</a>
+                </div>
+                
+                <div class="px-4 py-2">
+                    <div class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2" style="font-size: 18px;">Resources</div>
+                    <a href="{% url 'resources:list' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">All Resources</a>
+                    <a href="{% url 'resources:list' %}?type=pdf" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">PDF Downloads</a>
+                    <a href="{% url 'resources:list' %}?type=audio" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Audio Teachings</a>
+                    <a href="{% url 'resources:list' %}?type=video" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Videos</a>
+                </div>
+                
+                <a href="{% url 'events:list' %}" class="block px-4 py-3 font-semibold transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Events</a>
+                
+                <div class="px-4 py-2">
+                    <div class="text-sm font-semibold uppercase tracking-wide mb-2" style="font-size: 16px; color: var(--text_light);">Community</div>
+                    <a href="{% url 'community:testimonies' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Testimonies</a>
+                    <a href="{% url 'community:prayer-request' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Prayer Requests</a>
+                </div>
+                
+                <div class="pt-4 space-y-3 border-t border-gray-200 mt-4">
+                    <a href="{% url 'pages:donate' %}" 
+                       class="block px-4 py-3 border-2 rounded-md text-center font-semibold hover:text-white transition-colors"
+                       style="border-color: var(--primary); color: var(--primary); font-size: 18px;"
+                       onmouseover="this.style.background='var(--primary)'; this.style.color='white'" 
+                       onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
+                        Give
+                    </a>
+                    <a href="{% url 'subscriptions:subscribe' %}" 
+                       class="block px-4 py-3 rounded-md text-center font-semibold text-white transition-colors shadow-sm"
+                       style="background: var(--primary);"
+                       onmouseover="this.style.background='var(--primary_hover)'" 
+                       onmouseout="this.style.background='var(--primary)'" 
+                       style="background: var(--primary); font-size: 18px;">
+                        Subscribe
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    {% if hide_main_nav %}
+    <!-- Admin Header (when main nav is hidden) -->
+    <div class="bg-white border-b" style="border-color: var(--border);">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'pages:admin_dashboard' %}" class="flex items-center space-x-2">
+                        <svg class="w-6 h-6" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span class="font-bold text-lg" style="color: var(--text);">Admin Dashboard</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if request.user.is_authenticated %}
+                        <span class="text-sm" style="color: var(--text_secondary);">Welcome, {{ request.user.username }}</span>
+                        <form method="post" action="{% url 'admin_logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="px-4 py-2 rounded-md font-semibold text-sm transition-colors border"
+                                    style="border-color: var(--border); color: var(--text_secondary); background: transparent; cursor: pointer;"
+                                    onmouseover="this.style.background='var(--background_tint)'; this.style.color='var(--primary)'"
+                                    onmouseout="this.style.background='transparent'; this.style.color='var(--text_secondary)'">
+                                Logout
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'admin_login' %}?next={{ request.path }}" 
+                           class="px-4 py-2 rounded-md font-semibold text-sm text-white transition-colors"
+                           style="background: var(--primary);"
+                           onmouseover="this.style.background='var(--primary_hover)'"
+                           onmouseout="this.style.background='var(--primary)'">
+                            Login
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <script>
+        // Mobile menu toggle (only if element exists)
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        if (mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', function() {
+                const menu = document.getElementById('mobile-menu');
+                if (menu) {
+                    menu.classList.toggle('hidden');
+                }
+            });
+        }
+        
+        // Page Loader - Show immediately and hide after delay
+        (function() {
+            const loader = document.getElementById('page-loader');
+            const body = document.body;
+            
+            if (!loader) return;
+            
+            // Ensure loader is visible immediately (only if not admin page)
+            if (!loader.hasAttribute('style') || !loader.getAttribute('style').includes('display: none')) {
+                loader.style.display = 'flex';
+                loader.style.opacity = '1';
+                loader.style.visibility = 'visible';
+                loader.style.zIndex = '99999';
+            }
+            
+            // Hide loader after 1.5 seconds (always hide, no conditions)
+            setTimeout(function() {
+                if (loader) {
+                    // Remove inline styles and add hidden class
+                    loader.style.display = 'none';
+                    loader.style.opacity = '0';
+                    loader.style.visibility = 'hidden';
+                    loader.classList.add('hidden');
+                }
+                if (body) {
+                    body.classList.add('loaded');
+                    body.style.opacity = '1';
+                }
+            }, 1500);
+        })();
+        
+        // Scroll to Top Button
+        document.addEventListener('DOMContentLoaded', function() {
+            const scrollButton = document.getElementById('scroll-to-top');
+            
+            if (!scrollButton) return;
+            
+            // Show/hide button based on scroll position
+            function toggleScrollButton() {
+                const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+                if (scrollY > 300) {
+                    scrollButton.classList.add('show');
+                } else {
+                    scrollButton.classList.remove('show');
+                }
+            }
+            
+            // Scroll to top when button is clicked
+            scrollButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Listen for scroll events
+            window.addEventListener('scroll', toggleScrollButton);
+            
+            // Check on page load
+            toggleScrollButton();
+        });
+    </script>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        {% for message in messages %}
+        <div class="rounded-md p-4 mb-4 {% if message.tags == 'error' %}bg-red-50 text-red-800{% elif message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'info' %}bg-teal-50 text-teal-800{% else %}bg-gray-50 text-gray-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if not hide_main_nav %}
+    <!-- Footer -->
+    <footer style="background: var(--footer_bg);">
+        <!-- Main Footer Content -->
+        <div class="py-16" style="background: var(--footer_bg_light);">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                    <!-- Column 1: Logo & Mission -->
+                    <div class="lg:col-span-1">
+                        <a href="{% url 'pages:home' %}" class="inline-block mb-6">
+                            <img src="{% static 'images/logo/Uplift-your-morning_logo_3.png' %}" 
+                                 alt="uplift your morning" 
+                                 class="h-12 w-auto"
+                                 onerror="this.style.display='none';">
+                        </a>
+                        <p class="text-sm leading-relaxed mb-6" style="color: var(--footer_text); font-size: 15px;">
+                        </p>
+                        <div class="flex space-x-4">
+                            <a href="https://www.facebook.com/upliftafrikatoday" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                               style="background: var(--footer_bg_light); color: var(--footer_text_light);"
+                               onmouseover="this.style.background='var(--primary)'; this.style.color='white'" 
+                               onmouseout="this.style.background='var(--footer_bg_light)'; this.style.color='var(--footer_text_light)'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                            <a href="https://www.instagram.com/upliftafrikatoday/" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="w-10 h-10 rounded-full flex items-center justify-center transition-all instagram-hover"
+                               style="background: var(--footer_bg_light); color: var(--footer_text_light);"
+                               onmouseover="this.style.background='#e91e63'; this.style.color='white'" 
+                               onmouseout="this.style.background='var(--footer_bg_light)'; this.style.color='var(--footer_text_light)'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.398.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                            <a href="https://www.youtube.com/@upliftafrikatoday" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                               style="background: #34495e; color: #95a5a6;"
+                               onmouseover="this.style.background='#e74c3c'; this.style.color='white'" 
+                               onmouseout="this.style.background='#34495e'; this.style.color='#95a5a6'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.746 22 12 22 12s0 3.255-.418 4.814a2.504 2.504 0 0 1-1.768 1.768c-1.56.419-7.814.419-7.814.419s-6.255 0-7.814-.419a2.505 2.505 0 0 1-1.768-1.768C2 15.255 2 12 2 12s0-3.255.417-4.814a2.507 2.507 0 0 1 1.768-1.768C5.744 5 11.998 5 11.998 5s6.255 0 7.814.418ZM15.194 12 10 15V9l5.194 3Z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: Explore -->
+                    <div>
+                        <h5 class="font-bold uppercase tracking-wide mb-6" style="color: var(--footer_text); font-size: 14px;">Explore</h5>
+                        <ul class="space-y-3">
+                            <li>
+                                <a href="{% url 'devotions:today' %}" class="transition-colors"
+                                   style="color: var(--footer_text_light); font-size: 15px;"
+                                   onmouseover="this.style.color='var(--footer_text)'"
+                                   onmouseout="this.style.color='var(--footer_text_light)'">
+                                    Today's Devotion
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'events:list' %}" class="transition-colors"
+                                   style="color: var(--footer_text_light); font-size: 15px;"
+                                   onmouseover="this.style.color='var(--footer_text)'"
+                                   onmouseout="this.style.color='var(--footer_text_light)'">
+                                    Events
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'resources:list' %}" class="transition-colors"
+                                   style="color: var(--footer_text_light); font-size: 15px;"
+                                   onmouseover="this.style.color='var(--footer_text)'"
+                                   onmouseout="this.style.color='var(--footer_text_light)'">
+                                    Resources
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Column 3: Get Involved -->
+                    <div>
+                        <h5 class="font-bold uppercase tracking-wide mb-6" style="color: var(--footer_text); font-size: 14px;">Get Involved</h5>
+                        <ul class="space-y-3">
+                            <li><a href="{% url 'pages:donate' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Give / Donate</a></li>
+                            <li><a href="{% url 'community:testimonies' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Share a Testimony</a></li>
+                            <li><a href="{% url 'community:prayer-request' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Send a Prayer Request</a></li>
+                            <li><a href="{% url 'subscriptions:subscribe' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Email & WhatsApp Subscription</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 4: Stay Connected -->
+                    <div>
+                        <h5 class="font-bold uppercase tracking-wide mb-6" style="color: var(--footer_text); font-size: 14px;">Stay Connected</h5>
+                        <p class="mb-4" style="color: var(--footer_text_light); font-size: 14px;">Get daily devotions and updates</p>
+                        <a href="{% url 'subscriptions:subscribe' %}" 
+                           class="inline-block text-white px-6 py-2.5 rounded-lg font-semibold transition-colors"
+                           style="background: var(--primary); font-size: 15px;"
+                           onmouseover="this.style.background='var(--primary_hover)'" 
+                           onmouseout="this.style.background='var(--primary)'">
+                            Subscribe Now →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Footer Bar -->
+        <div class="py-6" style="background: var(--footer_bg); border-top: 1px solid var(--footer_bg_light);">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                    <p style="color: var(--footer_text_light); font-size: 14px;">Copyright © {% now "Y" %} Uplift Your Morning. All rights reserved.</p>
+                    <div class="flex flex-wrap justify-center gap-6" style="font-size: 14px;">
+                        <a href="#" class="transition-colors" style="color: var(--footer_text_light);" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Privacy Policy</a>
+                        <a href="#" class="transition-colors" style="color: var(--footer_text_light);" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Terms & Conditions</a>
+                        <a href="#" class="transition-colors" style="color: var(--footer_text_light);" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Legal Notice</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    {% if not hide_main_nav %}
+    <!-- Scroll to Top Button -->
+    <button id="scroll-to-top" aria-label="Scroll to top">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+        </svg>
+    </button>
+    {% endif %}
+
+    <!-- Global sharing helper (copies link and shows a simple message) -->
+    <script>
+        function shareLink(url, title) {
+            try {
+                var rawUrl = url || window.location.href;
+
+                // Turn relative URLs into absolute (so they work when pasted elsewhere)
+                var absoluteUrl;
+                if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+                    absoluteUrl = rawUrl;
+                } else {
+                    absoluteUrl = window.location.origin + rawUrl;
+                }
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(absoluteUrl).then(function () {
+                        alert('Link copied. You can now paste it into WhatsApp, SMS, email or social media.');
+                    }).catch(function () {
+                        alert('Could not copy automatically. You can still share by copying the address bar link.');
+                    });
+                    return;
+                }
+
+                // Fallback for older browsers
+                var tempInput = document.createElement('input');
+                tempInput.style.position = 'fixed';
+                tempInput.style.opacity = '0';
+                tempInput.value = absoluteUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Link copied. You can now paste it into WhatsApp, SMS, email or social media.');
+                } catch (e) {
+                    alert('Could not copy automatically. You can still share by copying the address bar link.');
+                }
+                document.body.removeChild(tempInput);
+            } catch (e) {
+                alert('Something went wrong while trying to share. Please try again.');
+                console.error('Share failed', e);
+            }
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+
+

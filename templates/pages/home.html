@@ -1,0 +1,833 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Uplift Your Morning | Daily Devotions & Spiritual Resources{% endblock %}
+
+{% block meta_description %}Start your day right with Uplift Your Morning. Access daily devotions, spiritual resources, prayer requests, and uplifting content designed to empower and inspire your spiritual journey across Africa.{% endblock %}
+
+{% block meta_keywords %}daily devotions, morning devotion, spiritual growth, Bible study, prayer, Christian resources, uplifting content, Africa, faith, inspiration{% endblock %}
+
+{% block og_title %}Uplift Your Morning - Daily Devotions & Spiritual Resources{% endblock %}
+
+{% block og_description %}Start your day right with daily devotions, spiritual resources, and uplifting content designed to empower and inspire your spiritual journey.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Minimum font size and medium weight for all text */
+    body {
+        font-size: 18px;
+        font-weight: 500; /* Medium weight */
+        background: #FFFFFF !important;
+    }
+    /* Ensure all sections have white backgrounds unless specified */
+    section {
+        background: #FFFFFF !important;
+    }
+    section.bg-gray-50 {
+        background: #f9fafb !important;
+    }
+    .text-xs, .text-sm, .text-base, .text-lg, p {
+        font-size: 18px !important;
+        font-weight: 500 !important; /* Medium weight */
+    }
+    
+    /* World Map Background Design - Professional Clean Style */
+    .world-map-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .world-map-bg::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 130%;
+        height: 130%;
+        background-image: 
+            /* Country markers - clean and visible */
+            radial-gradient(circle at 48% 58%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* Ghana */
+            radial-gradient(circle at 49% 58%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* Togo */
+            radial-gradient(circle at 55% 60%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* Kenya */
+            radial-gradient(circle at 54% 65%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* Zambia */
+            radial-gradient(circle at 55% 59%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* Uganda */
+            radial-gradient(circle at 48% 35%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* UK */
+            radial-gradient(circle at 25% 45%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* USA */
+            radial-gradient(circle at 50% 38%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* Austria */
+            radial-gradient(circle at 58% 30%, rgba(7, 89, 68, 0.2) 8px, transparent 10px), /* Moscow/Russia */
+            /* Clean connection lines */
+            linear-gradient(135deg, transparent 47%, rgba(7, 89, 68, 0.08) 49.5%, rgba(7, 89, 68, 0.08) 50.5%, transparent 53%),
+            linear-gradient(225deg, transparent 47%, rgba(7, 89, 68, 0.08) 49.5%, rgba(7, 89, 68, 0.08) 50.5%, transparent 53%),
+            linear-gradient(90deg, transparent 47%, rgba(7, 89, 68, 0.08) 49.5%, rgba(7, 89, 68, 0.08) 50.5%, transparent 53%),
+            linear-gradient(0deg, transparent 47%, rgba(7, 89, 68, 0.08) 49.5%, rgba(7, 89, 68, 0.08) 50.5%, transparent 53%);
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.4;
+    }
+    
+    .world-map-bg::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(ellipse at 50% 50%, transparent 0%, rgba(7, 89, 68, 0.03) 50%, transparent 100%);
+    }
+    
+    /* Impact Statistics Section - Clean Professional Style */
+    .impact-stats-section {
+        position: relative;
+    }
+    
+    /* Animated connection lines */
+    .world-map-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            /* Connection lines from center (Africa) to countries */
+            linear-gradient(to top right, transparent calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% + 1px), transparent calc(50% + 1px)),
+            linear-gradient(to top left, transparent calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% + 1px), transparent calc(50% + 1px)),
+            linear-gradient(to right, transparent calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% + 1px), transparent calc(50% + 1px)),
+            linear-gradient(to top, transparent calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% - 1px), rgba(79, 70, 229, 0.08) calc(50% + 1px), transparent calc(50% + 1px));
+        background-size: 100% 100%;
+        opacity: 0.3;
+        animation: pulse 3s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 0.4; }
+    }
+    
+    .hero-slider-container {
+        position: relative;
+        min-height: 90vh;
+        overflow: hidden;
+    }
+    .hero-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1.5s ease-in-out;
+    }
+    .hero-slide.active {
+        opacity: 1;
+        z-index: 1;
+    }
+    .hero-slide-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+    .hero-slide-background img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+        min-height: 100%;
+        filter: blur(2px);
+    }
+    .hero-slide-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1;
+    }
+    .hero-content-wrapper {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 40px;
+        text-align: center;
+    }
+    .hero-content-inner {
+        max-width: 900px;
+        width: 100%;
+    }
+    .hero-content-inner h2 {
+        color: white !important;
+        font-size: 3.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+    }
+    .hero-content-inner p {
+        color: white !important;
+        font-size: 1.5rem;
+        font-weight: 400;
+        margin-bottom: 2.5rem;
+        opacity: 0.95;
+    }
+    .hero-content-inner a {
+        display: inline-block;
+        padding: 14px 32px;
+        background: #e5e7eb;
+        color: #1f2937;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 4px;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+    .hero-content-inner a:hover {
+        background: #d1d5db;
+    }
+    .slider-dots {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .slider-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+    }
+    .slider-dot.active {
+        background: white;
+        width: 30px;
+        border-radius: 5px;
+    }
+    .slider-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.5);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+    }
+    .slider-nav:hover {
+        background: rgba(0, 0, 0, 0.7);
+    }
+    .slider-nav svg {
+        color: white;
+    }
+    .slider-nav.prev {
+        left: 30px;
+    }
+    .slider-nav.next {
+        right: 30px;
+    }
+    @media (max-width: 1024px) {
+        .hero-content-wrapper {
+            padding: 40px 20px;
+        }
+        .hero-content-inner h2 {
+            font-size: 2.5rem;
+        }
+        .hero-content-inner p {
+            font-size: 1.25rem;
+        }
+        .slider-nav {
+            width: 40px;
+            height: 40px;
+        }
+        .slider-nav.prev {
+            left: 15px;
+        }
+        .slider-nav.next {
+            right: 15px;
+        }
+    }
+    @media (max-width: 640px) {
+        .hero-content-inner h2 {
+            font-size: 2rem;
+        }
+        .hero-content-inner p {
+            font-size: 1.1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Slider Section -->
+<section class="hero-slider-container relative">
+    <!-- Slide 1 -->
+    <div class="hero-slide active">
+        <div class="hero-slide-background">
+            <img src="{% static 'images/general/3O8A0001.jpg' %}" 
+                 alt="UPLIFT Afrika Conference" 
+                 onerror="this.style.display='none';">
+        </div>
+        <div class="hero-slide-overlay"></div>
+        <div class="hero-content-wrapper">
+            <div class="hero-content-inner">
+                <h2>Empowering Africa's Future Through Faith, Leadership, and Community Service</h2>
+                <p>Transforming lives and empowering communities across the continent</p>
+                <a href="{% url 'devotions:today' %}">START TODAY'S DEVOTION</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 2 -->
+    <div class="hero-slide">
+        <div class="hero-slide-background">
+            <img src="{% static 'images/general/optimized_3O8A8964.jpg' %}" 
+                 alt="Daily Devotions" 
+                 onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0004.jpg' %}';">
+        </div>
+        <div class="hero-slide-overlay"></div>
+        <div class="hero-content-wrapper">
+            <div class="hero-content-inner">
+                <h2>Start Your Day With God's Word</h2>
+                <p>Fresh biblical insights delivered daily to strengthen your faith journey</p>
+                <a href="{% url 'devotions:today' %}">START TODAY'S DEVOTION</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 3 -->
+    <div class="hero-slide">
+        <div class="hero-slide-background">
+            <img src="{% static 'images/general/optimized_3O8A9109.jpg' %}" 
+                 alt="40 Days of Prayer" 
+                 onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0049.jpg' %}';">
+        </div>
+        <div class="hero-slide-overlay"></div>
+        <div class="hero-content-wrapper">
+            <div class="hero-content-inner">
+                <h2>Transform Your Faith Through Prayer</h2>
+                <p>Join believers across Africa in a transformative 40-day prayer journey</p>
+                <a href="{% url 'devotions:list' %}?series=40-days-of-prayer">JOIN 40 DAYS OF PRAYER</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 4 -->
+    <div class="hero-slide">
+        <div class="hero-slide-background">
+            <img src="{% static 'images/general/optimized_3O8A9178.jpg' %}" 
+                 alt="Resources Library" 
+                 onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+        </div>
+        <div class="hero-slide-overlay"></div>
+        <div class="hero-content-wrapper">
+            <div class="hero-content-inner">
+                <h2>Access Biblical Resources & Teachings</h2>
+                <p>Comprehensive library of PDFs, audio teachings, videos, and study materials</p>
+                <a href="{% url 'resources:list' %}">BROWSE RESOURCES</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slider Navigation -->
+    <button class="slider-nav prev" onclick="changeSlide(-1)">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+    <button class="slider-nav next" onclick="changeSlide(1)">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+    </button>
+    
+    <!-- Slider Dots -->
+    <div class="slider-dots">
+        <span class="slider-dot active" onclick="goToSlide(0)"></span>
+        <span class="slider-dot" onclick="goToSlide(1)"></span>
+        <span class="slider-dot" onclick="goToSlide(2)"></span>
+        <span class="slider-dot" onclick="goToSlide(3)"></span>
+    </div>
+</section>
+
+<!-- Intro Section - Two Column Layout -->
+<section class="py-24" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+            <!-- Left: Heading -->
+            <div style="background: transparent !important;">
+                <h2 class="text-3xl md:text-4xl font-bold leading-tight mb-8" style="color: var(--text); background: transparent !important;">
+                    Empowering Africa's Future Through Faith, Leadership, and Community Service
+                </h2>
+            </div>
+            
+            <!-- Right: Description + Button -->
+            <div style="background: transparent !important;">
+                <p class="text-xl mb-8 leading-relaxed font-medium" style="color: var(--text);">
+                    We are committed to empowering Africa's future through our four foundational pillars: Spiritual Development, Leadership & Community Service, African-Centered Solutions, and Knowledge Dissemination. Our mission reaches thousands of individuals across the continent, transforming lives through faith, leadership, and community service.
+                </p>
+                <a href="{% url 'resources:list' %}" 
+                   class="inline-flex items-center font-semibold transition-colors" 
+                   style="padding: 14px 32px; background: var(--primary); color: white; font-size: 18px; border-radius: 4px;"
+                   onmouseover="this.style.background='var(--primary_hover)'" 
+                   onmouseout="this.style.background='var(--primary)'">
+                    <span>EXPLORE RESOURCES</span>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Engagement Section - Two Image Cards -->
+<section class="py-20 bg-white" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl md:text-5xl font-bold mb-12 text-center" style="color: var(--text);">How would you like to engage with us?</h2>
+        
+        <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <!-- Card 1: Join the Network -->
+            <a href="{% url 'subscriptions:subscribe' %}" class="group block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all">
+                <div class="relative h-64 overflow-hidden">
+                    <img src="{% static 'images/general/optimized_3O8A9074.jpg' %}" 
+                         alt="Join the Network" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0004.jpg' %}';">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">JOIN THE NETWORK</h3>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Card 2: Explore Programs -->
+            <a href="{% url 'events:list' %}" class="group block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all">
+                <div class="relative h-64 overflow-hidden">
+                    <img src="{% static 'images/general/optimized_3O8A9134.jpg' %}" 
+                         alt="Explore Our Programs" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">EXPLORE OUR PROGRAMS</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section - Colored Background Bar -->
+<section class="py-20" style="background: var(--primary) !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-3 gap-12 text-center">
+            <div>
+                <div class="text-6xl md:text-7xl font-black mb-4 text-white" style="line-height: 1;">10,000+</div>
+                <div class="text-lg font-medium text-white/90">lives empowered across Africa through tailored initiatives and programs</div>
+            </div>
+            <div>
+                <div class="text-6xl md:text-7xl font-black mb-4 text-white" style="line-height: 1;">24</div>
+                <div class="text-lg font-medium text-white/90">countries across Africa participate in the network</div>
+            </div>
+            <div>
+                <div class="text-6xl md:text-7xl font-black mb-4 text-white" style="line-height: 1;">Daily</div>
+                <div class="text-lg font-medium text-white/90">devotions and resources delivered to believers</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Focal Areas Section - Card Based Layout -->
+<section class="py-24 bg-white" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-16">
+            <h2 class="text-4xl md:text-5xl font-bold mb-6" style="color: var(--text);">Focal Areas</h2>
+            <p class="text-xl leading-relaxed font-medium max-w-3xl" style="color: var(--text);">
+                Our focal areas reflect the core developmental needs and trends in spiritual growth and community empowerment across Africa. Each area represents a strategic approach to transforming lives through faith, leadership, and service.
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Card 1: Spiritual Development -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
+                <div class="h-48 overflow-hidden">
+                    <img src="{% static 'images/general/optimized_3O8A8982.jpg' %}" 
+                         alt="Spiritual Development" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0004.jpg' %}';">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Spiritual Development</h3>
+                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
+                        Fostering deep spiritual growth through daily devotions, biblical teachings, and transformative programs that strengthen faith and inspire personal transformation.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 2: Leadership & Community Service -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
+                <div class="h-48 overflow-hidden">
+                    <img src="{% static 'images/general/compressed_3O8A9427.JPG' %}" 
+                         alt="Leadership & Community Service" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Leadership & Community Service</h3>
+                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
+                        Equipping leaders to serve their communities with excellence and integrity. Developing individuals committed to making a positive impact through service and leadership.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 3: African-Centered Solutions -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
+                <div class="h-48 overflow-hidden">
+                    <img src="{% static 'images/general/optimized_3O8A0049.jpg' %}" 
+                         alt="African-Centered Solutions" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0049.jpg' %}';">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">African-Centered Solutions</h3>
+                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
+                        Addressing challenges with solutions that are relevant to the African context. Understanding unique needs and opportunities across the continent to create meaningful impact.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 4: Knowledge Dissemination -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
+                <div class="h-48 overflow-hidden">
+                    <img src="{% static 'images/general/optimized_395423102_325278640289136_3667017215925678285_n.jpg' %}" 
+                         alt="Knowledge Dissemination" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/395439820_325278850289115_7147826790215198435_n.jpg' %}';">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Knowledge Dissemination</h3>
+                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
+                        Sharing resources, teachings, and insights to empower individuals and communities. Our comprehensive library includes PDFs, audio teachings, videos, and study materials accessible to all.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Resource Library Section - Colored Background -->
+<section class="py-24" style="background: var(--primary) !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-16">
+            <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white">Resource Library</h2>
+            <p class="text-xl leading-relaxed font-medium max-w-3xl text-white/90">
+                Our resource library contains visuals, articles, and research insights to help believers deepen their understanding of God's word and grow in their faith journey.
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Resource Card 1 -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all">
+                <div class="h-48 overflow-hidden">
+                    <img src="{% static 'images/general/compressed_3O8A9061.JPG' %}" 
+                         alt="Daily Devotions" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0004.jpg' %}';">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Daily Devotions</h3>
+                    <p class="text-lg leading-relaxed font-medium mb-4" style="color: var(--text_light);">
+                        Access our comprehensive collection of daily devotions designed to strengthen your faith and provide biblical insights for everyday living.
+                    </p>
+                    <a href="{% url 'devotions:list' %}" class="font-semibold inline-flex items-center" style="color: var(--primary);">
+                        Learn more
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Resource Card 2 -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all">
+                <div class="h-48 overflow-hidden">
+                    <img src="{% static 'images/general/71fvt60sfeL._SY522_.jpg' %}" 
+                         alt="Biblical Resources" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Biblical Resources</h3>
+                    <p class="text-lg leading-relaxed font-medium mb-4" style="color: var(--text_light);">
+                        Explore our library of PDFs, audio teachings, videos, and study materials to help you deepen your understanding of God's word.
+                    </p>
+                    <a href="{% url 'resources:list' %}" class="font-semibold inline-flex items-center" style="color: var(--primary);">
+                        Learn more
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Resource Card 3 -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all">
+                <div class="h-48 overflow-hidden">
+                    <img src="{% static 'images/general/optimized_3O8A9427.jpg' %}" 
+                         alt="Events & Programs" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0049.jpg' %}';">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Events & Programs</h3>
+                    <p class="text-lg leading-relaxed font-medium mb-4" style="color: var(--text_light);">
+                        Discover upcoming conferences, Bible studies, and special events designed to strengthen your faith and build community connections.
+                    </p>
+                    <a href="{% url 'events:list' %}" class="font-semibold inline-flex items-center" style="color: var(--primary);">
+                        Learn more
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Today's Devotion Featured -->
+{% if todays_devotion %}
+<section class="py-20 bg-gray-50" style="background: #f9fafb !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl p-8 md:p-12 shadow-lg border border-gray-100">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <span class="font-bold uppercase tracking-wide mb-4 block" style="color: var(--primary); font-size: 18px;">Today's Devotion</span>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6" style="color: var(--text);">
+                        <a href="{% url 'devotions:detail' todays_devotion.slug %}" class="hover:text-gray-700 transition-colors">
+                            {{ todays_devotion.title }}
+                        </a>
+                    </h2>
+                    {% if todays_devotion.scripture_reference %}
+                    <p class="text-xl mb-6 italic font-medium" style="color: var(--text);">{{ todays_devotion.scripture_reference }}</p>
+                    {% endif %}
+                    <p class="text-lg mb-8 leading-relaxed font-medium" style="color: var(--text);">
+                        {{ todays_devotion.body|truncatewords:50 }}
+                    </p>
+                    
+                    <!-- Watch Live Section -->
+                    <div class="mb-6 p-4 rounded-lg" style="background: #f9fafb; border: 1px solid #e5e7eb;">
+                        <p class="font-semibold mb-3" style="color: var(--text); font-size: 18px;">Watch Live Daily Devotion</p>
+                        <div class="flex flex-wrap gap-3">
+                            <a href="https://www.youtube.com/@GodswillTKMensah/live" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center rounded-lg font-semibold transition-colors" 
+                               style="padding: 10px 20px; background: #FF0000; color: white; font-size: 18px;"
+                               onmouseover="this.style.background='#CC0000'" 
+                               onmouseout="this.style.background='#FF0000'">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                                YouTube Live
+                            </a>
+                            <a href="https://facebook.com/godswilltkmensah/live" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center rounded-lg font-semibold transition-colors" 
+                               style="padding: 10px 20px; background: #1877F2; color: white; font-size: 18px;"
+                               onmouseover="this.style.background='#1465C0'" 
+                               onmouseout="this.style.background='#1877F2'">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                                Facebook Live
+                            </a>
+                            <a href="https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center rounded-lg font-semibold transition-colors" 
+                               style="padding: 10px 20px; background: #2D8CFF; color: white; font-size: 18px;"
+                               onmouseover="this.style.background='#1a6fd9'" 
+                               onmouseout="this.style.background='#2D8CFF'">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.5 0C20.538 0 23 2.462 23 5.5S20.538 11 17.5 11c-.173 0-.337-.009-.5-.025L11.5 16.5c.016.163.025.327.025.5C11.525 20.538 9.063 23 6.025 23S.525 20.538.525 17.5 2.987 12 6.025 12c.173 0 .337.009.5.025L12.5 6.5c-.016-.163-.025-.327-.025-.5C12.475 2.462 14.937 0 17.975 0h-.475zm0 2C15.567 2 13.525 4.042 13.525 6.5S15.567 11 17.975 11 22.475 8.958 22.475 6.5 20.383 2 17.975 2zm-11.95 11C4.567 13 2.525 15.042 2.525 17.5S4.567 22 6.975 22s4.45-2.042 4.45-4.5-2.042-4.5-4.45-4.5z"/>
+                                </svg>
+                                Join on Zoom
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'devotions:detail' todays_devotion.slug %}" 
+                       class="inline-flex items-center rounded-lg font-semibold transition-colors" style="background: #4f46e5; color: white; font-size: 18px; padding: 12px 24px;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+                        READ FULL DEVOTION →
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="relative">
+                    <img src="{% static 'images/general/optimized_3O8A9512.jpg' %}" 
+                         alt="Today's Devotion" 
+                         class="rounded-xl shadow-2xl"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0049.jpg' %}';">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Latest From the Network Section -->
+<section class="py-24 bg-white" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl md:text-5xl font-bold mb-12" style="color: var(--text);">Latest From the Network</h2>
+        
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+            {% if upcoming_events %}
+            {% for event in upcoming_events|slice:":3" %}
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
+                <div class="h-48 relative overflow-hidden">
+                    {% if forloop.counter0 == 0 %}
+                    <img src="{% static 'images/general/optimized_IMG_9517.jpg' %}" 
+                         alt="{{ event.title }}" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/395439820_325278850289115_7147826790215198435_n.jpg' %}';">
+                    {% elif forloop.counter0 == 1 %}
+                    <img src="{% static 'images/general/optimized_IMG_9523.jpg' %}" 
+                         alt="{{ event.title }}" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/395457450_325280206955646_1672341732974099556_n.jpg' %}';">
+                    {% else %}
+                    <img src="{% static 'images/general/optimized_IMG_9529.jpg' %}" 
+                         alt="{{ event.title }}" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+                    {% endif %}
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">
+                        <a href="{% url 'events:detail' event.slug %}" class="hover:text-gray-700 transition-colors">
+                            {{ event.title }}
+                        </a>
+                    </h3>
+                    <p class="text-lg text-gray-600 mb-4 leading-relaxed font-medium">
+                        {{ event.description|truncatewords:25|default:"Join us for this transformative event designed to strengthen your faith and build community connections." }}
+                    </p>
+                    <a href="{% url 'events:detail' event.slug %}" class="font-semibold inline-flex items-center" style="color: var(--primary);">
+                        READ MORE
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="text-center">
+            <a href="{% url 'events:list' %}" 
+               class="inline-flex items-center font-semibold transition-colors" 
+               style="padding: 14px 32px; background: #1f2937; color: white; font-size: 18px; border-radius: 4px;"
+               onmouseover="this.style.background='#374151'" 
+               onmouseout="this.style.background='#1f2937'">
+                <span>MORE NEWS</span>
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Join the Network CTA Section -->
+<section class="py-20" style="background: #1f2937 !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+            <h2 class="text-4xl md:text-5xl font-bold text-white text-center md:text-left">Join the network</h2>
+            <a href="{% url 'subscriptions:subscribe' %}" 
+               class="inline-flex items-center font-semibold transition-colors" 
+               style="padding: 14px 32px; background: #e5e7eb; color: #1f2937; font-size: 18px; border-radius: 4px;"
+               onmouseover="this.style.background='#d1d5db'" 
+               onmouseout="this.style.background='#e5e7eb'">
+                <span>SUBSCRIBE NOW</span>
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hero Slider Functionality
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.slider-dot');
+    const totalSlides = slides.length;
+
+    function showSlide(index) {
+        // Remove active class from all slides and dots
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        // Add active class to current slide and dot
+        if (slides[index]) {
+            slides[index].classList.add('active');
+        }
+        if (dots[index]) {
+            dots[index].classList.add('active');
+        }
+    }
+
+    function changeSlide(direction) {
+        currentSlide += direction;
+        if (currentSlide >= totalSlides) {
+            currentSlide = 0;
+        } else if (currentSlide < 0) {
+            currentSlide = totalSlides - 1;
+        }
+        showSlide(currentSlide);
+    }
+
+    function goToSlide(index) {
+        currentSlide = index;
+        showSlide(currentSlide);
+    }
+
+    // Auto-play slider
+    setInterval(() => {
+        changeSlide(1);
+    }, 6000);
+
+</script>
+{% endblock %}

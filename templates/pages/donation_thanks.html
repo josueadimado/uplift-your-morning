@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Thank You for Your Donation - Uplift Your Morning{% endblock %}
+
+{% block meta_description %}Thank you for supporting Uplift Your Morning. Your generous donation helps us provide daily devotions, spiritual resources, and community programs across Africa.{% endblock %}
+
+{% block meta_keywords %}donation, support, giving, charity, Africa, spiritual resources, community programs{% endblock %}
+
+{% block og_title %}Thank You for Your Donation - Uplift Your Morning{% endblock %}
+
+{% block og_description %}Thank you for supporting our mission to empower Africa through spiritual development and community service.{% endblock %}
+
+{% block content %}
+<section class="py-16" style="background: var(--background_light);">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full"
+             style="background: var(--background_tint); color: var(--primary);">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--text);">
+            Thank you for partnering with UPLIFT Afrika
+        </h1>
+        <p class="text-base md:text-lg mb-6" style="color: var(--text_secondary);">
+            We are grateful for your generosity. Your seed helps us take the gospel, prayer
+            and discipleship resources to more people across Afrika and beyond.
+        </p>
+        <a href="{% url 'pages:home' %}"
+           class="inline-flex items-center rounded-lg font-semibold px-6 py-3 shadow-md hover:shadow-lg"
+           style="background: var(--primary); color: white;">
+            Back to Home
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+

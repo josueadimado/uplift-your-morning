@@ -1,0 +1,38 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<div class="mb-6"><h1 class="text-2xl font-bold" style="color: var(--text);">Prayer Requests</h1></div>
+<div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50" style="background: var(--background_light);">
+                <tr><th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Request</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                {% for prayer in prayers %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4"><div class="text-sm" style="color: var(--text);">{{ prayer.request|truncatechars:80 }}</div></td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ prayer.name|default:"Anonymous" }}</td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ prayer.created_at|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4">{% if prayer.is_prayed_for %}<span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">Prayed</span>{% else %}<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">Open</span>{% endif %}</td>
+                    <td class="px-6 py-4">
+                        {% if not prayer.is_prayed_for %}
+                        <form method="post" action="{% url 'manage:prayers_mark_prayed' prayer.pk %}" class="inline">{% csrf_token %}
+                            <button type="submit" class="text-sm font-semibold" style="color: var(--primary);">Mark as Prayed</button>
+                        </form>
+                        <span style="color: var(--border);">|</span>
+                        {% endif %}
+                        <a href="{% url 'manage:prayers_delete' prayer.pk %}" class="text-sm font-semibold text-red-600">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}<tr><td colspan="5" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">No prayer requests found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

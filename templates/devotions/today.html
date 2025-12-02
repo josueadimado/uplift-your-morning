@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Today's Devotion - Uplift Your Morning | Daily Inspiration{% endblock %}
+
+{% block meta_description %}Read today's daily devotion from Uplift Your Morning. Start your day with spiritual inspiration, Bible study, and uplifting content.{% endblock %}
+
+{% block meta_keywords %}today's devotion, daily devotion, morning devotion, Bible study, spiritual inspiration, daily reading{% endblock %}
+
+{% block og_title %}Today's Devotion - Uplift Your Morning{% endblock %}
+
+{% block og_description %}Start your day right with today's daily devotion designed to inspire and uplift your spiritual journey.{% endblock %}
+
+{% block content %}
+{# Choose a banner devotion for the month theme: prefer month_theme_devotion, fall back to today's devotion #}
+{% with banner_devotion=month_theme_devotion|default:devotion %}
+<!-- Hero Section with Image (Monthly Theme Banner) -->
+<section class="relative overflow-hidden" style="background: #FFFFFF !important; min-height: 480px;">
+    <div class="absolute inset-0">
+        {% if banner_devotion and banner_devotion.image %}
+        <!-- Use the banner devotion's image as a full-width banner -->
+        <img src="{{ banner_devotion.image.url }}"
+             alt="{{ banner_devotion.title }}"
+             class="w-full h-full object-cover"
+             style="object-position: center top;">
+        {% else %}
+        <!-- Fallback static banner image -->
+        <img src="{% static 'images/general/optimized_3O8A9512.jpg' %}" 
+             alt="Today's Devotion" 
+             class="w-full h-full object-cover"
+             style="object-position: center top;"
+             onerror="this.onerror=null; this.src='{% static 'images/general/3O8A9512.jpg' %}';">
+        {% endif %}
+    </div>
+    <!-- Dark overlay -->
+    <div class="absolute inset-0 bg-black/50"></div>
+    <!-- Text block aligned left (vertically centered) -->
+    <div class="absolute inset-0 flex items-center justify-start">
+        <div class="max-w-3xl text-left px-8 sm:px-12 lg:px-20">
+            {% if banner_devotion and banner_devotion.theme %}
+            <span class="inline-block px-4 py-2 rounded-full mb-4 font-semibold" style="background: var(--primary); color: white; font-size: 16px;">
+                {{ banner_devotion.theme }}
+            </span>
+            {% endif %}
+            {% if banner_devotion and banner_devotion.topic %}
+            <h2 class="text-xl md:text-2xl font-semibold mb-3 text-white/90" style="font-size: 20px;">{{ banner_devotion.topic }}</h2>
+            {% endif %}
+            {% if banner_devotion %}
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">{{ banner_devotion.title }}</h1>
+            {% else %}
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">Daily Devotions</h1>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endwith %}
+
+{% if devotion %}
+
+<!-- Watch Live Section -->
+<section class="py-8 bg-white" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-gradient-to-r rounded-xl p-6 shadow-lg" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%); border: 1px solid #e5e7eb;">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    {% if is_live_time %}
+                    <h2 class="text-2xl font-bold mb-2" style="color: var(--text);">Watch Live Daily Devotion (5:00am – 5:30am Ghana Time)</h2>
+                    <p class="font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                        We are currently live. Join the devotion now on your preferred channel below.
+                    </p>
+                    {% else %}
+                    <h2 class="text-2xl font-bold mb-2" style="color: var(--text);">Rewatch Daily Devotions</h2>
+                    <p class="font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                        Live devotions run daily from 5:00am – 5:30am Ghana time. You can rewatch previous sessions on YouTube or Facebook anytime.
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="https://www.youtube.com/@GodswillTKMensah/live" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                       style="padding: 12px 24px; background: #FF0000; color: white; font-size: 18px;"
+                       onmouseover="this.style.background='#CC0000'" 
+                       onmouseout="this.style.background='#FF0000'">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        YouTube Live
+                    </a>
+                    <a href="https://facebook.com/godswilltkmensah/live" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                       style="padding: 12px 24px; background: #1877F2; color: white; font-size: 18px;"
+                       onmouseover="this.style.background='#1465C0'" 
+                       onmouseout="this.style.background='#1877F2'">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Facebook Live
+                    </a>
+                    {% if show_zoom_link %}
+                    <a href="https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                       style="padding: 12px 24px; background: #2D8CFF; color: white; font-size: 18px;"
+                       onmouseover="this.style.background='#1a6fd9'" 
+                       onmouseout="this.style.background='#2D8CFF'">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.5 0C20.538 0 23 2.462 23 5.5S20.538 11 17.5 11c-.173 0-.337-.009-.5-.025L11.5 16.5c.016.163.025.327.025.5C11.525 20.538 9.063 23 6.025 23S.525 20.538.525 17.5 2.987 12 6.025 12c.173 0 .337.009.5.025L12.5 6.5c-.016-.163-.025-.327-.025-.5C12.475 2.462 14.937 0 17.975 0h-.475zm0 2C15.567 2 13.525 4.042 13.525 6.5S15.567 11 17.975 11 22.475 8.958 22.475 6.5 20.383 2 17.975 2zm-11.95 11C4.567 13 2.525 15.042 2.525 17.5S4.567 22 6.975 22s4.45-2.042 4.45-4.5-2.042-4.5-4.45-4.5z"/>
+                        </svg>
+                        Join on Zoom
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content Section -->
+<section class="py-12 bg-white" style="background: #FFFFFF !important;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <article class="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100">
+                    <!-- Scripture Reference -->
+                    {% if devotion.scripture_reference %}
+                    <div class="mb-8 p-6 rounded-xl relative overflow-hidden" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%); border-left: 4px solid var(--primary);">
+                        <div class="absolute top-0 right-0 w-32 h-32 opacity-10">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M50 10 L60 40 L90 40 L65 60 L75 90 L50 70 L25 90 L35 60 L10 40 L40 40 Z" fill="var(--primary)"/>
+                            </svg>
+                        </div>
+                        <div class="relative">
+                            <p class="font-bold mb-3 text-xl" style="color: var(--primary);">{{ devotion.scripture_reference }}</p>
+                            {% if devotion.passage_text %}
+                            <p class="font-medium italic leading-relaxed" style="color: var(--text); font-size: 18px; line-height: 1.8;">{{ devotion.passage_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Devotion Body -->
+                    <div class="mb-8">
+                        <div class="prose prose-lg max-w-none">
+                            <p class="font-medium whitespace-pre-line leading-relaxed" style="color: var(--text); font-size: 18px; line-height: 1.9;">{{ devotion.body }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Quote -->
+                    {% if devotion.quote %}
+                    <div class="mb-8 p-6 rounded-xl relative overflow-hidden" style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-left: 4px solid #8b5cf6;">
+                        <div class="absolute top-0 right-0 w-24 h-24 opacity-10">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 30 Q30 20 40 30 Q30 40 20 30 Z M60 30 Q70 20 80 30 Q70 40 60 30 Z" fill="#8b5cf6"/>
+                            </svg>
+                        </div>
+                        <div class="relative">
+                            <p class="font-medium italic leading-relaxed text-lg" style="color: var(--text); font-size: 18px; line-height: 1.8;">"{{ devotion.quote }}"</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Reflection -->
+                    {% if devotion.reflection %}
+                    <div class="mb-8 p-6 rounded-xl relative overflow-hidden" style="background: linear-gradient(135deg, #fff9e6 0%, #fff4d6 100%); border-left: 4px solid #f59e0b;">
+                        <div class="absolute top-0 right-0 w-24 h-24 opacity-10">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="40" fill="#f59e0b"/>
+                            </svg>
+                        </div>
+                        <div class="relative">
+                            <h3 class="font-bold mb-3 text-xl flex items-center" style="color: var(--text);">
+                                <svg class="w-6 h-6 mr-2" style="color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                                Reflection
+                            </h3>
+                            <p class="font-medium whitespace-pre-line leading-relaxed" style="color: var(--text_secondary); font-size: 18px; line-height: 1.8;">{{ devotion.reflection }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Prayer -->
+                    {% if devotion.prayer %}
+                    <div class="mb-8 p-6 rounded-xl relative overflow-hidden" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%); border-left: 4px solid var(--primary);">
+                        <div class="absolute top-0 right-0 w-24 h-24 opacity-10">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M50 20 L55 35 L70 35 L58 45 L63 60 L50 50 L37 60 L42 45 L30 35 L45 35 Z" fill="var(--primary)"/>
+                            </svg>
+                        </div>
+                        <div class="relative">
+                            <h3 class="font-bold mb-3 text-xl flex items-center" style="color: var(--text);">
+                                <svg class="w-6 h-6 mr-2" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                                Prayer
+                            </h3>
+                            <p class="font-medium whitespace-pre-line leading-relaxed" style="color: var(--text_secondary); font-size: 18px; line-height: 1.8;">{{ devotion.prayer }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Point -->
+                    {% if devotion.action_point %}
+                    <div class="mb-8 p-6 rounded-xl relative overflow-hidden" style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-left: 4px solid #8b5cf6;">
+                        <div class="absolute top-0 right-0 w-24 h-24 opacity-10">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 50 L40 30 L40 45 L80 45 L80 55 L40 55 L40 70 Z" fill="#8b5cf6"/>
+                            </svg>
+                        </div>
+                        <div class="relative">
+                            <h3 class="font-bold mb-3 text-xl flex items-center" style="color: var(--text);">
+                                <svg class="w-6 h-6 mr-2" style="color: #8b5cf6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                Action Point
+                            </h3>
+                            <p class="font-medium whitespace-pre-line leading-relaxed" style="color: var(--text_secondary); font-size: 18px; line-height: 1.8;">{{ devotion.action_point }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Download & Share Options -->
+                    <div class="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+                        {% if devotion.pdf_file %}
+                        <a href="{{ devotion.pdf_file.url }}" download 
+                           class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                           style="padding: 12px 24px; background: #dc2626; color: white; font-size: 18px;"
+                           onmouseover="this.style.background='#b91c1c'" 
+                           onmouseout="this.style.background='#dc2626'">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Download PDF
+                        </a>
+                        {% endif %}
+                        {% if devotion.audio_file %}
+                        <a href="{{ devotion.audio_file.url }}" 
+                           class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                           style="padding: 12px 24px; background: var(--primary); color: white; font-size: 18px;"
+                           onmouseover="this.style.background='var(--primary_hover)'" 
+                           onmouseout="this.style.background='var(--primary)'">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Listen to Audio
+                        </a>
+                        {% endif %}
+                        <button type="button"
+                                onclick="shareLink('{% url 'devotions:detail' devotion.slug %}', '{{ devotion.title|escapejs }}')"
+                                class="inline-flex items-center rounded-lg font-semibold transition-colors border shadow-sm hover:shadow-md"
+                                style="padding: 12px 24px; border-color: #e5e7eb; color: var(--text_secondary); font-size: 18px;"
+                                onmouseover="this.style.background='var(--background_tint)'; this.style.color='var(--primary)'"
+                                onmouseout="this.style.background='white'; this.style.color='var(--text_secondary)'">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="8" stroke-width="2"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 9h4v4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 13l4-4"/>
+                            </svg>
+                            Share
+                        </button>
+                    </div>
+                </article>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <!-- Image Card -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6 border border-gray-100">
+                    <img src="{% static 'images/general/optimized_3O8A9061.JPG' %}" 
+                         alt="Daily Devotion" 
+                         class="w-full h-64 object-cover"
+                         onerror="this.onerror=null; this.src='{% static 'images/general/compressed_3O8A9061.JPG' %}';">
+                    <div class="p-6">
+                        <h3 class="font-bold mb-2 text-lg" style="color: var(--text);">Daily Devotion</h3>
+                        <p class="font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                            Start each day with God's word and grow in your faith journey.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="font-bold mb-4 text-lg" style="color: var(--text);">Quick Links</h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <a href="{% url 'devotions:list' %}" 
+                               class="flex items-center font-medium transition-colors hover:underline" 
+                               style="color: var(--text_secondary); font-size: 18px;"
+                               onmouseover="this.style.color='var(--primary)'" 
+                               onmouseout="this.style.color='var(--text_secondary)'">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                                All Devotions
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'resources:list' %}" 
+                               class="flex items-center font-medium transition-colors hover:underline" 
+                               style="color: var(--text_secondary); font-size: 18px;"
+                               onmouseover="this.style.color='var(--primary)'" 
+                               onmouseout="this.style.color='var(--text_secondary)'">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                                Resources Library
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'events:list' %}" 
+                               class="flex items-center font-medium transition-colors hover:underline" 
+                               style="color: var(--text_secondary); font-size: 18px;"
+                               onmouseover="this.style.color='var(--primary)'" 
+                               onmouseout="this.style.color='var(--text_secondary)'">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                Upcoming Events
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'subscriptions:subscribe' %}" 
+                               class="flex items-center font-medium transition-colors hover:underline" 
+                               style="color: var(--text_secondary); font-size: 18px;"
+                               onmouseover="this.style.color='var(--primary)'" 
+                               onmouseout="this.style.color='var(--text_secondary)'">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                Subscribe for Daily Devotions
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<!-- No Devotion Available -->
+<section class="py-20 bg-white" style="background: #FFFFFF !important;">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Watch Live Section -->
+        <div class="bg-gradient-to-r rounded-xl p-8 mb-8 shadow-lg" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%); border: 1px solid #e5e7eb;">
+            {% if is_live_time %}
+            <h2 class="text-2xl font-bold mb-4" style="color: var(--text);">Watch Live Daily Devotion (5:00am – 5:30am Ghana Time)</h2>
+            <p class="mb-6 font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                We are currently live. Join the devotion now on your preferred channel below.
+            </p>
+            {% else %}
+            <h2 class="text-2xl font-bold mb-4" style="color: var(--text);">Rewatch Daily Devotions</h2>
+            <p class="mb-6 font-medium" style="color: var(--text_secondary); font-size: 18px;">
+                Live devotions run daily from 5:00am – 5:30am Ghana time. You can rewatch previous sessions on YouTube or Facebook anytime.
+            </p>
+            {% endif %}
+            <div class="flex flex-wrap gap-3">
+                <a href="https://www.youtube.com/@GodswillTKMensah/live" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                   style="padding: 12px 24px; background: #FF0000; color: white; font-size: 18px;"
+                   onmouseover="this.style.background='#CC0000'" 
+                   onmouseout="this.style.background='#FF0000'">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    YouTube Live
+                </a>
+                <a href="https://facebook.com/godswilltkmensah/live" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                   style="padding: 12px 24px; background: #1877F2; color: white; font-size: 18px;"
+                   onmouseover="this.style.background='#1465C0'" 
+                   onmouseout="this.style.background='#1877F2'">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    Facebook Live
+                </a>
+                {% if show_zoom_link %}
+                <a href="https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                   style="padding: 12px 24px; background: #2D8CFF; color: white; font-size: 18px;"
+                   onmouseover="this.style.background='#1a6fd9'" 
+                   onmouseout="this.style.background='#2D8CFF'">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.5 0C20.538 0 23 2.462 23 5.5S20.538 11 17.5 11c-.173 0-.337-.009-.5-.025L11.5 16.5c.016.163.025.327.025.5C11.525 20.538 9.063 23 6.025 23S.525 20.538.525 17.5 2.987 12 6.025 12c.173 0 .337.009.5.025L12.5 6.5c-.016-.163-.025-.327-.025-.5C12.475 2.462 14.937 0 17.975 0h-.475zm0 2C15.567 2 13.525 4.042 13.525 6.5S15.567 11 17.975 11 22.475 8.958 22.475 6.5 20.383 2 17.975 2zm-11.95 11C4.567 13 2.525 15.042 2.525 17.5S4.567 22 6.975 22s4.45-2.042 4.45-4.5-2.042-4.5-4.45-4.5z"/>
+                    </svg>
+                    Join on Zoom
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+            <div class="max-w-md mx-auto">
+                <img src="{% static 'images/general/optimized_3O8A9061.JPG' %}" 
+                     alt="No Devotion" 
+                     class="w-full h-64 object-cover rounded-lg mb-6"
+                     onerror="this.onerror=null; this.src='{% static 'images/general/compressed_3O8A9061.JPG' %}';">
+                <h2 class="text-3xl font-bold mb-4" style="color: var(--text);">No Devotion Available Today</h2>
+                <p class="font-medium mb-8" style="color: var(--text_secondary); font-size: 18px;">
+                    Check back later or browse our devotion archive to access previous devotions.
+                </p>
+                <a href="{% url 'devotions:list' %}" 
+                   class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg" 
+                   style="padding: 14px 32px; background: var(--primary); color: white; font-size: 18px;"
+                   onmouseover="this.style.background='var(--primary_hover)'" 
+                   onmouseout="this.style.background='var(--primary)'">
+                    Browse All Devotions
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

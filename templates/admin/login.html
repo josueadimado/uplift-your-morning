@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Login | UPLIFT Afrika{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        padding: 2rem;
+    }
+    .login-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        width: 100%;
+        max-width: 420px;
+    }
+    .login-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        background: white;
+        color: var(--text);
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(7, 89, 68, 0.1);
+    }
+    .login-button {
+        width: 100%;
+        padding: 0.875rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%);
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .login-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(7, 89, 68, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 rounded-xl" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%);">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-2xl font-bold mb-2" style="color: var(--text);">Admin Login</h1>
+            <p class="text-sm" style="color: var(--text_secondary);">Sign in to access the admin dashboard</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-3 rounded-lg text-sm {% if message.tags == 'error' %}bg-red-50 text-red-800{% elif message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.errors %}
+            <div class="mb-4 p-3 rounded-lg bg-red-50 text-red-800 text-sm">
+                {% if form.non_field_errors %}
+                    {{ form.non_field_errors }}
+                {% else %}
+                    Please correct the errors below.
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'admin_login' %}">
+            {% csrf_token %}
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% elif request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+            
+            <div class="mb-4">
+                <label for="{{ form.username.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+                    Username
+                </label>
+                <input type="text" 
+                       name="{{ form.username.name }}" 
+                       id="{{ form.username.id_for_label }}"
+                       class="form-input"
+                       placeholder="Enter your username"
+                       required
+                       autofocus>
+                {% if form.username.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-6">
+                <label for="{{ form.password.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+                    Password
+                </label>
+                <input type="password" 
+                       name="{{ form.password.name }}" 
+                       id="{{ form.password.id_for_label }}"
+                       class="form-input"
+                       placeholder="Enter your password"
+                       required>
+                {% if form.password.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="login-button">
+                Sign In
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="{% url 'pages:home' %}" class="text-sm transition-colors" style="color: var(--text_secondary);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text_secondary)'">
+                ← Back to website
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

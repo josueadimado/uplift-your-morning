@@ -1,0 +1,150 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">
+        {% if object %}Edit Devotion{% else %}Create New Devotion{% endif %}
+    </h1>
+    <p class="text-sm mt-1" style="color: var(--text_secondary);">
+        {% if object %}Update devotion details{% else %}Add a new daily devotion{% endif %}
+    </p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    {% csrf_token %}
+    
+    <div class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Title *</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.title.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.series.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Series</label>
+                {{ form.series }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="{{ form.theme.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Theme</label>
+                {{ form.theme }}
+            </div>
+            <div>
+                <label for="{{ form.topic.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Topic</label>
+                {{ form.topic }}
+            </div>
+        </div>
+
+        <div>
+            <label for="{{ form.scripture_reference.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Scripture Reference</label>
+            {{ form.scripture_reference }}
+        </div>
+
+        <div>
+            <label for="{{ form.passage_text.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Scripture Passage</label>
+            {{ form.passage_text }}
+        </div>
+
+        <div>
+            <label for="{{ form.body.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Devotional Message *</label>
+            {{ form.body }}
+            {% if form.body.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.body.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.quote.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Inspirational Quote</label>
+            {{ form.quote }}
+        </div>
+
+        <div>
+            <label for="{{ form.reflection.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Reflection</label>
+            {{ form.reflection }}
+        </div>
+
+        <div>
+            <label for="{{ form.prayer.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Today's Prayer</label>
+            {{ form.prayer }}
+        </div>
+
+        <div>
+            <label for="{{ form.action_point.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Action Point</label>
+            {{ form.action_point }}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="{{ form.publish_date.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Publish Date *</label>
+                {{ form.publish_date }}
+                {% if form.publish_date.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.publish_date.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.image.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Featured Image</label>
+                {{ form.image }}
+                {% if object and object.image %}
+                <p class="text-xs mt-1" style="color: var(--text_secondary);">Current: <a href="{{ object.image.url }}" target="_blank" style="color: var(--primary);">{{ object.image.name }}</a></p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="{{ form.audio_file.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Audio File</label>
+                {{ form.audio_file }}
+            </div>
+            <div>
+                <label for="{{ form.pdf_file.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">PDF File</label>
+                {{ form.pdf_file }}
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-6">
+            <label class="flex items-center">
+                {{ form.is_published }}
+                <span class="ml-2 text-sm" style="color: var(--text);">Published</span>
+            </label>
+            <label class="flex items-center">
+                {{ form.featured }}
+                <span class="ml-2 text-sm" style="color: var(--text);">Featured</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="mt-6 flex items-center space-x-4">
+        <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold" style="background: var(--primary);">
+            {% if object %}Update Devotion{% else %}Create Devotion{% endif %}
+        </button>
+        <a href="{% url 'manage:devotions_list' %}" class="px-6 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">
+            Cancel
+        </a>
+    </div>
+</form>
+
+<style>
+    input[type="text"], input[type="date"], textarea, select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text);
+    }
+    input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(7, 89, 68, 0.1);
+    }
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+</style>
+{% endblock %}
+

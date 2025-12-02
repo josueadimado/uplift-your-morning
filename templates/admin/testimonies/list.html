@@ -1,0 +1,38 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<div class="mb-6"><h1 class="text-2xl font-bold" style="color: var(--text);">Testimonies</h1></div>
+<div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50" style="background: var(--background_light);">
+                <tr><th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Testimony</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                {% for testimony in testimonies %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4"><div class="text-sm" style="color: var(--text);">{{ testimony.testimony|truncatechars:80 }}</div></td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ testimony.name|default:"Anonymous" }}</td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ testimony.created_at|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4">{% if testimony.is_approved %}<span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">Approved</span>{% else %}<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">Pending</span>{% endif %}</td>
+                    <td class="px-6 py-4">
+                        {% if not testimony.is_approved %}
+                        <form method="post" action="{% url 'manage:testimonies_approve' testimony.pk %}" class="inline">{% csrf_token %}
+                            <button type="submit" class="text-sm font-semibold" style="color: var(--primary);">Approve</button>
+                        </form>
+                        <span style="color: var(--border);">|</span>
+                        {% endif %}
+                        <a href="{% url 'manage:testimonies_delete' testimony.pk %}" class="text-sm font-semibold text-red-600">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}<tr><td colspan="5" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">No testimonies found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

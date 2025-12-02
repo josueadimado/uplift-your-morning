@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Upcoming Events - Uplift Your Morning | Join Our Community{% endblock %}
+
+{% block meta_description %}Discover upcoming events, prayer gatherings, and community programs from Uplift Your Morning. Join us for spiritual growth and fellowship across Africa.{% endblock %}
+
+{% block meta_keywords %}events, prayer gatherings, community programs, spiritual events, Africa, fellowship, Christian events{% endblock %}
+
+{% block og_title %}Upcoming Events - Uplift Your Morning{% endblock %}
+
+{% block og_description %}Join us for upcoming events, prayer gatherings, and community programs designed to inspire and empower.{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-8">Events & Programs</h1>
+    
+    <!-- Filter Tabs -->
+    <div class="mb-8 flex space-x-4">
+        <a href="?filter=upcoming" 
+           class="px-6 py-2 rounded-lg text-sm font-semibold"
+           style="{% if filter_type == 'upcoming' %}background: var(--primary); color: #ffffff;{% else %}background: #e5e7eb; color: var(--text_secondary);{% endif %}">
+            Upcoming Events
+        </a>
+        <a href="?filter=past" 
+           class="px-6 py-2 rounded-lg text-sm font-semibold"
+           style="{% if filter_type == 'past' %}background: var(--primary); color: #ffffff;{% else %}background: #e5e7eb; color: var(--text_secondary);{% endif %}">
+            Past Events
+        </a>
+    </div>
+
+    <!-- Events List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for event in events %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            {% if event.poster_image %}
+            <!-- Event poster image at top of card -->
+            <a href="{% url 'events:detail' event.slug %}">
+                <img src="{{ event.poster_image.url }}"
+                     alt="{{ event.title }}"
+                     class="w-full h-48 md:h-56 lg:h-64 object-cover">
+            </a>
+            {% endif %}
+            <div class="p-6">
+                <h3 class="text-xl font-semibold mb-2">
+                    <a href="{% url 'events:detail' event.slug %}" style="color: var(--primary);" class="hover:underline">
+                        {{ event.title }}
+                    </a>
+                </h3>
+                <p class="text-gray-600 mb-1">
+                    <strong>Date:</strong> {{ event.start_datetime|date:"F d, Y" }}
+                </p>
+                <p class="text-gray-600 mb-1">
+                    <strong>Time:</strong> {{ event.start_datetime|date:"g:i A" }}
+                </p>
+                {% if event.location %}
+                <p class="text-gray-600 mb-3">
+                    <strong>Location:</strong> {{ event.location }}
+                </p>
+                {% endif %}
+                <div class="flex items-center justify-between">
+                    <div class="space-x-2">
+                        {% if event.is_online %}
+                        <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                            Online
+                        </span>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'events:detail' event.slug %}" style="color: var(--primary);" class="font-semibold hover:underline">
+                        Learn More →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-500 text-lg">No events found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-lg text-white font-semibold"
+               style="background: var(--primary);">
+                Previous
+            </a>
+            {% endif %}
+            <span class="px-4 py-2 bg-gray-200 rounded-lg">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-lg text-white font-semibold"
+               style="background: var(--primary);">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

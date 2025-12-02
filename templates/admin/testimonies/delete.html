@@ -1,0 +1,13 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<div class="max-w-2xl mx-auto"><div class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    <h1 class="text-2xl font-bold mb-4" style="color: var(--text);">Delete Testimony</h1>
+    <form method="post">{% csrf_token %}
+        <div class="flex items-center space-x-4">
+            <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold bg-red-600">Yes, Delete</button>
+            <a href="{% url 'manage:testimonies_list' %}" class="px-6 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">Cancel</a>
+        </div>
+    </form>
+</div></div>
+{% endblock %}
+

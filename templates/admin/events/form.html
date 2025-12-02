@@ -1,0 +1,39 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">{% if object %}Edit Event{% else %}Create New Event{% endif %}</h1>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    {% csrf_token %}
+    <div class="space-y-6">
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Title *</label>{{ form.title }}</div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Description *</label>{{ form.description }}</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Start Date & Time *</label>{{ form.start_datetime }}</div>
+            <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">End Date & Time *</label>{{ form.end_datetime }}</div>
+        </div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Location</label>{{ form.location }}</div>
+        <div class="flex items-center space-x-6">
+            <label class="flex items-center">{{ form.is_online }}<span class="ml-2 text-sm" style="color: var(--text);">Online Event</span></label>
+            <label class="flex items-center">{{ form.registration_open }}<span class="ml-2 text-sm" style="color: var(--text);">Registration Open</span></label>
+        </div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Poster Image</label>{{ form.poster_image }}</div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">YouTube URL</label>{{ form.youtube_url }}</div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Facebook URL</label>{{ form.facebook_url }}</div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Zoom URL</label>{{ form.zoom_url }}</div>
+    </div>
+    <div class="mt-6 flex items-center space-x-4">
+        <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold" style="background: var(--primary);">{% if object %}Update{% else %}Create{% endif %} Event</button>
+        <a href="{% url 'manage:events_list' %}" class="px-6 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">Cancel</a>
+    </div>
+</form>
+
+<style>
+    input[type="text"], input[type="datetime-local"], textarea, select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.875rem; color: var(--text); }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(7, 89, 68, 0.1); }
+    textarea { min-height: 100px; resize: vertical; }
+</style>
+{% endblock %}
+

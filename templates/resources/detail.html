@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ resource.title }} - Spiritual Resource | Uplift Your Morning{% endblock %}
+
+{% block meta_description %}{{ resource.description|truncatewords:30|default:"Download this spiritual resource from Uplift Your Morning." }}{% endblock %}
+
+{% block meta_keywords %}{{ resource.title }}, spiritual resource, {{ resource.category.name|default:"Christian resource" }}, download{% endblock %}
+
+{% block og_title %}{{ resource.title }} - Uplift Your Morning{% endblock %}
+
+{% block og_description %}{{ resource.description|truncatewords:30|default:"Download this spiritual resource to enhance your spiritual journey." }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <article class="bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-4xl font-bold mb-4">{{ resource.title }}</h1>
+        
+        <div class="flex items-center space-x-4 mb-6">
+            <span class="inline-block text-sm px-3 py-1 rounded"
+                  style="background: var(--background_tint); color: var(--primary);">
+                {{ resource.get_type_display }}
+            </span>
+            <span class="text-gray-600">{{ resource.category.name }}</span>
+        </div>
+        
+        {% if resource.description %}
+        <div class="prose max-w-none mb-6">
+            <p class="text-gray-700">{{ resource.description }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="flex flex-wrap gap-4 mt-8">
+            {% if resource.file %}
+            <a href="{% url 'resources:download' resource.slug %}"
+               class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+               style="padding: 12px 24px; background: var(--primary); color: #ffffff;">
+                Download Resource
+            </a>
+            {% endif %}
+            {% if resource.external_url %}
+            <a href="{{ resource.external_url }}" target="_blank" rel="noopener noreferrer" 
+               class="inline-flex items-center rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+               style="padding: 12px 24px; background: #059669; color: #ffffff;">
+                View External Link
+            </a>
+            {% endif %}
+            <button type="button"
+                    onclick="shareLink('{% url 'resources:detail' resource.slug %}', '{{ resource.title|escapejs }}')"
+                    class="inline-flex items-center px-5 py-3 rounded-lg font-semibold border transition-colors"
+                    style="border-color: #e5e7eb; color: var(--text_secondary);"
+                    onmouseover="this.style.background='var(--background_tint)'; this.style.color='var(--primary)'"
+                    onmouseout="this.style.background='transparent'; this.style.color='var(--text_secondary)'">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v.01M12 5l4 4m0 0l-4 4m4-4H8m4 9a7 7 0 100-14 7 7 0 000 14z"/>
+                </svg>
+                Share
+            </button>
+        </div>
+    </article>
+    
+    <!-- Related Resources -->
+    {% if related_resources %}
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold mb-4" style="color: var(--text);">Related Resources</h2>
+        <p class="text-sm mb-6" style="color: var(--text_secondary);">
+            You might also find these helpful:
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {% for related in related_resources %}
+            <a href="{% url 'resources:detail' related.slug %}"
+               class="group block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div class="p-5 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center"
+                         style="background: var(--background_tint); color: var(--primary);">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 6h16M4 12h10M4 18h6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold mb-1 group-hover:underline"
+                           style="color: var(--primary);">
+                            {{ related.title }}
+                        </p>
+                        <p class="text-xs mb-1" style="color: var(--text_secondary);">
+                            {{ related.category.name }} • {{ related.get_type_display }}
+                        </p>
+                        {% if related.description %}
+                        <p class="text-xs" style="color: var(--text_light);">
+                            {{ related.description|truncatewords:18 }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

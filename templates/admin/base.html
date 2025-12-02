@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Management | UPLIFT Afrika{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-sidebar {
+        background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+    }
+    .nav-item {
+        transition: all 0.2s ease;
+        border-radius: 0.5rem;
+    }
+    .nav-item:hover {
+        transform: translateX(2px);
+    }
+    .nav-item.active {
+        background: linear-gradient(90deg, var(--background_tint) 0%, rgba(7, 89, 68, 0.08) 100%);
+        border-left: 3px solid var(--primary);
+    }
+    .stat-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .stat-card.devotions { border-left-color: #3b82f6; }
+    .stat-card.events { border-left-color: #8b5cf6; }
+    .stat-card.prayers { border-left-color: #f59e0b; }
+    .stat-card.donations { border-left-color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen" style="background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 min-h-screen admin-sidebar border-r" style="border-color: var(--border); position: sticky; top: 0; height: 100vh; overflow-y: auto;">
+            <div class="p-6">
+                <div class="mb-8">
+                    <a href="{% url 'pages:admin_dashboard' %}" class="flex items-center space-x-3 group">
+                        <div class="p-2 rounded-lg" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%);">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="font-bold text-lg" style="color: var(--text);">Admin Panel</span>
+                            <p class="text-xs" style="color: var(--text_light);">UPLIFT Afrika</p>
+                        </div>
+                    </a>
+                </div>
+
+                <nav class="space-y-1">
+                    <a href="{% url 'pages:admin_dashboard' %}" 
+                       class="nav-item flex items-center space-x-3 px-4 py-3 {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+                       style="{% if request.resolver_match.url_name == 'admin_dashboard' %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+
+                    <div class="pt-4">
+                        <p class="px-4 py-2 text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--text_light); letter-spacing: 0.1em;">Content</p>
+                        <a href="{% url 'manage:devotions_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'devotions' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'devotions' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                            <span>Devotions</span>
+                        </a>
+                        <a href="{% url 'manage:events_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'events' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'events' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Events</span>
+                        </a>
+                        <a href="{% url 'manage:resources_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'resources' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'resources' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Resources</span>
+                        </a>
+                    </div>
+
+                    <div class="pt-4">
+                        <p class="px-4 py-2 text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--text_light); letter-spacing: 0.1em;">Community</p>
+                        <a href="{% url 'manage:prayers_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'prayers' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'prayers' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Prayer Requests</span>
+                        </a>
+                        <a href="{% url 'manage:testimonies_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'testimonies' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'testimonies' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Testimonies</span>
+                        </a>
+                    </div>
+
+                    <div class="pt-4">
+                        <p class="px-4 py-2 text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--text_light); letter-spacing: 0.1em;">Giving</p>
+                        <a href="{% url 'manage:donations_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'donations' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'donations' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Donations</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8" style="background: transparent;">
+            {% block admin_content %}
+            {% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,324 @@
+"""
+Views for static pages like Home, About, Contact, etc.
+"""
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.views import LoginView, LogoutView
+from django.views.generic import TemplateView, View
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.conf import settings
+from django.urls import reverse_lazy
+import requests
+from .models import ContactMessage, Donation
+from apps.devotions.models import Devotion
+from apps.events.models import Event
+from apps.resources.models import Resource
+from apps.community.models import Testimony, PrayerRequest
+from django.db.models import Sum
+from django.utils import timezone
+
+
+class HomeView(TemplateView):
+    """
+    Home page view that displays:
+    - Today's devotion
+    - Upcoming events
+    - Featured resources
+    - Featured testimonies
+    """
+    template_name = 'pages/home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get today's devotion
+        from django.utils import timezone
+        today = timezone.now().date()
+        context['todays_devotion'] = Devotion.objects.filter(
+            publish_date=today,
+            is_published=True
+        ).first()
+        
+        # Get upcoming events (next 3)
+        context['upcoming_events'] = Event.objects.filter(
+            start_datetime__gte=timezone.now()
+        ).order_by('start_datetime')[:3]
+        
+        # Get featured resources
+        context['featured_resources'] = Resource.objects.filter(
+            is_featured=True
+        )[:3]
+        
+        # Get featured testimonies
+        context['featured_testimonies'] = Testimony.objects.filter(
+            is_approved=True,
+            featured=True
+        )[:5]
+        
+        return context
+
+
+class AboutView(TemplateView):
+    """
+    About page view.
+    """
+    template_name = 'pages/about.html'
+
+
+class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+    Simple internal dashboard for admins/staff to see key stats and quick links.
+    This is separate from Django's built-in /admin/ interface.
+    """
+    template_name = 'pages/admin_dashboard.html'
+
+    def test_func(self):
+        # Only allow staff/superusers to see this dashboard
+        return self.request.user.is_staff or self.request.user.is_superuser
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Tell the base template that we're in the admin area
+        context['hide_main_nav'] = True
+
+        # Devotions
+        total_devotions = Devotion.objects.count()
+        published_devotions = Devotion.objects.filter(is_published=True).count()
+
+        # Events
+        now = timezone.now()
+        upcoming_events = Event.objects.filter(start_datetime__gte=now).count()
+        past_events = Event.objects.filter(start_datetime__lt=now).count()
+
+        # Resources
+        total_resources = Resource.objects.count()
+
+        # Community (prayers and testimonies)
+        total_prayer_requests = PrayerRequest.objects.count()
+        open_prayer_requests = PrayerRequest.objects.filter(is_prayed_for=False).count()
+        total_testimonies = Testimony.objects.count()
+        pending_testimonies = Testimony.objects.filter(is_approved=False).count()
+
+        # Donations
+        total_donations = Donation.objects.count()
+        successful_donations = Donation.objects.filter(status=Donation.STATUS_SUCCESS)
+        successful_donations_count = successful_donations.count()
+        successful_donations_total = successful_donations.aggregate(
+            total=Sum('amount_ghs')
+        )['total'] or 0
+        # Also get pending and failed counts for completeness
+        pending_donations_count = Donation.objects.filter(status=Donation.STATUS_PENDING).count()
+        failed_donations_count = Donation.objects.filter(status=Donation.STATUS_FAILED).count()
+
+        # Recent activity
+        context['recent_devotions'] = Devotion.objects.order_by('-created_at')[:5]
+        context['recent_events'] = Event.objects.order_by('-created_at')[:5]
+        context['recent_prayers'] = PrayerRequest.objects.order_by('-created_at')[:5]
+        # Show all donations to ensure nothing is missed
+        context['recent_donations'] = Donation.objects.all().order_by('-created_at')
+
+        context['stats'] = {
+            'devotions': {
+                'total': total_devotions,
+                'published': published_devotions,
+            },
+            'events': {
+                'upcoming': upcoming_events,
+                'past': past_events,
+            },
+            'resources': {
+                'total': total_resources,
+            },
+            'community': {
+                'prayer_total': total_prayer_requests,
+                'prayer_open': open_prayer_requests,
+                'testimony_total': total_testimonies,
+                'testimony_pending': pending_testimonies,
+            },
+            'donations': {
+                'total': total_donations,
+                'successful_count': successful_donations_count,
+                'successful_total': successful_donations_total,
+                'pending_count': pending_donations_count,
+                'failed_count': failed_donations_count,
+            },
+        }
+
+        return context
+
+
+class AdminLoginView(LoginView):
+    """Custom admin login view with nice UI."""
+    template_name = 'admin/login.html'
+    redirect_authenticated_user = True
+    
+    def get_success_url(self):
+        # Redirect to dashboard after login
+        next_url = self.request.GET.get('next', '')
+        if next_url:
+            return next_url
+        return reverse_lazy('pages:admin_dashboard')
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Welcome back, {form.get_user().username}!')
+        return super().form_valid(form)
+
+
+class AdminLogoutView(LogoutView):
+    """Custom admin logout view."""
+    next_page = reverse_lazy('pages:home')
+    
+    def dispatch(self, request, *args, **kwargs):
+        messages.success(request, 'You have been logged out successfully.')
+        return super().dispatch(request, *args, **kwargs)
+
+
+class DonationView(TemplateView):
+    """
+    Donation page (formerly Contact) which explains giving options.
+    """
+    template_name = 'pages/contact.html'
+
+
+class DonationCheckoutView(View):
+    """
+    Initialize a Paystack payment and redirect the user to Paystack checkout.
+    Uses PAYSTACK_PUBLIC_KEY and PAYSTACK_SECRET_KEY from settings.
+    """
+
+    def post(self, request, *args, **kwargs):
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        reference = request.POST.get('reference', '').strip()
+        amount_ghs = request.POST.get('amount', '').strip()
+
+        if not (name and email and amount_ghs):
+            messages.error(request, 'Please provide your name, email and an amount.')
+            return redirect('pages:donate')
+
+        try:
+            amount_pesewas = int(float(amount_ghs) * 100)
+        except ValueError:
+            messages.error(request, 'Please enter a valid amount.')
+            return redirect('pages:donate')
+
+        paystack_secret_key = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
+        paystack_public_key = getattr(settings, 'PAYSTACK_PUBLIC_KEY', '')
+
+        if not paystack_secret_key or not paystack_public_key:
+            messages.error(request, 'Payment configuration is missing. Please contact the site administrator.')
+            return redirect('pages:donate')
+
+        # Build callback URL (where Paystack redirects after payment)
+        callback_url = request.build_absolute_uri('/donate/thanks/')
+
+        headers = {
+            'Authorization': f'Bearer {paystack_secret_key}',
+            'Content-Type': 'application/json',
+        }
+        data = {
+            'email': email,
+            'amount': amount_pesewas,
+            'currency': 'GHS',
+            'callback_url': callback_url,
+            'metadata': {
+                'custom_fields': [
+                    {
+                        'display_name': 'Donor Name',
+                        'variable_name': 'donor_name',
+                        'value': name,
+                    }
+                ]
+            },
+        }
+
+        try:
+            response = requests.post('https://api.paystack.co/transaction/initialize',
+                                     json=data, headers=headers, timeout=30)
+            response_data = response.json()
+        except Exception:
+            messages.error(request, 'Unable to connect to payment service. Please try again later.')
+            return redirect('pages:donate')
+
+        if response.status_code == 200 and response_data.get('status'):
+            init_data = response_data.get('data', {})
+            auth_url = init_data.get('authorization_url')
+            paystack_ref = init_data.get('reference')
+
+            if not (auth_url and paystack_ref):
+                messages.error(request, 'Payment initialisation failed. Please try again.')
+                return redirect('pages:donate')
+
+            # Record pending donation in our database
+            Donation.objects.create(
+                name=name,
+                email=email,
+                amount_ghs=amount_ghs,
+                paystack_reference=paystack_ref,
+                status=Donation.STATUS_PENDING,
+                note=reference or '',
+                raw_response=init_data,
+            )
+
+            return redirect(auth_url)
+
+        messages.error(request, 'Could not start payment. Please try again later.')
+        return redirect('pages:donate')
+
+
+class DonationThanksView(TemplateView):
+    """
+    Thank-you page after Paystack redirects back.
+    Verifies the transaction and updates the Donation record.
+    """
+    template_name = 'pages/donation_thanks.html'
+
+    def get(self, request, *args, **kwargs):
+        reference = request.GET.get('reference')
+        if not reference:
+            messages.error(request, 'No payment reference supplied.')
+            return super().get(request, *args, **kwargs)
+
+        paystack_secret_key = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
+        if not paystack_secret_key:
+            messages.error(request, 'Payment configuration is missing.')
+            return super().get(request, *args, **kwargs)
+
+        # Look up existing donation
+        try:
+            donation = Donation.objects.get(paystack_reference=reference)
+        except Donation.DoesNotExist:
+            donation = None
+
+        headers = {
+            'Authorization': f'Bearer {paystack_secret_key}',
+        }
+
+        try:
+            verify_resp = requests.get(
+                f'https://api.paystack.co/transaction/verify/{reference}',
+                headers=headers,
+                timeout=30
+            )
+            verify_data = verify_resp.json()
+        except Exception:
+            messages.error(request, 'Could not verify payment at this time.')
+            return super().get(request, *args, **kwargs)
+
+        status_ok = verify_data.get('status') and verify_data.get('data', {}).get('status') == 'success'
+
+        if donation:
+            donation.raw_response = verify_data.get('data')
+            if status_ok:
+                donation.status = Donation.STATUS_SUCCESS
+            else:
+                donation.status = Donation.STATUS_FAILED
+            donation.save(update_fields=['status', 'raw_response', 'updated_at'])
+
+        if not status_ok:
+            messages.error(request, 'Your payment could not be confirmed. If money was deducted, please contact support.')
+        else:
+            messages.success(request, 'Your donation has been received successfully. Thank you!')
+
+        return super().get(request, *args, **kwargs)

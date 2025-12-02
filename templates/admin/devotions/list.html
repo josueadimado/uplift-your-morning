@@ -1,0 +1,137 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-bold" style="color: var(--text);">Devotions</h1>
+        <p class="text-sm mt-1" style="color: var(--text_secondary);">
+            Manage daily devotions and devotion series
+        </p>
+    </div>
+    <a href="{% url 'manage:devotions_create' %}" 
+       class="px-4 py-2 rounded-lg text-white font-semibold"
+       style="background: var(--primary);">
+        + New Devotion
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow-sm p-4 mb-6 border" style="border-color: var(--border);">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium mb-1" style="color: var(--text);">Search</label>
+            <input type="text" name="search" value="{{ request.GET.search }}" 
+                   placeholder="Search by title, content..."
+                   class="w-full px-3 py-2 border rounded-lg"
+                   style="border-color: var(--border);">
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1" style="color: var(--text);">Status</label>
+            <select name="status" class="px-3 py-2 border rounded-lg" style="border-color: var(--border);">
+                <option value="">All</option>
+                <option value="published" {% if request.GET.status == 'published' %}selected{% endif %}>Published</option>
+                <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Draft</option>
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 rounded-lg font-semibold text-white" style="background: var(--primary);">
+            Filter
+        </button>
+        {% if request.GET.search or request.GET.status %}
+        <a href="{% url 'manage:devotions_list' %}" class="px-4 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Total Devotions</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--text);">{{ total }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Published</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--primary);">{{ published_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Drafts</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--text_secondary);">{{ draft_count }}</p>
+    </div>
+</div>
+
+<!-- Devotions List -->
+<div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50" style="background: var(--background_light);">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Title</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Publish Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                {% for devotion in devotions %}
+                <tr class="hover:bg-gray-50" style="background: {% cycle 'white' 'var(--background_light)' %};">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium" style="color: var(--text);">{{ devotion.title|truncatechars:60 }}</div>
+                        {% if devotion.topic %}
+                        <div class="text-xs mt-1" style="color: var(--text_light);">{{ devotion.topic|truncatechars:40 }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">
+                        {{ devotion.publish_date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if devotion.is_published %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">Published</span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'manage:devotions_edit' devotion.pk %}" 
+                               class="text-sm font-semibold" style="color: var(--primary);">Edit</a>
+                            <span style="color: var(--border);">|</span>
+                            <a href="{% url 'manage:devotions_delete' devotion.pk %}" 
+                               class="text-sm font-semibold text-red-600 hover:text-red-700">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">
+                        No devotions found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="px-6 py-4 border-t" style="border-color: var(--border);">
+        <div class="flex items-center justify-between">
+            <div class="text-sm" style="color: var(--text_secondary);">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+            </div>
+            <div class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                   class="px-3 py-2 rounded-lg border text-sm font-semibold" style="border-color: var(--border); color: var(--primary);">Previous</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                   class="px-3 py-2 rounded-lg border text-sm font-semibold" style="border-color: var(--border); color: var(--primary);">Next</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

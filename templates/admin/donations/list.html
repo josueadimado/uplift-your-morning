@@ -1,0 +1,52 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<div class="mb-6"><h1 class="text-2xl font-bold" style="color: var(--text);">Donations</h1></div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);"><p class="text-sm" style="color: var(--text_light);">Total</p><p class="text-2xl font-bold mt-1" style="color: var(--text);">{{ successful_total|floatformat:2 }} GHS</p></div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);"><p class="text-sm" style="color: var(--text_light);">Successful</p><p class="text-2xl font-bold mt-1" style="color: var(--primary);">{{ successful_count }}</p></div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);"><p class="text-sm" style="color: var(--text_light);">Pending</p><p class="text-2xl font-bold mt-1" style="color: var(--text_secondary);">{{ pending_count }}</p></div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);"><p class="text-sm" style="color: var(--text_light);">Failed</p><p class="text-2xl font-bold mt-1" style="color: var(--text_secondary);">{{ failed_count }}</p></div>
+</div>
+<div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50" style="background: var(--background_light);">
+                <tr><th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Donor</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Amount</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                {% for donation in donations %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4"><div class="text-sm font-medium" style="color: var(--text);">{{ donation.name }}</div><div class="text-xs" style="color: var(--text_light);">{{ donation.email }}</div></td>
+                    <td class="px-6 py-4 text-sm font-semibold" style="color: var(--text);">{{ donation.amount_ghs }} GHS</td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ donation.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="px-6 py-4">
+                        {% if donation.status == 'success' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">{{ donation.get_status_display }}</span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">{{ donation.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'manage:donations_detail' donation.pk %}" class="text-sm font-semibold" style="color: var(--primary);">View</a>
+                            {% if donation.status == 'pending' %}
+                            <span style="color: var(--border);">|</span>
+                            <form method="post" action="{% url 'manage:donations_verify' donation.pk %}" class="inline">{% csrf_token %}
+                                <button type="submit" class="text-sm font-semibold" style="color: var(--primary);" title="Verify with Paystack">Verify</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}<tr><td colspan="5" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">No donations found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

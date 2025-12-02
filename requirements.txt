@@ -1,0 +1,31 @@
+# Django and core dependencies
+Django>=5.2.8
+djangorestframework>=3.16.0
+python-decouple>=3.8
+django-countries>=7.6.0
+
+# Database drivers (install only what you need)
+# For PostgreSQL (production):
+# psycopg2-binary>=2.9.0
+# For MySQL (production alternative):
+# mysqlclient>=2.2.0
+
+# For scheduled tasks (optional, for Phase 2)
+# celery>=5.3.0
+# redis>=5.0.0
+
+# For email sending (optional, for Phase 2)
+# sendgrid>=6.10.0
+# or
+# brevo>=1.0.0
+
+# For WhatsApp integration (optional, for Phase 2)
+# twilio>=8.0.0
+
+# For file storage (optional, for production)
+# boto3>=1.28.0  # For AWS S3
+# django-storages>=1.14.0
+
+# For Tailwind CSS (optional, can use CDN or external build)
+# django-tailwind>=3.8.0
+
