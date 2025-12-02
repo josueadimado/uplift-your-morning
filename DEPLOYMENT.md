@@ -10,6 +10,9 @@ This guide will help you deploy Uplift Your Morning to PythonAnywhere.
 
 ## Step 1: Prepare Your Code
 
+### 1.0 Important: Python Version
+**PythonAnywhere requires Python 3.10.** Make sure you don't commit your local `venv` folder (it's already in `.gitignore`). You'll create a new virtualenv on PythonAnywhere with Python 3.10.
+
 ### 1.1 Update settings.py for Production
 
 Make sure your `settings.py` has production-ready settings:
@@ -58,12 +61,20 @@ cd your-repo-name
 
 ### 3.2 Create Virtual Environment
 
+**IMPORTANT:** PythonAnywhere requires Python 3.10. Do NOT use Python 3.13 or other versions.
+
 ```bash
-python3.10 -m venv venv  # Use Python 3.10 or your preferred version
+# Remove the old venv if it exists (it has wrong Python version)
+rm -rf venv
+
+# Create new virtualenv with Python 3.10
+python3.10 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+**Note:** If you cloned from GitHub and the venv folder was included, you MUST delete it and create a new one on PythonAnywhere with Python 3.10.
 
 ### 3.3 Set Up Environment Variables
 
