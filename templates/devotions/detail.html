@@ -3,13 +3,13 @@
 
 {% block title %}{{ devotion.title }} - Daily Devotion | Uplift Your Morning{% endblock %}
 
-{% block meta_description %}{{ devotion.excerpt|default:devotion.content|truncatewords:30 }} - Read today's devotion from Uplift Your Morning.{% endblock %}
+{% block meta_description %}{{ devotion.excerpt|default:devotion.body|truncatewords:30 }} - Read today's devotion from Uplift Your Morning.{% endblock %}
 
 {% block meta_keywords %}daily devotion, {{ devotion.title }}, Bible study, spiritual growth, Christian devotion, prayer{% endblock %}
 
 {% block og_title %}{{ devotion.title }} - Uplift Your Morning{% endblock %}
 
-{% block og_description %}{{ devotion.excerpt|default:devotion.content|truncatewords:30 }}{% endblock %}
+{% block og_description %}{{ devotion.excerpt|default:devotion.body|truncatewords:30 }}{% endblock %}
 
 {% block content %}
 <!-- Devotion Banner -->

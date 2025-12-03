@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Home - Uplift Your Morning | Daily Devotions & Spiritual Resources{% endblock %}
+{% block title %}Uplift Your Morning | Daily Devotion, Prayer & Bible Study{% endblock %}
 
-{% block meta_description %}Start your day right with Uplift Your Morning. Access daily devotions, spiritual resources, prayer requests, and uplifting content designed to empower and inspire your spiritual journey across Africa.{% endblock %}
+{% block meta_description %}Uplift Your Morning is a daily spiritual devotion running Monday to Sunday, 5:00–5:30am Ghana time (GMT), with Access Hour Wednesday evening prayer, Edify Friday Bible studies, and 40 Days of Prayer, Planning & Planting at year-end.{% endblock %}
 
-{% block meta_keywords %}daily devotions, morning devotion, spiritual growth, Bible study, prayer, Christian resources, uplifting content, Africa, faith, inspiration{% endblock %}
+{% block meta_keywords %}uplift your morning, morning devotion, daily devotion, access hour, edify, bible study, 40 days of prayer, prayer meeting, Africa, Christian, spiritual growth{% endblock %}
 
-{% block og_title %}Uplift Your Morning - Daily Devotions & Spiritual Resources{% endblock %}
+{% block og_title %}Uplift Your Morning – Daily Devotion, Access Hour & Edify{% endblock %}
 
-{% block og_description %}Start your day right with daily devotions, spiritual resources, and uplifting content designed to empower and inspire your spiritual journey.{% endblock %}
+{% block og_description %}Join daily morning devotion at 5:00–5:30am GMT, weekly Access Hour prayer, Edify Bible study and our annual 40 Days of Prayer, Planning & Planting.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -286,68 +286,108 @@
 {% block content %}
 <!-- Hero Slider Section -->
 <section class="hero-slider-container relative">
-    <!-- Slide 1 -->
+    <!-- Slide 1 – Uplift Your Morning (Daily Devotion) -->
     <div class="hero-slide active">
         <div class="hero-slide-background">
-            <!-- Use a different optimized image so Slide 1 and Slide 2 are visually distinct -->
-            <img src="{% static 'images/general/optimized_3O8A8982.jpg' %}" 
-                 alt="UPLIFT Afrika Conference">
+            <img src="{% static 'images/general/uplift your morning banner.jpg' %}" 
+                 alt="Uplift Your Morning Daily Devotion">
         </div>
         <div class="hero-slide-overlay"></div>
         <div class="hero-content-wrapper">
             <div class="hero-content-inner">
-                <h2>Empowering Africa's Future Through Faith, Leadership, and Community Service</h2>
-                <p>Transforming lives and empowering communities across the continent</p>
-                <a href="{% url 'devotions:today' %}">START TODAY'S DEVOTION</a>
+                <h2>Start Your Day With Uplift Your Morning</h2>
+                <p>Live morning devotion every weekday, 5:00–5:30am GMT – worship, Word and prayer.</p>
+                <a href="https://www.youtube.com/@GodswillTKMensah/live" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                    JOIN LIVE AT 5:00AM GMT
+                </a>
+                <a href="{% url 'devotions:today' %}">
+                    READ TODAY'S DEVOTION
+                </a>
             </div>
         </div>
     </div>
     
-    <!-- Slide 2 -->
+    <!-- Slide 2 – Access Hour (Prayer) -->
     <div class="hero-slide">
         <div class="hero-slide-background">
-            <img src="{% static 'images/general/optimized_3O8A8964.jpg' %}" 
-                 alt="Daily Devotions">
+            <img src="{% static 'images/general/access hour banner.jpg' %}" 
+                 alt="Access Hour Prayer Session">
         </div>
         <div class="hero-slide-overlay"></div>
         <div class="hero-content-wrapper">
             <div class="hero-content-inner">
-                <h2>Start Your Day With God's Word</h2>
-                <p>Fresh biblical insights delivered daily to strengthen your faith journey</p>
-                <a href="{% url 'devotions:today' %}">START TODAY'S DEVOTION</a>
+                <h2>Access Hour – Weekly Prayer Session</h2>
+                <p>Every Wednesday evening we gather to pray for families, leaders and nations.</p>
+                <a href="{% url 'events:list' %}">
+                    SEE PRAYER GATHERINGS
+                </a>
             </div>
         </div>
     </div>
     
-    <!-- Slide 3 -->
+    <!-- Slide 3 – Edify (Bible Study) -->
     <div class="hero-slide">
         <div class="hero-slide-background">
-            <img src="{% static 'images/general/optimized_3O8A9109.jpg' %}" 
-                 alt="40 Days of Prayer">
+            <img src="{% static 'images/general/Screenshot 2025-12-03 at 15.20.14.png' %}" 
+                 alt="Edify Bible Study">
         </div>
         <div class="hero-slide-overlay"></div>
         <div class="hero-content-wrapper">
             <div class="hero-content-inner">
-                <h2>Transform Your Faith Through Prayer</h2>
-                <p>Join believers across Africa in a transformative 40-day prayer journey</p>
-                <a href="{% url 'devotions:list' %}?series=40-days-of-prayer">JOIN 40 DAYS OF PRAYER</a>
+                <h2>Edify – Friday Bible Study</h2>
+                <p>Dig deep into God’s Word every Friday evening with practical, life‑shaping teaching.</p>
+                <a href="{% url 'resources:list' %}">
+                    BROWSE STUDY NOTES
+                </a>
             </div>
         </div>
     </div>
     
-    <!-- Slide 4 -->
+    <!-- Slide 4 – 40 Days of Prayer, Planning & Planting -->
     <div class="hero-slide">
         <div class="hero-slide-background">
-            <img src="{% static 'images/general/optimized_3O8A9178.jpg' %}" 
-                 alt="Resources Library" 
-                 onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+            <img src="{% static 'images/general/40-days-thumbnail_new.jpg' %}" 
+                 alt="40 Days of Prayer, Planning and Planting">
         </div>
         <div class="hero-slide-overlay"></div>
         <div class="hero-content-wrapper">
             <div class="hero-content-inner">
-                <h2>Access Biblical Resources & Teachings</h2>
-                <p>Comprehensive library of PDFs, audio teachings, videos, and study materials</p>
-                <a href="{% url 'resources:list' %}">BROWSE RESOURCES</a>
+                <h2>40 Days of Prayer, Planning &amp; Planting</h2>
+                {% if is_40_days_active %}
+                    <p>Join us live for morning (5:00-5:30am) and evening (6:00-7:00pm) sessions during this season of focused prayer and Spirit‑led planning.</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+                        {% if is_morning_live and forty_days_config.morning_youtube_url %}
+                            <a href="{{ forty_days_config.morning_youtube_url }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                                JOIN MORNING LIVE (YouTube)
+                            </a>
+                        {% endif %}
+                        {% if is_morning_live and forty_days_config.morning_facebook_url %}
+                            <a href="{{ forty_days_config.morning_facebook_url }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                                JOIN MORNING LIVE (Facebook)
+                            </a>
+                        {% endif %}
+                        {% if is_evening_live and forty_days_config.evening_youtube_url %}
+                            <a href="{{ forty_days_config.evening_youtube_url }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                                JOIN EVENING LIVE (YouTube)
+                            </a>
+                        {% endif %}
+                        {% if is_evening_live and forty_days_config.evening_facebook_url %}
+                            <a href="{{ forty_days_config.evening_facebook_url }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                                JOIN EVENING LIVE (Facebook)
+                            </a>
+                        {% endif %}
+                        {% if not is_morning_live and not is_evening_live %}
+                            <a href="{% url 'devotions:list' %}?series=40-days-of-prayer">
+                                VIEW DEVOTIONS
+                            </a>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p>Every year we close and begin the year with forty days of focused prayer and Spirit‑led planning.</p>
+                    <a href="{% url 'devotions:list' %}?series=40-days-of-prayer">
+                        LEARN ABOUT 40 DAYS
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -373,32 +413,243 @@
     </div>
 </section>
 
-<!-- Intro Section - Two Column Layout -->
+<!-- 40 Days Active Section -->
+{% if is_40_days_active and forty_days_config %}
+<section class="py-16" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border" style="border-color: var(--primary);">
+            <div class="flex flex-col md:flex-row md:items-stretch">
+                <!-- Left: Banner Image -->
+                {% if forty_days_config.banner_image %}
+                <div class="relative w-full md:w-1/2 flex-shrink-0 h-full overflow-hidden">
+                    <img src="{{ forty_days_config.banner_image.url }}" 
+                         alt="40 Days of Prayer, Planning & Planting" 
+                         class="w-full h-full"
+                         style="display: block; object-fit: cover; object-position: center;">
+                </div>
+                {% else %}
+                <!-- Placeholder if no banner image -->
+                <div class="relative h-full min-h-[500px] overflow-hidden" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%); display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center text-white p-8">
+                        <h3 class="text-3xl font-bold mb-2">40 Days</h3>
+                        <p class="text-lg opacity-90">Prayer, Planning & Planting</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Right: Content -->
+                <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center h-full" style="min-height: 500px;">
+                    <div class="space-y-6">
+                        <!-- Day Counter -->
+                        <div class="text-center md:text-left">
+                            <div class="flex items-baseline justify-center md:justify-start gap-2 flex-wrap">
+                                <span class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text_light);">Day</span>
+                                <span class="text-6xl md:text-7xl font-bold" style="color: var(--primary); line-height: 1;">
+                                    {{ forty_days_current_day }}
+                                </span>
+                                <span class="text-lg font-medium" style="color: var(--text_secondary);">
+                                    of {{ forty_days_total_days }} Days
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Title -->
+                        <div>
+                            <h3 class="text-2xl md:text-3xl font-bold mb-4" style="color: var(--text);">
+                                40 Days of Prayer, Planning &amp; Planting
+                            </h3>
+                        </div>
+                        
+                        <!-- Live Buttons or Countdown -->
+                        <div>
+                            {% if is_morning_live %}
+                            <div class="mb-6">
+                                <p class="text-lg font-semibold mb-3" style="color: var(--primary);">🔴 LIVE NOW - Morning Session (Starts at 5:00 AM)</p>
+                                <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                                {% if forty_days_config.morning_youtube_url %}
+                                <a href="{{ forty_days_config.morning_youtube_url }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   style="background: #FF0000;">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                    Watch on YouTube
+                                </a>
+                                {% endif %}
+                                {% if forty_days_config.morning_facebook_url %}
+                                <a href="{{ forty_days_config.morning_facebook_url }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   style="background: #1877F2;">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    Watch on Facebook
+                                </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% elif is_evening_live %}
+                            <div class="mb-6">
+                                <p class="text-lg font-semibold mb-3" style="color: var(--primary);">🔴 LIVE NOW - Evening Session (Starts at 6:00 PM)</p>
+                                <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                                {% if forty_days_config.evening_youtube_url %}
+                                <a href="{{ forty_days_config.evening_youtube_url }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   style="background: #FF0000;">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                    Watch on YouTube
+                                </a>
+                                {% endif %}
+                                {% if forty_days_config.evening_facebook_url %}
+                                <a href="{{ forty_days_config.evening_facebook_url }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   style="background: #1877F2;">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    Watch on Facebook
+                                </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="mb-6">
+                                <p class="text-lg font-semibold mb-2" style="color: var(--text);">Next Session:</p>
+                                <p class="text-2xl font-bold mb-1" style="color: var(--primary);" id="next-session-time">{{ next_session_time }}</p>
+                                <div class="flex items-center justify-center md:justify-start gap-2 mt-3">
+                                    <span class="text-sm font-medium" style="color: var(--text_secondary);">Starts in:</span>
+                                    <div class="text-xl font-bold" style="color: var(--primary);" id="countdown-timer">
+                                        <span id="countdown-hours">00</span>:<span id="countdown-minutes">00</span>:<span id="countdown-seconds">00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- View Devotions Button -->
+                        <div class="mt-6">
+                            <a href="{% url 'devotions:list' %}?series=40-days-of-prayer" 
+                               class="inline-flex items-center px-6 py-3 rounded-lg font-semibold border transition-all hover:shadow-md"
+                               style="border-color: var(--primary); color: var(--primary);">
+                                View Daily Devotions
+                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if not is_morning_live and not is_evening_live %}
+<script>
+    // Countdown timer for next session
+    (function() {
+        let totalSeconds = {{ next_session_timestamp }};
+        
+        function updateCountdown() {
+            if (totalSeconds <= 0) {
+                // Reload page when countdown reaches zero
+                location.reload();
+                return;
+            }
+            
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            const hoursEl = document.getElementById('countdown-hours');
+            const minutesEl = document.getElementById('countdown-minutes');
+            const secondsEl = document.getElementById('countdown-seconds');
+            
+            if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+            if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+            if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+            
+            totalSeconds--;
+        }
+        
+        // Update immediately
+        updateCountdown();
+        
+        // Update every second
+        setInterval(updateCountdown, 1000);
+    })();
+</script>
+{% endif %}
+{% endif %}
+
+<!-- Weekly Rhythms Overview -->
 <section class="py-24" style="background: #FFFFFF !important;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-2 gap-16 items-center">
-            <!-- Left: Heading -->
-            <div style="background: transparent !important;">
-                <h2 class="text-3xl md:text-4xl font-bold leading-tight mb-8" style="color: var(--text); background: transparent !important;">
-                    Empowering Africa's Future Through Faith, Leadership, and Community Service
+        <div class="grid lg:grid-cols-2 gap-16 items-start">
+            <!-- Left: Heading & Intro -->
+            <div>
+                <h2 class="text-3xl md:text-4xl font-bold leading-tight mb-6" style="color: var(--text);">
+                    One Spiritual Journey, Four Weekly Rhythms
                 </h2>
-            </div>
-            
-            <!-- Right: Description + Button -->
-            <div style="background: transparent !important;">
-                <p class="text-xl mb-8 leading-relaxed font-medium" style="color: var(--text);">
-                    We are committed to empowering Africa's future through our four foundational pillars: Spiritual Development, Leadership & Community Service, African-Centered Solutions, and Knowledge Dissemination. Our mission reaches thousands of individuals across the continent, transforming lives through faith, leadership, and community service.
+                <p class="text-xl leading-relaxed font-medium mb-4" style="color: var(--text);">
+                    Uplift Your Morning is a daily spiritual devotion, with simple weekly rhythms that help you build a consistent life with God.
                 </p>
-                <a href="{% url 'resources:list' %}" 
-                   class="inline-flex items-center font-semibold transition-colors" 
-                   style="padding: 14px 32px; background: var(--primary); color: white; font-size: 18px; border-radius: 4px;"
-                   onmouseover="this.style.background='var(--primary_hover)'" 
-                   onmouseout="this.style.background='var(--primary)'">
-                    <span>EXPLORE RESOURCES</span>
-                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </a>
+                <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                    Join us live, follow the devotions, and use the resources that go with each rhythm as you grow in prayer, the Word and community.
+                </p>
+            </div>
+
+            <!-- Right: Rhythms List -->
+            <div class="space-y-5">
+                <div class="flex items-start gap-4">
+                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--primary);"></div>
+                    <div>
+                        <h3 class="font-bold text-xl" style="color: var(--text);">Uplift Your Morning</h3>
+                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                            Daily (Monday–Sunday) morning devotion, 5:00–5:30am Ghana time (GMT) – worship, Word and prayer to start your day with God.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--primary_light);"></div>
+                    <div>
+                        <h3 class="font-bold text-xl" style="color: var(--text);">Access Hour</h3>
+                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                            Wednesday evening prayer session, 6:00–7:00pm Ghana time (GMT), where we stand in the gap for families, leaders and nations.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--accent);"></div>
+                    <div>
+                        <h3 class="font-bold text-xl" style="color: var(--text);">Edify</h3>
+                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                            Friday evening Bible study, 6:00–7:00pm Ghana time (GMT), focused on practical, life‑shaping teaching from God’s Word.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--accent_light);"></div>
+                    <div>
+                        <h3 class="font-bold text-xl" style="color: var(--text);">40 Days of Prayer, Planning &amp; Planting</h3>
+                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                            Our annual year‑end season of focused prayer and Spirit‑led planning as we close and begin the year with God.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -410,131 +661,31 @@
         <h2 class="text-4xl md:text-5xl font-bold mb-12 text-center" style="color: var(--text);">How would you like to engage with us?</h2>
         
         <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <!-- Card 1: Join the Network -->
-            <a href="{% url 'subscriptions:subscribe' %}" class="group block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all">
+            <!-- Card 1: Uplift Your Morning (Daily Devotion) -->
+            <a href="{% url 'devotions:today' %}" class="group block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all">
                 <div class="relative h-64 overflow-hidden">
                     <img src="{% static 'images/general/optimized_3O8A9074.jpg' %}" 
-                         alt="Join the Network" 
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0004.jpg' %}';">
+                         alt="Uplift Your Morning Daily Devotion" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 class="text-2xl font-bold text-white mb-2">JOIN THE NETWORK</h3>
+                        <h3 class="text-2xl font-bold text-white mb-2">UPLIFT YOUR MORNING</h3>
                     </div>
                 </div>
             </a>
             
-            <!-- Card 2: Explore Programs -->
+            <!-- Card 2: Events & Special Gatherings -->
             <a href="{% url 'events:list' %}" class="group block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all">
                 <div class="relative h-64 overflow-hidden">
                     <img src="{% static 'images/general/optimized_3O8A9134.jpg' %}" 
-                         alt="Explore Our Programs" 
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
+                         alt="Events and special gatherings" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 class="text-2xl font-bold text-white mb-2">EXPLORE OUR PROGRAMS</h3>
+                        <h3 class="text-2xl font-bold text-white mb-2">EVENTS &amp; GATHERINGS</h3>
                     </div>
                 </div>
             </a>
-        </div>
-    </div>
-</section>
-
-<!-- Statistics Section - Colored Background Bar -->
-<section class="py-20" style="background: var(--primary) !important;">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-3 gap-12 text-center">
-            <div>
-                <div class="text-6xl md:text-7xl font-black mb-4 text-white" style="line-height: 1;">10,000+</div>
-                <div class="text-lg font-medium text-white/90">lives empowered across Africa through tailored initiatives and programs</div>
-            </div>
-            <div>
-                <div class="text-6xl md:text-7xl font-black mb-4 text-white" style="line-height: 1;">24</div>
-                <div class="text-lg font-medium text-white/90">countries across Africa participate in the network</div>
-            </div>
-            <div>
-                <div class="text-6xl md:text-7xl font-black mb-4 text-white" style="line-height: 1;">Daily</div>
-                <div class="text-lg font-medium text-white/90">devotions and resources delivered to believers</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Focal Areas Section - Card Based Layout -->
-<section class="py-24 bg-white" style="background: #FFFFFF !important;">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-16">
-            <h2 class="text-4xl md:text-5xl font-bold mb-6" style="color: var(--text);">Focal Areas</h2>
-            <p class="text-xl leading-relaxed font-medium max-w-3xl" style="color: var(--text);">
-                Our focal areas reflect the core developmental needs and trends in spiritual growth and community empowerment across Africa. Each area represents a strategic approach to transforming lives through faith, leadership, and service.
-            </p>
-        </div>
-        
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Card 1: Spiritual Development -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
-                <div class="h-48 overflow-hidden">
-                    <img src="{% static 'images/general/optimized_3O8A8982.jpg' %}" 
-                         alt="Spiritual Development" 
-                         class="w-full h-full object-cover"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0004.jpg' %}';">
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Spiritual Development</h3>
-                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
-                        Fostering deep spiritual growth through daily devotions, biblical teachings, and transformative programs that strengthen faith and inspire personal transformation.
-                    </p>
-                </div>
-            </div>
-            
-            <!-- Card 2: Leadership & Community Service -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
-                <div class="h-48 overflow-hidden">
-                    <img src="{% static 'images/general/compressed_3O8A9427.JPG' %}" 
-                         alt="Leadership & Community Service" 
-                         class="w-full h-full object-cover"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Leadership & Community Service</h3>
-                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
-                        Equipping leaders to serve their communities with excellence and integrity. Developing individuals committed to making a positive impact through service and leadership.
-                    </p>
-                </div>
-            </div>
-            
-            <!-- Card 3: African-Centered Solutions -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
-                <div class="h-48 overflow-hidden">
-                    <img src="{% static 'images/general/optimized_3O8A0049.jpg' %}" 
-                         alt="African-Centered Solutions" 
-                         class="w-full h-full object-cover"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0049.jpg' %}';">
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">African-Centered Solutions</h3>
-                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
-                        Addressing challenges with solutions that are relevant to the African context. Understanding unique needs and opportunities across the continent to create meaningful impact.
-                    </p>
-                </div>
-            </div>
-            
-            <!-- Card 4: Knowledge Dissemination -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100">
-                <div class="h-48 overflow-hidden">
-                    <img src="{% static 'images/general/optimized_395423102_325278640289136_3667017215925678285_n.jpg' %}" 
-                         alt="Knowledge Dissemination" 
-                         class="w-full h-full object-cover"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/395439820_325278850289115_7147826790215198435_n.jpg' %}';">
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Knowledge Dissemination</h3>
-                    <p class="text-lg leading-relaxed font-medium" style="color: var(--text_light);">
-                        Sharing resources, teachings, and insights to empower individuals and communities. Our comprehensive library includes PDFs, audio teachings, videos, and study materials accessible to all.
-                    </p>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -555,8 +706,7 @@
                 <div class="h-48 overflow-hidden">
                     <img src="{% static 'images/general/compressed_3O8A9061.JPG' %}" 
                          alt="Daily Devotions" 
-                         class="w-full h-full object-cover"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0004.jpg' %}';">
+                         class="w-full h-full object-cover">
                 </div>
                 <div class="p-6">
                     <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Daily Devotions</h3>
@@ -693,8 +843,7 @@
                 <div class="relative">
                     <img src="{% static 'images/general/optimized_3O8A9512.jpg' %}" 
                          alt="Today's Devotion" 
-                         class="rounded-xl shadow-2xl"
-                         onerror="this.onerror=null; this.src='{% static 'images/general/3O8A0049.jpg' %}';">
+                         class="rounded-xl shadow-2xl">
                 </div>
             </div>
         </div>

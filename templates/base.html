@@ -853,6 +853,143 @@
     </button>
     {% endif %}
 
+    <!-- Disable Chrome Autocomplete/Autofill on entire website -->
+    <script>
+        // Disable autocomplete on all form inputs globally
+        (function() {
+            function disableAutocomplete() {
+                // Set autocomplete="off" on all form elements
+                const forms = document.querySelectorAll('form');
+                forms.forEach(function(form) {
+                    form.setAttribute('autocomplete', 'off');
+                    
+                    // Set autocomplete on all inputs within the form
+                    const inputs = form.querySelectorAll('input, textarea, select');
+                    inputs.forEach(function(input) {
+                        // Skip hidden inputs, submit buttons, and checkboxes/radios
+                        if (input.type !== 'hidden' && 
+                            input.type !== 'submit' && 
+                            input.type !== 'button' &&
+                            input.type !== 'checkbox' &&
+                            input.type !== 'radio') {
+                            
+                            // Special handling for date inputs (Chrome is very stubborn with these)
+                            if (input.type === 'date' || input.type === 'text' && input.classList.contains('date-picker')) {
+                                input.setAttribute('autocomplete', 'off');
+                                input.setAttribute('autocomplete', 'chrome-off'); // Chrome-specific
+                                input.setAttribute('data-lpignore', 'true');
+                                input.setAttribute('data-form-type', 'other');
+                                // Add a hidden fake input before date inputs (Chrome workaround)
+                                if (!input.previousElementSibling || !input.previousElementSibling.classList.contains('chrome-autofill-blocker')) {
+                                    const fakeInput = document.createElement('input');
+                                    fakeInput.type = 'text';
+                                    fakeInput.style.position = 'absolute';
+                                    fakeInput.style.left = '-9999px';
+                                    fakeInput.style.opacity = '0';
+                                    fakeInput.style.height = '0';
+                                    fakeInput.style.width = '0';
+                                    fakeInput.setAttribute('autocomplete', 'off');
+                                    fakeInput.setAttribute('tabindex', '-1');
+                                    fakeInput.classList.add('chrome-autofill-blocker');
+                                    input.parentNode.insertBefore(fakeInput, input);
+                                }
+                                // Make input readonly to prevent Chrome autocomplete (Flatpickr will handle clicks)
+                                if (input.classList.contains('date-picker')) {
+                                    input.setAttribute('readonly', 'readonly');
+                                    // Remove readonly when Flatpickr is initialized (it handles this)
+                                }
+                            } else {
+                                // Use 'new-password' as Chrome workaround for other inputs
+                                input.setAttribute('autocomplete', 'new-password');
+                                input.setAttribute('data-lpignore', 'true');
+                                input.setAttribute('data-form-type', 'other');
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Run immediately and on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', disableAutocomplete);
+            } else {
+                disableAutocomplete();
+            }
+            
+            // Also handle dynamically added forms
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.tagName === 'FORM') {
+                                node.setAttribute('autocomplete', 'off');
+                                const inputs = node.querySelectorAll('input, textarea, select');
+                                inputs.forEach(function(input) {
+                                    if (input.type !== 'hidden' && 
+                                        input.type !== 'submit' && 
+                                        input.type !== 'button' &&
+                                        input.type !== 'checkbox' &&
+                                        input.type !== 'radio') {
+                                        
+                                        if (input.type === 'date' || (input.type === 'text' && input.classList.contains('date-picker'))) {
+                                            input.setAttribute('autocomplete', 'off');
+                                            input.setAttribute('autocomplete', 'chrome-off');
+                                            input.setAttribute('data-lpignore', 'true');
+                                            input.setAttribute('data-form-type', 'other');
+                                            if (input.classList.contains('date-picker')) {
+                                                input.setAttribute('readonly', 'readonly');
+                                            }
+                                        } else {
+                                            input.setAttribute('autocomplete', 'new-password');
+                                            input.setAttribute('data-lpignore', 'true');
+                                            input.setAttribute('data-form-type', 'other');
+                                        }
+                                    }
+                                });
+                            } else if (node.querySelectorAll) {
+                                const forms = node.querySelectorAll('form');
+                                forms.forEach(function(form) {
+                                    form.setAttribute('autocomplete', 'off');
+                                    const inputs = form.querySelectorAll('input, textarea, select');
+                                    inputs.forEach(function(input) {
+                                        if (input.type !== 'hidden' && 
+                                            input.type !== 'submit' && 
+                                            input.type !== 'button' &&
+                                            input.type !== 'checkbox' &&
+                                            input.type !== 'radio') {
+                                            
+                                            if (input.type === 'date' || (input.type === 'text' && input.classList.contains('date-picker'))) {
+                                                input.setAttribute('autocomplete', 'off');
+                                                input.setAttribute('autocomplete', 'chrome-off');
+                                                input.setAttribute('data-lpignore', 'true');
+                                                input.setAttribute('data-form-type', 'other');
+                                                if (input.classList.contains('date-picker')) {
+                                                    input.setAttribute('readonly', 'readonly');
+                                                }
+                                            } else {
+                                                input.setAttribute('autocomplete', 'new-password');
+                                                input.setAttribute('data-lpignore', 'true');
+                                                input.setAttribute('data-form-type', 'other');
+                                            }
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Observe the entire document for new forms
+            if (document.body) {
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        })();
+    </script>
+
     <!-- Global sharing helper (copies link and shows a simple message) -->
     <script>
         function shareLink(url, title) {

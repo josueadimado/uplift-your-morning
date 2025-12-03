@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import requests
-from .models import ContactMessage, Donation
+from .models import ContactMessage, Donation, FortyDaysConfig
 from apps.devotions.models import Devotion
 from apps.events.models import Event
 from apps.resources.models import Resource
@@ -34,6 +34,7 @@ class HomeView(TemplateView):
         
         # Get today's devotion
         from django.utils import timezone
+        import zoneinfo
         today = timezone.now().date()
         context['todays_devotion'] = Devotion.objects.filter(
             publish_date=today,
@@ -55,6 +56,66 @@ class HomeView(TemplateView):
             is_approved=True,
             featured=True
         )[:5]
+        
+        # Check if we're in the active 40 Days period
+        forty_days_config = FortyDaysConfig.objects.filter(is_active=True).first()
+        context['is_40_days_active'] = False
+        context['forty_days_config'] = None
+        
+        if forty_days_config:
+            # Check if today is within the date range
+            if forty_days_config.start_date <= today <= forty_days_config.end_date:
+                context['is_40_days_active'] = True
+                context['forty_days_config'] = forty_days_config
+                
+                # Calculate current day number (Day 1 = start_date)
+                days_elapsed = (today - forty_days_config.start_date).days + 1
+                context['forty_days_current_day'] = days_elapsed
+                context['forty_days_total_days'] = (forty_days_config.end_date - forty_days_config.start_date).days + 1
+                
+                # Check if we're in the live time windows (Ghana time)
+                # Live buttons appear 15 minutes before session starts
+                accra_tz = zoneinfo.ZoneInfo("Africa/Accra")
+                now_accra = timezone.now().astimezone(accra_tz)
+                from datetime import timedelta
+                
+                # Morning session: 5:00-5:30am (live buttons from 4:45am)
+                morning_start = now_accra.replace(hour=5, minute=0, second=0, microsecond=0)
+                morning_live_start = morning_start - timedelta(minutes=15)  # 15 min before
+                morning_end = now_accra.replace(hour=5, minute=30, second=0, microsecond=0)
+                context['is_morning_live'] = morning_live_start <= now_accra <= morning_end
+                
+                # Evening session: 6:00-7:00pm (live buttons from 5:45pm)
+                evening_start = now_accra.replace(hour=18, minute=0, second=0, microsecond=0)
+                evening_live_start = evening_start - timedelta(minutes=15)  # 15 min before
+                evening_end = now_accra.replace(hour=19, minute=0, second=0, microsecond=0)
+                context['is_evening_live'] = evening_live_start <= now_accra <= evening_end
+                
+                # Calculate next session time for countdown
+                current_hour = now_accra.hour
+                current_minute = now_accra.minute
+                
+                # Determine next session (considering 15 min early start)
+                if now_accra < morning_live_start:
+                    # Before morning session (before 4:45am) - next is morning
+                    next_session = morning_live_start
+                    context['next_session_type'] = 'morning'
+                    context['next_session_time'] = '4:45 AM'
+                elif now_accra < evening_live_start:
+                    # After morning, before evening (before 5:45pm) - next is evening
+                    next_session = evening_live_start
+                    context['next_session_type'] = 'evening'
+                    context['next_session_time'] = '5:45 PM'
+                else:
+                    # After evening - next is tomorrow's morning
+                    next_morning_live = (now_accra + timedelta(days=1)).replace(hour=4, minute=45, second=0, microsecond=0)
+                    next_session = next_morning_live
+                    context['next_session_type'] = 'morning'
+                    context['next_session_time'] = '4:45 AM (Tomorrow)'
+                
+                # Calculate time until next session (in seconds for JavaScript countdown)
+                time_until = (next_session - now_accra).total_seconds()
+                context['next_session_timestamp'] = int(time_until)
         
         return context
 

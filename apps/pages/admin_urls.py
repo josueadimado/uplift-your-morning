@@ -39,5 +39,11 @@ urlpatterns = [
     path('testimonies/', admin_views.TestimonyListView.as_view(), name='testimonies_list'),
     path('testimonies/<int:pk>/approve/', admin_views.TestimonyApproveView.as_view(), name='testimonies_approve'),
     path('testimonies/<int:pk>/delete/', admin_views.TestimonyDeleteView.as_view(), name='testimonies_delete'),
+    
+    # 40 Days Configuration
+    path('fortydays/', admin_views.FortyDaysConfigListView.as_view(), name='fortydays_list'),
+    path('fortydays/create/', admin_views.FortyDaysConfigCreateView.as_view(), name='fortydays_create'),
+    path('fortydays/<int:pk>/edit/', admin_views.FortyDaysConfigUpdateView.as_view(), name='fortydays_edit'),
+    path('fortydays/<int:pk>/delete/', admin_views.FortyDaysConfigDeleteView.as_view(), name='fortydays_delete'),
 ]
 

@@ -16,7 +16,7 @@ from apps.devotions.models import Devotion, DevotionSeries
 from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory
 from apps.community.models import PrayerRequest, Testimony
-from apps.pages.models import Donation
+from apps.pages.models import Donation, FortyDaysConfig
 
 
 class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -456,5 +456,77 @@ class TestimonyDeleteView(StaffRequiredMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Testimony deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+# ==================== 40 DAYS CONFIGURATION ====================
+
+class FortyDaysConfigListView(StaffRequiredMixin, ListView):
+    """List all 40 Days configurations."""
+    model = FortyDaysConfig
+    template_name = 'admin/fortydays/list.html'
+    context_object_name = 'configs'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = FortyDaysConfig.objects.all()
+        # Filter by active status
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+        return queryset.order_by('-start_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = FortyDaysConfig.objects.count()
+        context['active_count'] = FortyDaysConfig.objects.filter(is_active=True).count()
+        context['inactive_count'] = FortyDaysConfig.objects.filter(is_active=False).count()
+        return context
+
+
+class FortyDaysConfigCreateView(StaffRequiredMixin, CreateView):
+    """Create a new 40 Days configuration."""
+    model = FortyDaysConfig
+    template_name = 'admin/fortydays/form.html'
+    fields = [
+        'start_date', 'end_date', 'is_active', 'banner_image',
+        'morning_youtube_url', 'morning_facebook_url',
+        'evening_youtube_url', 'evening_facebook_url'
+    ]
+    success_url = reverse_lazy('manage:fortydays_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, '40 Days configuration created successfully!')
+        return super().form_valid(form)
+
+
+class FortyDaysConfigUpdateView(StaffRequiredMixin, UpdateView):
+    """Update a 40 Days configuration."""
+    model = FortyDaysConfig
+    template_name = 'admin/fortydays/form.html'
+    fields = [
+        'start_date', 'end_date', 'is_active', 'banner_image',
+        'morning_youtube_url', 'morning_facebook_url',
+        'evening_youtube_url', 'evening_facebook_url'
+    ]
+    success_url = reverse_lazy('manage:fortydays_list')
+
+    def form_valid(self, form):
+        # Save the form (this handles image upload if present)
+        response = super().form_valid(form)
+        messages.success(self.request, '40 Days configuration updated successfully!')
+        return response
+
+
+class FortyDaysConfigDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete a 40 Days configuration."""
+    model = FortyDaysConfig
+    template_name = 'admin/fortydays/delete.html'
+    success_url = reverse_lazy('manage:fortydays_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, '40 Days configuration deleted successfully!')
         return super().delete(request, *args, **kwargs)
 

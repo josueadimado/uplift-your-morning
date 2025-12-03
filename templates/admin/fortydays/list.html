@@ -1,0 +1,110 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-bold" style="color: var(--text);">40 Days Configuration</h1>
+        <p class="text-sm mt-1" style="color: var(--text_secondary);">Manage annual 40 Days of Prayer, Planning & Planting settings</p>
+    </div>
+    <a href="{% url 'manage:fortydays_create' %}" class="px-4 py-2 rounded-lg text-white font-semibold" style="background: var(--primary);">+ New Configuration</a>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm p-4 mb-6 border" style="border-color: var(--border);">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-sm font-medium mb-1" style="color: var(--text);">Filter</label>
+            <select name="status" class="px-3 py-2 border rounded-lg" style="border-color: var(--border);">
+                <option value="">All</option>
+                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 rounded-lg font-semibold text-white" style="background: var(--primary);">Filter</button>
+        {% if request.GET.status %}<a href="{% url 'manage:fortydays_list' %}" class="px-4 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">Clear</a>{% endif %}
+    </form>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Total Configurations</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--text);">{{ total }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Active</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--primary);">{{ active_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Inactive</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--text_secondary);">{{ inactive_count }}</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50" style="background: var(--background_light);">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Year</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Date Range</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Live URLs</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                {% for config in configs %}
+                <tr class="hover:bg-gray-50" style="background: {% cycle 'white' 'var(--background_light)' %};">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium" style="color: var(--text);">{{ config.start_date.year }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">
+                        {{ config.start_date|date:"M d, Y" }} - {{ config.end_date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if config.is_active %}
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold text-white" style="background: var(--primary);">Active</span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold" style="background: #e5e7eb; color: #6b7280;">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">
+                        <div class="space-y-1">
+                            {% if config.morning_youtube_url or config.morning_facebook_url %}
+                                <div>Morning: {% if config.morning_youtube_url %}YT{% endif %}{% if config.morning_youtube_url and config.morning_facebook_url %} + {% endif %}{% if config.morning_facebook_url %}FB{% endif %}</div>
+                            {% endif %}
+                            {% if config.evening_youtube_url or config.evening_facebook_url %}
+                                <div>Evening: {% if config.evening_youtube_url %}YT{% endif %}{% if config.evening_youtube_url and config.evening_facebook_url %} + {% endif %}{% if config.evening_facebook_url %}FB{% endif %}</div>
+                            {% endif %}
+                            {% if not config.morning_youtube_url and not config.morning_facebook_url and not config.evening_youtube_url and not config.evening_facebook_url %}
+                                <span class="text-gray-400">No URLs set</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'manage:fortydays_edit' config.pk %}" class="text-sm font-semibold" style="color: var(--primary);">Edit</a>
+                            <span style="color: var(--border);">|</span>
+                            <a href="{% url 'manage:fortydays_delete' config.pk %}" class="text-sm font-semibold text-red-600">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">No configurations found. <a href="{% url 'manage:fortydays_create' %}" style="color: var(--primary);">Create one</a>.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if is_paginated %}
+    <div class="px-6 py-4 border-t" style="border-color: var(--border);">
+        <div class="flex items-center justify-between">
+            <div class="text-sm" style="color: var(--text_secondary);">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}</div>
+            <div class="flex space-x-2">
+                {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="px-3 py-2 rounded-lg border text-sm font-semibold" style="border-color: var(--border); color: var(--primary);">Previous</a>{% endif %}
+                {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="px-3 py-2 rounded-lg border text-sm font-semibold" style="border-color: var(--border); color: var(--primary);">Next</a>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
