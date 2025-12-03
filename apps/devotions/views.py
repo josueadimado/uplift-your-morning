@@ -125,6 +125,7 @@ class TodayDevotionView(DetailView):
         # Determine if we are currently in the live devotion window
         # Devotion happens 5:00am – 5:30am Ghana time (Africa/Accra)
         import zoneinfo
+        from apps.pages.models import SiteSettings
 
         accra_tz = zoneinfo.ZoneInfo("Africa/Accra")
         now_accra = timezone.now().astimezone(accra_tz)
@@ -137,7 +138,9 @@ class TodayDevotionView(DetailView):
 
         context["is_live_time"] = is_live_time
         # Zoom link is only shown during live time; YouTube and Facebook are always available
-        context["show_zoom_link"] = is_live_time
+        site_settings, _ = SiteSettings.objects.get_or_create(pk=1)
+        context["global_zoom_link"] = site_settings.zoom_link
+        context["show_zoom_link"] = is_live_time and bool(site_settings.zoom_link)
 
         return context
 

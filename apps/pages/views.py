@@ -32,30 +32,30 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get today's devotion
+        # Get today's devotion (optimized query)
         from django.utils import timezone
         import zoneinfo
         today = timezone.now().date()
         context['todays_devotion'] = Devotion.objects.filter(
             publish_date=today,
             is_published=True
-        ).first()
+        ).select_related('series').first()
         
-        # Get upcoming events (next 3)
+        # Get upcoming events (next 3) - optimized query
         context['upcoming_events'] = Event.objects.filter(
             start_datetime__gte=timezone.now()
         ).order_by('start_datetime')[:3]
         
-        # Get featured resources
+        # Get featured resources - optimized query
         context['featured_resources'] = Resource.objects.filter(
             is_featured=True
-        )[:3]
+        ).select_related('category')[:3]
         
-        # Get featured testimonies
+        # Get featured testimonies - optimized query
         context['featured_testimonies'] = Testimony.objects.filter(
             is_approved=True,
             featured=True
-        )[:5]
+        ).only('id', 'title', 'content', 'author_name', 'author_location', 'created_at')[:5]
         
         # Check if we're in the active 40 Days period
         forty_days_config = FortyDaysConfig.objects.filter(is_active=True).first()
@@ -130,7 +130,29 @@ class HomeView(TemplateView):
         
         # Get site settings (Zoom link for all programs)
         site_settings, _ = SiteSettings.objects.get_or_create(pk=1)
-        context['zoom_link'] = site_settings.zoom_link
+        zoom_link = site_settings.zoom_link
+        context['global_zoom_link'] = zoom_link
+        
+        # Time-based logic for showing Zoom buttons
+        accra_tz = zoneinfo.ZoneInfo("Africa/Accra")
+        now_accra = timezone.now().astimezone(accra_tz)
+        current_weekday = now_accra.weekday()  # 0=Monday, 6=Sunday
+        
+        # Uplift Your Morning: 5:00-5:30am GMT (Monday-Sunday, all days)
+        morning_start = now_accra.replace(hour=5, minute=0, second=0, microsecond=0)
+        morning_end = now_accra.replace(hour=5, minute=30, second=0, microsecond=0)
+        context['show_uplift_zoom'] = (morning_start <= now_accra <= morning_end) and bool(zoom_link)
+        
+        # Access Hour: 6:00-7:00pm GMT (Wednesday only, weekday=2)
+        evening_start = now_accra.replace(hour=18, minute=0, second=0, microsecond=0)
+        evening_end = now_accra.replace(hour=19, minute=0, second=0, microsecond=0)
+        context['show_access_hour_zoom'] = (current_weekday == 2) and (evening_start <= now_accra <= evening_end) and bool(zoom_link)
+        
+        # Edify: 6:00-7:00pm GMT (Friday only, weekday=4)
+        context['show_edify_zoom'] = (current_weekday == 4) and (evening_start <= now_accra <= evening_end) and bool(zoom_link)
+        
+        # For 40 Days, Zoom should only show during live sessions (already handled above)
+        # We'll use the existing is_morning_live and is_evening_live flags
         
         return context
 
