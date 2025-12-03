@@ -120,9 +120,24 @@ python manage.py collectstatic --noinput
 
 1. Go to PythonAnywhere Dashboard
 2. Click "Web" tab
-3. Click "Add a new web app"
+3. Click "Add a new web app" (if you don't have one yet)
 4. Choose "Manual configuration"
 5. Select Python version (3.10 recommended)
+
+**IMPORTANT:** If you see a "Coming Soon!" page when visiting your domain, it means:
+- The web app doesn't exist yet, OR
+- The web app exists but your custom domain isn't added to it
+
+### 4.2 Add Your Custom Domain
+
+After creating the web app, you MUST add your custom domain:
+
+1. In the Web app configuration page, find the "Domains" section
+2. Add both domains:
+   - `upliftyourmorning.com`
+   - `www.upliftyourmorning.com`
+3. Click "Save" or the domain will be added automatically
+4. Make sure your DNS is configured correctly (see Custom Domain Setup section)
 
 ### 4.2 WSGI Configuration
 
