@@ -257,6 +257,66 @@ class ResourceDeleteView(StaffRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
+# ==================== RESOURCE CATEGORIES ====================
+
+class ResourceCategoryListView(StaffRequiredMixin, ListView):
+    """List all resource categories."""
+    model = ResourceCategory
+    template_name = 'admin/resources/category_list.html'
+    context_object_name = 'categories'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = ResourceCategory.objects.all()
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(description__icontains=search)
+            )
+        return queryset.order_by('name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = ResourceCategory.objects.count()
+        return context
+
+
+class ResourceCategoryCreateView(StaffRequiredMixin, CreateView):
+    """Create a new resource category."""
+    model = ResourceCategory
+    template_name = 'admin/resources/category_form.html'
+    fields = ['name', 'description']
+    success_url = reverse_lazy('manage:resource_categories_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Resource category created successfully!')
+        return super().form_valid(form)
+
+
+class ResourceCategoryUpdateView(StaffRequiredMixin, UpdateView):
+    """Update a resource category."""
+    model = ResourceCategory
+    template_name = 'admin/resources/category_form.html'
+    fields = ['name', 'description']
+    success_url = reverse_lazy('manage:resource_categories_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Resource category updated successfully!')
+        return super().form_valid(form)
+
+
+class ResourceCategoryDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete a resource category."""
+    model = ResourceCategory
+    template_name = 'admin/resources/category_delete.html'
+    success_url = reverse_lazy('manage:resource_categories_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Resource category deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
 # ==================== PRAYER REQUESTS ====================
 
 class PrayerRequestListView(StaffRequiredMixin, ListView):

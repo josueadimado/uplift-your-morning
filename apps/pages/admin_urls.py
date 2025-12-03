@@ -25,6 +25,12 @@ urlpatterns = [
     path('resources/<int:pk>/edit/', admin_views.ResourceUpdateView.as_view(), name='resources_edit'),
     path('resources/<int:pk>/delete/', admin_views.ResourceDeleteView.as_view(), name='resources_delete'),
     
+    # Resource Categories
+    path('resource-categories/', admin_views.ResourceCategoryListView.as_view(), name='resource_categories_list'),
+    path('resource-categories/create/', admin_views.ResourceCategoryCreateView.as_view(), name='resource_categories_create'),
+    path('resource-categories/<int:pk>/edit/', admin_views.ResourceCategoryUpdateView.as_view(), name='resource_categories_edit'),
+    path('resource-categories/<int:pk>/delete/', admin_views.ResourceCategoryDeleteView.as_view(), name='resource_categories_delete'),
+    
     # Prayer Requests
     path('prayers/', admin_views.PrayerRequestListView.as_view(), name='prayers_list'),
     path('prayers/<int:pk>/mark-prayed/', admin_views.PrayerRequestMarkPrayedView.as_view(), name='prayers_mark_prayed'),
