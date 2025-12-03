@@ -229,9 +229,41 @@ Then reload your web app in the PythonAnywhere dashboard.
 
 ## Custom Domain Setup
 
-1. In Web app configuration, add your domain to `ALLOWED_HOSTS` in `.env`
-2. Configure DNS to point to PythonAnywhere's IP
-3. Add domain in PythonAnywhere's Web app settings
+1. In Web app configuration, add your domain to `ALLOWED_HOSTS` in `.env`:
+   ```
+   ALLOWED_HOSTS=yourusername.pythonanywhere.com,upliftyourmorning.com,www.upliftyourmorning.com
+   ```
+
+2. Add your domain in PythonAnywhere's Web app settings:
+   - Go to Web app configuration
+   - Add `upliftyourmorning.com` and `www.upliftyourmorning.com` to the domain list
+
+3. Configure DNS records in your domain registrar:
+   
+   **For the root domain (`upliftyourmorning.com`):**
+   - **Option A (Recommended if supported):** Add a CNAME record:
+     - Type: `CNAME`
+     - Host/Name: `@` (or leave blank, depending on your DNS provider)
+     - Value: `webapp-2858903.pythonanywhere.com.` (note the trailing dot)
+     - TTL: Automatic
+   
+   - **Option B (If CNAME not allowed on root):** Some DNS providers don't allow CNAME on root domain. In this case:
+     - Use an A record pointing to PythonAnywhere's IP (check PythonAnywhere docs for current IP)
+     - OR set up a redirect from root to www in your DNS provider
+   
+   **For the www subdomain (`www.upliftyourmorning.com`):**
+   - Type: `CNAME`
+   - Host/Name: `www`
+   - Value: `webapp-2858903.pythonanywhere.com.` (note the trailing dot)
+   - TTL: Automatic
+
+4. Wait for DNS propagation (can take up to 24-48 hours)
+
+5. Reload your web app in PythonAnywhere dashboard
+
+**Note:** If your DNS provider doesn't support CNAME on the root domain (@), you may need to:
+- Use A records instead (check PythonAnywhere documentation for IP addresses)
+- Or set up a redirect from root domain to www subdomain
 
 ## Security Checklist
 
