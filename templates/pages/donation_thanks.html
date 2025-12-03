@@ -11,24 +11,24 @@
 {% block og_description %}Thank you for supporting our mission to empower Africa through spiritual development and community service.{% endblock %}
 
 {% block content %}
-<section class="py-16" style="background: var(--background_light);">
+<section class="py-12 sm:py-14 md:py-16" style="background: var(--background_light);">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full"
+        <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 rounded-full"
              style="background: var(--background_tint); color: var(--primary);">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
         </div>
-        <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--text);">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4" style="color: var(--text);">
             Thank you for partnering with UPLIFT Afrika
         </h1>
-        <p class="text-base md:text-lg mb-6" style="color: var(--text_secondary);">
+        <p class="text-sm sm:text-base md:text-lg mb-5 sm:mb-6 px-4" style="color: var(--text_secondary);">
             We are grateful for your generosity. Your seed helps us take the gospel, prayer
             and discipleship resources to more people across Afrika and beyond.
         </p>
         <a href="{% url 'pages:home' %}"
-           class="inline-flex items-center rounded-lg font-semibold px-6 py-3 shadow-md hover:shadow-lg"
+           class="inline-flex items-center rounded-lg font-semibold px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base shadow-md hover:shadow-lg"
            style="background: var(--primary); color: white;">
             Back to Home
         </a>

@@ -14,32 +14,32 @@
 {% block content %}
 
 <!-- Page Banner -->
-<section class="mb-10" style="background: linear-gradient(135deg, var(--background_tint) 0%, #ffffff 55%, #fef3c7 100%);">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div class="grid md:grid-cols-2 gap-8 items-center">
+<section class="mb-8 sm:mb-10" style="background: linear-gradient(135deg, var(--background_tint) 0%, #ffffff 55%, #fef3c7 100%);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div class="grid md:grid-cols-2 gap-6 sm:gap-8 items-center">
             <!-- Left: Text -->
             <div>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide mb-4"
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide mb-3 sm:mb-4"
                       style="background: rgba(17,24,39,0.06); color: var(--text_secondary);">
                     Resources
                 </span>
-                <h1 class="text-3xl md:text-4xl font-extrabold mb-4" style="color: var(--accent);">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 sm:mb-4" style="color: var(--accent);">
                     Discover tools to support your journey
                 </h1>
-                <p class="text-sm md:text-base leading-relaxed mb-4" style="color: var(--text_secondary);">
+                <p class="text-sm sm:text-base leading-relaxed mb-3 sm:mb-4" style="color: var(--text_secondary);">
                     Browse practical guides, prayer aids and study materials you can use personally, 
                     with your family or in your local church community.
                 </p>
-                <div class="flex flex-wrap gap-3 text-xs md:text-sm" style="color: var(--text_secondary);">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full"
+                <div class="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm" style="color: var(--text_secondary);">
+                    <span class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full"
                           style="background: rgba(17,24,39,0.04);">
                         📖 Study Guides &amp; Frameworks
                     </span>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full"
+                    <span class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full"
                           style="background: rgba(17,24,39,0.04);">
                         🙏 Prayer &amp; Devotional Tools
                     </span>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full"
+                    <span class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full"
                           style="background: rgba(17,24,39,0.04);">
                         🎧 Audio &amp; Media Resources
                     </span>
@@ -83,12 +83,12 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     
     <!-- Filters -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <form method="get" class="flex flex-wrap gap-4">
+    <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+        <form method="get" class="flex flex-wrap gap-3 sm:gap-4">
             <input type="text" name="search" placeholder="Search resources..." 
                    value="{{ search_query }}" 
-                   class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg">
-            <select name="category" class="px-4 py-2 border border-gray-300 rounded-lg">
+                   class="flex-1 min-w-[200px] px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg">
+            <select name="category" class="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg w-full sm:w-auto">
                 <option value="">All Categories</option>
                 {% for category in categories %}
                 <option value="{{ category.slug }}" {% if current_category == category.slug %}selected{% endif %}>
@@ -96,7 +96,7 @@
                 </option>
                 {% endfor %}
             </select>
-            <select name="type" class="px-4 py-2 border border-gray-300 rounded-lg">
+            <select name="type" class="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg w-full sm:w-auto">
                 <option value="">All Types</option>
                 <option value="pdf" {% if current_type == 'pdf' %}selected{% endif %}>PDF</option>
                 <option value="audio" {% if current_type == 'audio' %}selected{% endif %}>Audio</option>
@@ -104,7 +104,7 @@
                 <option value="image" {% if current_type == 'image' %}selected{% endif %}>Image</option>
             </select>
             <button type="submit"
-                    class="px-6 py-2 rounded-lg font-semibold text-white"
+                    class="px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold text-white w-full sm:w-auto"
                     style="background: var(--primary);"
                     onmouseover="this.style.background='var(--primary_hover)'"
                     onmouseout="this.style.background='var(--primary)'">
@@ -114,39 +114,39 @@
     </div>
 
     <!-- Resources Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {% for resource in resources %}
-        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <h3 class="text-xl font-semibold mb-2">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow">
+            <h3 class="text-lg sm:text-xl font-semibold mb-2">
                 <a href="{% url 'resources:detail' resource.slug %}"
                    class="font-semibold"
                    style="color: var(--primary);">
                     {{ resource.title }}
                 </a>
             </h3>
-            <p class="text-gray-600 mb-2">{{ resource.category.name }}</p>
-            <p class="text-gray-700 mb-4">{{ resource.description|truncatewords:20 }}</p>
-            <div class="flex justify-between items-center gap-2">
+            <p class="text-sm sm:text-base text-gray-600 mb-2">{{ resource.category.name }}</p>
+            <p class="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">{{ resource.description|truncatewords:20 }}</p>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <span class="inline-block text-xs px-2 py-1 rounded"
                       style="background: #f3f4f6; color: var(--text_secondary);">
                     {{ resource.get_type_display }}
                 </span>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                     <button type="button"
                             onclick="shareLink('{% url 'resources:detail' resource.slug %}', '{{ resource.title|escapejs }}')"
-                            class="inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full border transition-colors"
+                            class="inline-flex items-center text-xs font-semibold px-2 sm:px-3 py-1 rounded-full border transition-colors"
                             style="border-color: #e5e7eb; color: var(--text_secondary);"
                             onmouseover="this.style.background='var(--background_tint)'; this.style.color='var(--primary)'"
                             onmouseout="this.style.background='transparent'; this.style.color='var(--text_secondary)'">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="8" stroke-width="2"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 9h4v4"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 13l4-4"/>
                         </svg>
-                        Share
+                        <span class="hidden sm:inline">Share</span>
                     </button>
                     <a href="{% url 'resources:detail' resource.slug %}"
-                       class="font-semibold"
+                       class="font-semibold text-sm sm:text-base"
                        style="color: var(--primary);">
                         View →
                     </a>
@@ -162,23 +162,23 @@
 
     <!-- Pagination -->
     {% if is_paginated %}
-    <div class="mt-8 flex justify-center">
-        <div class="flex space-x-2">
+    <div class="mt-6 sm:mt-8 flex justify-center">
+        <div class="flex flex-wrap justify-center gap-2">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}"
-               class="px-4 py-2 rounded-lg text-white font-semibold"
+               class="px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-white font-semibold"
                style="background: var(--primary);"
                onmouseover="this.style.background='var(--primary_hover)'"
                onmouseout="this.style.background='var(--primary)'">
                 Previous
             </a>
             {% endif %}
-            <span class="px-4 py-2 bg-gray-200 rounded-lg">
+            <span class="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-200 rounded-lg">
                 Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
             </span>
             {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}"
-               class="px-4 py-2 rounded-lg text-white font-semibold"
+               class="px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-white font-semibold"
                style="background: var(--primary);"
                onmouseover="this.style.background='var(--primary_hover)'"
                onmouseout="this.style.background='var(--primary)'">

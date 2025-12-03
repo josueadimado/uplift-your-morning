@@ -13,11 +13,21 @@
 
 {% block extra_css %}
 <style>
-    /* Minimum font size and medium weight for all text */
+    /* Responsive font sizes and medium weight for all text */
     body {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 500; /* Medium weight */
         background: #FFFFFF !important;
+    }
+    @media (min-width: 640px) {
+        body {
+            font-size: 17px;
+        }
+    }
+    @media (min-width: 1024px) {
+        body {
+            font-size: 18px;
+        }
     }
     /* Ensure all sections have white backgrounds unless specified */
     section {
@@ -27,8 +37,26 @@
         background: #f9fafb !important;
     }
     .text-xs, .text-sm, .text-base, .text-lg, p {
-        font-size: 18px !important;
         font-weight: 500 !important; /* Medium weight */
+    }
+    /* Responsive text sizes */
+    @media (max-width: 639px) {
+        .text-xs { font-size: 12px !important; }
+        .text-sm { font-size: 14px !important; }
+        .text-base, p { font-size: 16px !important; }
+        .text-lg { font-size: 18px !important; }
+    }
+    @media (min-width: 640px) {
+        .text-xs { font-size: 12px !important; }
+        .text-sm { font-size: 14px !important; }
+        .text-base, p { font-size: 17px !important; }
+        .text-lg { font-size: 19px !important; }
+    }
+    @media (min-width: 1024px) {
+        .text-xs { font-size: 12px !important; }
+        .text-sm { font-size: 14px !important; }
+        .text-base, p { font-size: 18px !important; }
+        .text-lg { font-size: 20px !important; }
     }
     
     /* World Map Background Design - Professional Clean Style */
@@ -273,11 +301,41 @@
         }
     }
     @media (max-width: 640px) {
+        .hero-content-wrapper {
+            padding: 30px 15px;
+        }
         .hero-content-inner h2 {
-            font-size: 2rem;
+            font-size: 1.75rem;
+            line-height: 1.2;
         }
         .hero-content-inner p {
-            font-size: 1.1rem;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .hero-content-inner a {
+            font-size: 14px;
+            padding: 10px 16px;
+            margin-bottom: 8px;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+        .slider-nav {
+            width: 35px;
+            height: 35px;
+        }
+        .slider-nav.prev {
+            left: 10px;
+        }
+        .slider-nav.next {
+            right: 10px;
+        }
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+        }
+        .slider-dot.active {
+            width: 24px;
         }
     }
 </style>
@@ -420,13 +478,13 @@
 
 <!-- 40 Days Active Section -->
 {% if is_40_days_active and forty_days_config %}
-<section class="py-16" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%);">
+<section class="py-10 sm:py-12 md:py-16" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%);">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border" style="border-color: var(--primary);">
             <div class="flex flex-col md:flex-row md:items-stretch">
                 <!-- Left: Banner Image -->
                 {% if forty_days_config.banner_image %}
-                <div class="relative w-full md:w-1/2 flex-shrink-0 h-full overflow-hidden">
+                <div class="relative w-full md:w-1/2 flex-shrink-0 h-64 sm:h-80 md:h-full overflow-hidden">
                     <img src="{{ forty_days_config.banner_image.url }}" 
                          alt="40 Days of Prayer, Planning & Planting" 
                          class="w-full h-full"
@@ -434,25 +492,25 @@
                 </div>
                 {% else %}
                 <!-- Placeholder if no banner image -->
-                <div class="relative h-full min-h-[500px] overflow-hidden" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%); display: flex; align-items: center; justify-content: center;">
-                    <div class="text-center text-white p-8">
-                        <h3 class="text-3xl font-bold mb-2">40 Days</h3>
-                        <p class="text-lg opacity-90">Prayer, Planning & Planting</p>
+                <div class="relative h-64 sm:h-80 md:h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] overflow-hidden" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%); display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center text-white p-6 sm:p-8">
+                        <h3 class="text-2xl sm:text-3xl font-bold mb-2">40 Days</h3>
+                        <p class="text-base sm:text-lg opacity-90">Prayer, Planning & Planting</p>
                     </div>
                 </div>
                 {% endif %}
                 
                 <!-- Right: Content -->
-                <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center h-full" style="min-height: 500px;">
-                    <div class="space-y-6">
+                <div class="w-full md:w-1/2 p-6 sm:p-8 md:p-12 flex flex-col justify-center h-full" style="min-height: 300px; sm:min-height: 400px;">
+                    <div class="space-y-4 sm:space-y-6">
                         <!-- Day Counter -->
                         <div class="text-center md:text-left">
-                            <div class="flex items-baseline justify-center md:justify-start gap-2 flex-wrap">
-                                <span class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text_light);">Day</span>
-                                <span class="text-6xl md:text-7xl font-bold" style="color: var(--primary); line-height: 1;">
+                            <div class="flex items-baseline justify-center md:justify-start gap-1 sm:gap-2 flex-wrap">
+                                <span class="text-xs sm:text-sm font-semibold uppercase tracking-wider" style="color: var(--text_light);">Day</span>
+                                <span class="text-5xl sm:text-6xl md:text-7xl font-bold" style="color: var(--primary); line-height: 1;">
                                     {{ forty_days_current_day }}
                                 </span>
-                                <span class="text-lg font-medium" style="color: var(--text_secondary);">
+                                <span class="text-base sm:text-lg font-medium" style="color: var(--text_secondary);">
                                     of {{ forty_days_total_days }} Days
                                 </span>
                             </div>
@@ -460,7 +518,7 @@
                         
                         <!-- Title -->
                         <div>
-                            <h3 class="text-2xl md:text-3xl font-bold mb-4" style="color: var(--text);">
+                            <h3 class="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style="color: var(--text);">
                                 40 Days of Prayer, Planning &amp; Planting
                             </h3>
                         </div>
@@ -468,53 +526,56 @@
                         <!-- Live Buttons or Countdown -->
                         <div>
                             {% if is_morning_live %}
-                            <div class="mb-6">
-                                <p class="text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Morning Session</p>
-                                <p class="text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ morning_time_gmt }} GMT / {{ morning_time_cat }} CAT / {{ morning_time_eat }} EAT</p>
-                                <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                            <div class="mb-4 sm:mb-6">
+                                <p class="text-base sm:text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Morning Session</p>
+                                <p class="text-xs sm:text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ morning_time_gmt }} GMT / {{ morning_time_cat }} CAT / {{ morning_time_eat }} EAT</p>
+                                <div class="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-start">
                                 {% if zoom_link %}
                                 <a href="{{ zoom_link }}" 
                                    target="_blank" 
                                    rel="noopener noreferrer"
-                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold text-white transition-all hover:shadow-lg"
                                    style="background: #2D8CFF;">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M17.562 21.559h-11.124c-.621 0-1.125-.504-1.125-1.125v-8.625h-2.25c-.621 0-1.125-.504-1.125-1.125v-9.75c0-.621.504-1.125 1.125-1.125h15.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25v8.625c0 .621-.504 1.125-1.125 1.125zm-12.249-1.125h11.124v-8.625c0-.621.504-1.125 1.125-1.125h2.25v-8.625h-15.75v8.625h2.25c.621 0 1.125.504 1.125 1.125v8.625zm5.625-4.5c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125z"/>
                                     </svg>
-                                    Join on Zoom
+                                    <span class="hidden sm:inline">Join on Zoom</span>
+                                    <span class="sm:hidden">Zoom</span>
                                 </a>
                                 {% endif %}
                                 {% if forty_days_config.morning_youtube_url %}
                                 <a href="{{ forty_days_config.morning_youtube_url }}" 
                                    target="_blank" 
                                    rel="noopener noreferrer"
-                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold text-white transition-all hover:shadow-lg"
                                    style="background: #FF0000;">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                                     </svg>
-                                    Watch on YouTube
+                                    <span class="hidden sm:inline">Watch on YouTube</span>
+                                    <span class="sm:hidden">YouTube</span>
                                 </a>
                                 {% endif %}
                                 {% if forty_days_config.morning_facebook_url %}
                                 <a href="{{ forty_days_config.morning_facebook_url }}" 
                                    target="_blank" 
                                    rel="noopener noreferrer"
-                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold text-white transition-all hover:shadow-lg"
                                    style="background: #1877F2;">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                     </svg>
-                                    Watch on Facebook
+                                    <span class="hidden sm:inline">Watch on Facebook</span>
+                                    <span class="sm:hidden">Facebook</span>
                                 </a>
                                     {% endif %}
                                 </div>
                             </div>
                             {% elif is_evening_live %}
-                            <div class="mb-6">
-                                <p class="text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Evening Session</p>
-                                <p class="text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ evening_time_gmt }} GMT / {{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT</p>
-                                <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                            <div class="mb-4 sm:mb-6">
+                                <p class="text-base sm:text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Evening Session</p>
+                                <p class="text-xs sm:text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ evening_time_gmt }} GMT / {{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT</p>
+                                <div class="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-start">
                                 {% if zoom_link %}
                                 <a href="{{ zoom_link }}" 
                                    target="_blank" 
@@ -531,35 +592,37 @@
                                 <a href="{{ forty_days_config.evening_youtube_url }}" 
                                    target="_blank" 
                                    rel="noopener noreferrer"
-                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold text-white transition-all hover:shadow-lg"
                                    style="background: #FF0000;">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                                     </svg>
-                                    Watch on YouTube
+                                    <span class="hidden sm:inline">Watch on YouTube</span>
+                                    <span class="sm:hidden">YouTube</span>
                                 </a>
                                 {% endif %}
                                 {% if forty_days_config.evening_facebook_url %}
                                 <a href="{{ forty_days_config.evening_facebook_url }}" 
                                    target="_blank" 
                                    rel="noopener noreferrer"
-                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold text-white transition-all hover:shadow-lg"
                                    style="background: #1877F2;">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                     </svg>
-                                    Watch on Facebook
+                                    <span class="hidden sm:inline">Watch on Facebook</span>
+                                    <span class="sm:hidden">Facebook</span>
                                 </a>
                                     {% endif %}
                                 </div>
                             </div>
                             {% else %}
-                            <div class="mb-6">
-                                <p class="text-lg font-semibold mb-2" style="color: var(--text);">Next Session:</p>
-                                <p class="text-2xl font-bold mb-1" style="color: var(--primary);" id="next-session-time">{{ next_session_time }}</p>
+                            <div class="mb-4 sm:mb-6">
+                                <p class="text-base sm:text-lg font-semibold mb-2" style="color: var(--text);">Next Session:</p>
+                                <p class="text-xl sm:text-2xl font-bold mb-1" style="color: var(--primary);" id="next-session-time">{{ next_session_time }}</p>
                                 <div class="flex items-center justify-center md:justify-start gap-2 mt-3">
-                                    <span class="text-sm font-medium" style="color: var(--text_secondary);">Starts in:</span>
-                                    <div class="text-xl font-bold" style="color: var(--primary);" id="countdown-timer">
+                                    <span class="text-xs sm:text-sm font-medium" style="color: var(--text_secondary);">Starts in:</span>
+                                    <div class="text-lg sm:text-xl font-bold" style="color: var(--primary);" id="countdown-timer">
                                         <span id="countdown-hours">00</span>:<span id="countdown-minutes">00</span>:<span id="countdown-seconds">00</span>
                                     </div>
                                 </div>
@@ -568,12 +631,12 @@
                         </div>
                         
                         <!-- View Devotions Button -->
-                        <div class="mt-6">
+                        <div class="mt-4 sm:mt-6">
                             <a href="{% url 'devotions:list' %}?series=40-days-of-prayer" 
-                               class="inline-flex items-center px-6 py-3 rounded-lg font-semibold border transition-all hover:shadow-md"
+                               class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold border transition-all hover:shadow-md w-full sm:w-auto justify-center"
                                style="border-color: var(--primary); color: var(--primary);">
                                 View Daily Devotions
-                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </a>
@@ -624,59 +687,59 @@
 {% endif %}
 
 <!-- Weekly Rhythms Overview -->
-<section class="py-24" style="background: #FFFFFF !important;">
+<section class="py-16 sm:py-20 md:py-24" style="background: #FFFFFF !important;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-16 items-start">
+        <div class="grid lg:grid-cols-2 gap-10 sm:gap-12 md:gap-16 items-start">
             <!-- Left: Heading & Intro -->
             <div>
-                <h2 class="text-3xl md:text-4xl font-bold leading-tight mb-6" style="color: var(--text);">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-4 sm:mb-6" style="color: var(--text);">
                     One Spiritual Journey, Four Weekly Rhythms
                 </h2>
-                <p class="text-xl leading-relaxed font-medium mb-4" style="color: var(--text);">
+                <p class="text-lg sm:text-xl leading-relaxed font-medium mb-3 sm:mb-4" style="color: var(--text);">
                     Uplift Your Morning is a daily spiritual devotion, with simple weekly rhythms that help you build a consistent life with God.
                 </p>
-                <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                <p class="text-base sm:text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
                     Join us live, follow the devotions, and use the resources that go with each rhythm as you grow in prayer, the Word and community.
                 </p>
             </div>
 
             <!-- Right: Rhythms List -->
-            <div class="space-y-5">
-                <div class="flex items-start gap-4">
-                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--primary);"></div>
+            <div class="space-y-4 sm:space-y-5">
+                <div class="flex items-start gap-3 sm:gap-4">
+                    <div class="mt-1 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style="background: var(--primary);"></div>
                     <div>
-                        <h3 class="font-bold text-xl" style="color: var(--text);">Uplift Your Morning</h3>
-                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                        <h3 class="font-bold text-lg sm:text-xl" style="color: var(--text);">Uplift Your Morning</h3>
+                        <p class="text-base sm:text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
                             Daily (Monday–Sunday) morning devotion, {{ morning_time_gmt }} GMT ({{ morning_time_cat }} CAT / {{ morning_time_eat }} EAT) – worship, Word and prayer to start your day with God.
                         </p>
                     </div>
                 </div>
 
-                <div class="flex items-start gap-4">
-                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--primary_light);"></div>
+                <div class="flex items-start gap-3 sm:gap-4">
+                    <div class="mt-1 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style="background: var(--primary_light);"></div>
                     <div>
-                        <h3 class="font-bold text-xl" style="color: var(--text);">Access Hour</h3>
-                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                        <h3 class="font-bold text-lg sm:text-xl" style="color: var(--text);">Access Hour</h3>
+                        <p class="text-base sm:text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
                             Wednesday evening prayer session, {{ evening_time_gmt }} GMT ({{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT), where we stand in the gap for families, leaders and nations.
                         </p>
                     </div>
                 </div>
 
-                <div class="flex items-start gap-4">
-                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--accent);"></div>
+                <div class="flex items-start gap-3 sm:gap-4">
+                    <div class="mt-1 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style="background: var(--accent);"></div>
                     <div>
-                        <h3 class="font-bold text-xl" style="color: var(--text);">Edify</h3>
-                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                        <h3 class="font-bold text-lg sm:text-xl" style="color: var(--text);">Edify</h3>
+                        <p class="text-base sm:text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
                             Friday evening Bible study, {{ evening_time_gmt }} GMT ({{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT), focused on practical, life‑shaping teaching from God's Word.
                         </p>
                     </div>
                 </div>
 
-                <div class="flex items-start gap-4">
-                    <div class="mt-1 w-3 h-3 rounded-full" style="background: var(--accent_light);"></div>
+                <div class="flex items-start gap-3 sm:gap-4">
+                    <div class="mt-1 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style="background: var(--accent_light);"></div>
                     <div>
-                        <h3 class="font-bold text-xl" style="color: var(--text);">40 Days of Prayer, Planning &amp; Planting</h3>
-                        <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
+                        <h3 class="font-bold text-lg sm:text-xl" style="color: var(--text);">40 Days of Prayer, Planning &amp; Planting</h3>
+                        <p class="text-base sm:text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
                             Our annual year‑end season of focused prayer and Spirit‑led planning as we close and begin the year with God.
                         </p>
                     </div>
@@ -689,31 +752,31 @@
 <!-- Engagement Section - Two Image Cards -->
 <section class="py-20 bg-white" style="background: #FFFFFF !important;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-4xl md:text-5xl font-bold mb-12 text-center" style="color: var(--text);">How would you like to engage with us?</h2>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 text-center px-4" style="color: var(--text);">How would you like to engage with us?</h2>
         
-        <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto px-4">
             <!-- Card 1: Uplift Your Morning (Daily Devotion) -->
             <a href="{% url 'devotions:today' %}" class="group block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all">
-                <div class="relative h-64 overflow-hidden">
+                <div class="relative h-56 sm:h-64 overflow-hidden">
                     <img src="{% static 'images/general/daily prayer.jpg' %}" 
                          alt="Uplift Your Morning Daily Devotion" 
                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div class="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 class="text-2xl font-bold text-white mb-2">UPLIFT YOUR MORNING</h3>
+                    <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">UPLIFT YOUR MORNING</h3>
                     </div>
                 </div>
             </a>
             
             <!-- Card 2: Events & Special Gatherings -->
             <a href="{% url 'events:list' %}" class="group block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all">
-                <div class="relative h-64 overflow-hidden">
+                <div class="relative h-56 sm:h-64 overflow-hidden">
                     <img src="{% static 'images/general/event and gathering.jpg' %}" 
                          alt="Events and special gatherings" 
                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div class="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 class="text-2xl font-bold text-white mb-2">EVENTS &amp; GATHERINGS</h3>
+                    <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">EVENTS &amp; GATHERINGS</h3>
                     </div>
                 </div>
             </a>
@@ -722,31 +785,31 @@
 </section>
 
 <!-- Resource Library Section - Colored Background -->
-<section class="py-24" style="background: var(--primary) !important;">
+<section class="py-16 sm:py-20 md:py-24" style="background: var(--primary) !important;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-16">
-            <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white">Resource Library</h2>
-            <p class="text-xl leading-relaxed font-medium max-w-3xl text-white/90">
+        <div class="mb-10 sm:mb-12 md:mb-16">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-white px-4 text-center sm:text-left">Resource Library</h2>
+            <p class="text-lg sm:text-xl leading-relaxed font-medium max-w-3xl text-white/90 px-4 text-center sm:text-left">
                 Our resource library contains visuals, articles, and research insights to help believers deepen their understanding of God's word and grow in their faith journey.
             </p>
         </div>
         
-        <div class="grid md:grid-cols-3 gap-8">
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             <!-- Resource Card 1 -->
             <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all">
-                <div class="h-48 overflow-hidden">
+                <div class="h-40 sm:h-48 overflow-hidden">
                     <img src="{% static 'images/general/daily prayer.jpg' %}" 
                          alt="Daily Devotions" 
                          class="w-full h-full object-cover">
                 </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Daily Devotions</h3>
-                    <p class="text-lg leading-relaxed font-medium mb-4" style="color: var(--text_light);">
+                <div class="p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style="color: var(--text);">Daily Devotions</h3>
+                    <p class="text-base sm:text-lg leading-relaxed font-medium mb-3 sm:mb-4" style="color: var(--text_light);">
                         Access our comprehensive collection of daily devotions designed to strengthen your faith and provide biblical insights for everyday living.
                     </p>
-                    <a href="{% url 'devotions:list' %}" class="font-semibold inline-flex items-center" style="color: var(--primary);">
+                    <a href="{% url 'devotions:list' %}" class="font-semibold inline-flex items-center text-sm sm:text-base" style="color: var(--primary);">
                         Learn more
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </a>
@@ -755,20 +818,20 @@
             
             <!-- Resource Card 2 -->
             <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all">
-                <div class="h-48 overflow-hidden">
+                <div class="h-40 sm:h-48 overflow-hidden">
                     <img src="{% static 'images/general/71fvt60sfeL._SY522_.jpg' %}" 
                          alt="Biblical Resources" 
                          class="w-full h-full object-cover"
                          onerror="this.onerror=null; this.src='{% static 'images/general/395423102_325278640289136_3667017215925678285_n.jpg' %}';">
                 </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Biblical Resources</h3>
-                    <p class="text-lg leading-relaxed font-medium mb-4" style="color: var(--text_light);">
+                <div class="p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style="color: var(--text);">Biblical Resources</h3>
+                    <p class="text-base sm:text-lg leading-relaxed font-medium mb-3 sm:mb-4" style="color: var(--text_light);">
                         Explore our library of PDFs, audio teachings, videos, and study materials to help you deepen your understanding of God's word.
                     </p>
-                    <a href="{% url 'resources:list' %}" class="font-semibold inline-flex items-center" style="color: var(--primary);">
+                    <a href="{% url 'resources:list' %}" class="font-semibold inline-flex items-center text-sm sm:text-base" style="color: var(--primary);">
                         Learn more
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </a>
@@ -777,19 +840,19 @@
             
             <!-- Resource Card 3 -->
             <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all">
-                <div class="h-48 overflow-hidden">
+                <div class="h-40 sm:h-48 overflow-hidden">
                     <img src="{% static 'images/general/event and gathering.jpg' %}" 
                          alt="Events & Programs" 
                          class="w-full h-full object-cover">
                 </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Events & Programs</h3>
-                    <p class="text-lg leading-relaxed font-medium mb-4" style="color: var(--text_light);">
+                <div class="p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style="color: var(--text);">Events & Programs</h3>
+                    <p class="text-base sm:text-lg leading-relaxed font-medium mb-3 sm:mb-4" style="color: var(--text_light);">
                         Discover upcoming conferences, Bible studies, and special events designed to strengthen your faith and build community connections.
                     </p>
-                    <a href="{% url 'events:list' %}" class="font-semibold inline-flex items-center" style="color: var(--primary);">
+                    <a href="{% url 'events:list' %}" class="font-semibold inline-flex items-center text-sm sm:text-base" style="color: var(--primary);">
                         Learn more
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </a>
@@ -801,28 +864,28 @@
 
 <!-- Today's Devotion Featured -->
 {% if todays_devotion %}
-<section class="py-20 bg-gray-50" style="background: #f9fafb !important;">
+<section class="py-12 sm:py-16 md:py-20 bg-gray-50" style="background: #f9fafb !important;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-2xl p-8 md:p-12 shadow-lg border border-gray-100">
-            <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 md:p-12 shadow-lg border border-gray-100">
+            <div class="grid md:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
                 <div>
-                    <span class="font-bold uppercase tracking-wide mb-4 block" style="color: var(--primary); font-size: 18px;">Today's Devotion</span>
-                    <h2 class="text-4xl md:text-5xl font-bold mb-6" style="color: var(--text);">
+                    <span class="font-bold uppercase tracking-wide mb-3 sm:mb-4 block" style="color: var(--primary); font-size: 16px;">Today's Devotion</span>
+                    <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6" style="color: var(--text);">
                         <a href="{% url 'devotions:detail' todays_devotion.slug %}" class="hover:text-gray-700 transition-colors">
                             {{ todays_devotion.title }}
                         </a>
                     </h2>
                     {% if todays_devotion.scripture_reference %}
-                    <p class="text-xl mb-6 italic font-medium" style="color: var(--text);">{{ todays_devotion.scripture_reference }}</p>
+                    <p class="text-lg sm:text-xl mb-4 sm:mb-6 italic font-medium" style="color: var(--text);">{{ todays_devotion.scripture_reference }}</p>
                     {% endif %}
-                    <p class="text-lg mb-8 leading-relaxed font-medium" style="color: var(--text);">
+                    <p class="text-base sm:text-lg mb-6 sm:mb-8 leading-relaxed font-medium" style="color: var(--text);">
                         {{ todays_devotion.body|truncatewords:50 }}
                     </p>
                     
                     <!-- Watch Live Section -->
-                    <div class="mb-6 p-4 rounded-lg" style="background: #f9fafb; border: 1px solid #e5e7eb;">
-                        <p class="font-semibold mb-3" style="color: var(--text); font-size: 18px;">Watch Live Daily Devotion</p>
-                        <div class="flex flex-wrap gap-3">
+                    <div class="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg" style="background: #f9fafb; border: 1px solid #e5e7eb;">
+                        <p class="font-semibold mb-2 sm:mb-3" style="color: var(--text); font-size: 16px;">Watch Live Daily Devotion</p>
+                        <div class="flex flex-wrap gap-2 sm:gap-3">
                             {% if zoom_link %}
                             <a href="{{ zoom_link }}" 
                                target="_blank" 
