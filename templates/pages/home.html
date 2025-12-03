@@ -297,6 +297,11 @@
             <div class="hero-content-inner">
                 <h2>Start Your Day With Uplift Your Morning</h2>
                 <p>Live morning devotion every weekday, 5:00–5:30am GMT (7:00 AM CAT / 8:00 AM EAT) – worship, Word and prayer.</p>
+                {% if zoom_link %}
+                <a href="{{ zoom_link }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                    JOIN ON ZOOM
+                </a>
+                {% endif %}
                 <a href="https://www.youtube.com/@GodswillTKMensah/live" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
                     JOIN LIVE AT 5:00AM GMT
                 </a>
@@ -467,6 +472,18 @@
                                 <p class="text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Morning Session</p>
                                 <p class="text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ morning_time_gmt }} GMT / {{ morning_time_cat }} CAT / {{ morning_time_eat }} EAT</p>
                                 <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                                {% if zoom_link %}
+                                <a href="{{ zoom_link }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   style="background: #2D8CFF;">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M17.562 21.559h-11.124c-.621 0-1.125-.504-1.125-1.125v-8.625h-2.25c-.621 0-1.125-.504-1.125-1.125v-9.75c0-.621.504-1.125 1.125-1.125h15.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25v8.625c0 .621-.504 1.125-1.125 1.125zm-12.249-1.125h11.124v-8.625c0-.621.504-1.125 1.125-1.125h2.25v-8.625h-15.75v8.625h2.25c.621 0 1.125.504 1.125 1.125v8.625zm5.625-4.5c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125z"/>
+                                    </svg>
+                                    Join on Zoom
+                                </a>
+                                {% endif %}
                                 {% if forty_days_config.morning_youtube_url %}
                                 <a href="{{ forty_days_config.morning_youtube_url }}" 
                                    target="_blank" 
@@ -498,6 +515,18 @@
                                 <p class="text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Evening Session</p>
                                 <p class="text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ evening_time_gmt }} GMT / {{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT</p>
                                 <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                                {% if zoom_link %}
+                                <a href="{{ zoom_link }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                                   style="background: #2D8CFF;">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M17.562 21.559h-11.124c-.621 0-1.125-.504-1.125-1.125v-8.625h-2.25c-.621 0-1.125-.504-1.125-1.125v-9.75c0-.621.504-1.125 1.125-1.125h15.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25v8.625c0 .621-.504 1.125-1.125 1.125zm-12.249-1.125h11.124v-8.625c0-.621.504-1.125 1.125-1.125h2.25v-8.625h-15.75v8.625h2.25c.621 0 1.125.504 1.125 1.125v8.625zm5.625-4.5c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125z"/>
+                                    </svg>
+                                    Join on Zoom
+                                </a>
+                                {% endif %}
                                 {% if forty_days_config.evening_youtube_url %}
                                 <a href="{{ forty_days_config.evening_youtube_url }}" 
                                    target="_blank" 
@@ -795,6 +824,20 @@
                     <div class="mb-6 p-4 rounded-lg" style="background: #f9fafb; border: 1px solid #e5e7eb;">
                         <p class="font-semibold mb-3" style="color: var(--text); font-size: 18px;">Watch Live Daily Devotion</p>
                         <div class="flex flex-wrap gap-3">
+                            {% if zoom_link %}
+                            <a href="{{ zoom_link }}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center rounded-lg font-semibold transition-colors" 
+                               style="padding: 10px 20px; background: #2D8CFF; color: white; font-size: 18px;"
+                               onmouseover="this.style.background='#1A6FD9'" 
+                               onmouseout="this.style.background='#2D8CFF'">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.562 21.559h-11.124c-.621 0-1.125-.504-1.125-1.125v-8.625h-2.25c-.621 0-1.125-.504-1.125-1.125v-9.75c0-.621.504-1.125 1.125-1.125h15.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25v8.625c0 .621-.504 1.125-1.125 1.125zm-12.249-1.125h11.124v-8.625c0-.621.504-1.125 1.125-1.125h2.25v-8.625h-15.75v8.625h2.25c.621 0 1.125.504 1.125 1.125v8.625zm5.625-4.5c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125zm0-3.75c.621 0 1.125-.504 1.125-1.125s-.504-1.125-1.125-1.125-1.125.504-1.125 1.125.504 1.125 1.125 1.125z"/>
+                                </svg>
+                                Join on Zoom
+                            </a>
+                            {% endif %}
                             <a href="https://www.youtube.com/@GodswillTKMensah/live" 
                                target="_blank" 
                                rel="noopener noreferrer"

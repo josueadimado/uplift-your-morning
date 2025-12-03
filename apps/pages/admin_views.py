@@ -16,7 +16,7 @@ from apps.devotions.models import Devotion, DevotionSeries
 from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory
 from apps.community.models import PrayerRequest, Testimony
-from apps.pages.models import Donation, FortyDaysConfig
+from apps.pages.models import Donation, FortyDaysConfig, SiteSettings
 
 
 class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -529,4 +529,23 @@ class FortyDaysConfigDeleteView(StaffRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, '40 Days configuration deleted successfully!')
         return super().delete(request, *args, **kwargs)
+
+
+# ==================== SITE SETTINGS ====================
+
+class SiteSettingsUpdateView(StaffRequiredMixin, UpdateView):
+    """Update site settings (singleton model)."""
+    model = SiteSettings
+    template_name = 'admin/sitesettings/form.html'
+    fields = ['zoom_link']
+    success_url = reverse_lazy('manage:sitesettings_edit')
+
+    def get_object(self, queryset=None):
+        # Get or create the singleton instance
+        obj, created = SiteSettings.objects.get_or_create(pk=1)
+        return obj
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Site settings updated successfully!')
+        return super().form_valid(form)
 

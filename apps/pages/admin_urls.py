@@ -45,5 +45,8 @@ urlpatterns = [
     path('fortydays/create/', admin_views.FortyDaysConfigCreateView.as_view(), name='fortydays_create'),
     path('fortydays/<int:pk>/edit/', admin_views.FortyDaysConfigUpdateView.as_view(), name='fortydays_edit'),
     path('fortydays/<int:pk>/delete/', admin_views.FortyDaysConfigDeleteView.as_view(), name='fortydays_delete'),
+    
+    # Site Settings
+    path('sitesettings/edit/', admin_views.SiteSettingsUpdateView.as_view(), name='sitesettings_edit'),
 ]
 

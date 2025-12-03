@@ -1,0 +1,42 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">Site Settings</h1>
+    <p class="text-sm mt-1" style="color: var(--text_secondary);">Configure site-wide settings like Zoom links used for all programs</p>
+</div>
+
+<form method="post" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    {% csrf_token %}
+    <div class="space-y-6">
+        <div>
+            <label for="{{ form.zoom_link.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Zoom Meeting Link *</label>
+            {{ form.zoom_link }}
+            {% if form.zoom_link.errors %}<p class="text-sm text-red-600 mt-1">{{ form.zoom_link.errors.0 }}</p>{% endif %}
+            <p class="text-xs mt-1" style="color: var(--text_light);">This Zoom link will be used for all programs: Uplift Your Morning, Access Hour, Edify, and 40 Days sessions.</p>
+        </div>
+    </div>
+    <div class="mt-6 flex items-center space-x-4">
+        <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold" style="background: var(--primary);">
+            Save Settings
+        </button>
+    </div>
+</form>
+
+<style>
+    input[type="url"] { 
+        width: 100%; 
+        padding: 0.5rem 0.75rem; 
+        border: 1px solid var(--border); 
+        border-radius: 0.5rem; 
+        font-size: 0.875rem; 
+        color: var(--text); 
+    }
+    input:focus { 
+        outline: none; 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 3px rgba(7, 89, 68, 0.1); 
+    }
+</style>
+{% endblock %}
+

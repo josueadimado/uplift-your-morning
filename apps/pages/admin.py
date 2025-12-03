@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ContactMessage, Donation, FortyDaysConfig
+from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings
 
 
 @admin.register(ContactMessage)
@@ -18,6 +18,17 @@ class DonationAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'raw_response']
 
 
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        # Only allow one instance
+        return not SiteSettings.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deletion
+        return False
+
+
 @admin.register(FortyDaysConfig)
 class FortyDaysConfigAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'start_date', 'end_date', 'is_active', 'created_at']
@@ -25,6 +36,9 @@ class FortyDaysConfigAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Date Range', {
             'fields': ('start_date', 'end_date', 'is_active')
+        }),
+        ('Banner Image', {
+            'fields': ('banner_image',)
         }),
         ('Morning Session (5:00-5:30am Ghana time)', {
             'fields': ('morning_youtube_url', 'morning_facebook_url')

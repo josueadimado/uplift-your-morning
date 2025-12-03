@@ -59,6 +59,34 @@ class Donation(TimeStampedModel):
         ordering = ['-created_at']
 
 
+class SiteSettings(TimeStampedModel):
+    """
+    Site-wide settings that should only have one instance.
+    Stores general configuration like Zoom links used across all programs.
+    """
+    zoom_link = models.URLField(
+        blank=True,
+        help_text="Zoom meeting link used for all programs (Uplift Your Morning, Access Hour, Edify, 40 Days)"
+    )
+    
+    def __str__(self):
+        return "Site Settings"
+    
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists
+        self.pk = 1
+        super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        # Prevent deletion - just clear the fields instead
+        self.zoom_link = ''
+        self.save()
+    
+    class Meta:
+        verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
+
+
 class FortyDaysConfig(TimeStampedModel):
     """
     Configuration for the annual "40 Days of Prayer, Planning & Planting" event.

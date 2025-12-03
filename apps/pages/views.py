@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import requests
-from .models import ContactMessage, Donation, FortyDaysConfig
+from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings
 from apps.devotions.models import Devotion
 from apps.events.models import Event
 from apps.resources.models import Resource
@@ -127,6 +127,10 @@ class HomeView(TemplateView):
         context['evening_time_gmt'] = '6:00 PM'
         context['evening_time_cat'] = '8:00 PM'
         context['evening_time_eat'] = '9:00 PM'
+        
+        # Get site settings (Zoom link for all programs)
+        site_settings, _ = SiteSettings.objects.get_or_create(pk=1)
+        context['zoom_link'] = site_settings.zoom_link
         
         return context
 
