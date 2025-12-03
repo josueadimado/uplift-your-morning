@@ -142,7 +142,7 @@ After creating the web app, you MUST add your custom domain:
 ### 4.2 WSGI Configuration
 
 1. Click on your web app
-2. Click "WSGI configuration file" link
+2. Click "WSGI configuration file" link (it should be `/var/www/upliftyourmorning_com_wsgi.py`)
 3. Replace the content with:
 
 ```python
@@ -150,37 +150,46 @@ import os
 import sys
 
 # Add your project directory to the path
-path = '/home/yourusername/your-repo-name'
+path = '/home/josueadimado/uplift-your-morning'
 if path not in sys.path:
     sys.path.insert(0, path)
 
 # Set environment variables
 os.environ['DJANGO_SETTINGS_MODULE'] = 'uplift_afrika.settings'
 
-# Activate virtual environment
-activate_this = '/home/yourusername/your-repo-name/venv/bin/activate_this.py'
-with open(activate_this) as file_:
-    exec(file_.read(), dict(__file__=activate_this))
+# Activate virtual environment (Python 3.10 compatible method)
+activate_venv = os.path.expanduser('/home/josueadimado/uplift-your-morning/venv/bin/activate_this.py')
+if os.path.exists(activate_venv):
+    exec(open(activate_venv).read(), {'__file__': activate_venv})
+else:
+    # Fallback: add venv site-packages to path
+    venv_site_packages = '/home/josueadimado/uplift-your-morning/venv/lib/python3.10/site-packages'
+    if venv_site_packages not in sys.path:
+        sys.path.insert(0, venv_site_packages)
 
 # Import Django WSGI application
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 ```
 
-**Important**: Replace `yourusername` and `your-repo-name` with your actual values!
+**Note:** This configuration is already set for your username. If you need to change it, replace `josueadimado` with your actual username.
 
 ### 4.3 Static Files Mapping
 
 In the Web app configuration:
 
 1. Go to "Static files" section
-2. Add mapping:
+2. Add static files mapping:
    - URL: `/static/`
-   - Directory: `/home/yourusername/your-repo-name/staticfiles/`
+   - Directory: `/home/josueadimado/uplift-your-morning/staticfiles/`
+   - Click "Add" or "Save"
 
-3. Add media files mapping:
+3. **IMPORTANT:** Add media files mapping (for user uploads):
    - URL: `/media/`
-   - Directory: `/home/yourusername/your-repo-name/media/`
+   - Directory: `/home/josueadimado/uplift-your-morning/media/`
+   - Click "Add" or "Save"
+
+**Note:** Make sure you've run `python manage.py collectstatic` to create the `staticfiles` directory.
 
 ### 4.4 Update Source Code Path
 
