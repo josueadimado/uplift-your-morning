@@ -296,7 +296,7 @@
         <div class="hero-content-wrapper">
             <div class="hero-content-inner">
                 <h2>Start Your Day With Uplift Your Morning</h2>
-                <p>Live morning devotion every weekday, 5:00–5:30am GMT – worship, Word and prayer.</p>
+                <p>Live morning devotion every weekday, 5:00–5:30am GMT (7:00 AM CAT / 8:00 AM EAT) – worship, Word and prayer.</p>
                 <a href="https://www.youtube.com/@GodswillTKMensah/live" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
                     JOIN LIVE AT 5:00AM GMT
                 </a>
@@ -354,7 +354,7 @@
             <div class="hero-content-inner">
                 <h2>40 Days of Prayer, Planning &amp; Planting</h2>
                 {% if is_40_days_active %}
-                    <p>Join us live for morning (5:00-5:30am) and evening (6:00-7:00pm) sessions during this season of focused prayer and Spirit‑led planning.</p>
+                    <p>Join us live for morning ({{ morning_time_gmt }} GMT / {{ morning_time_cat }} CAT / {{ morning_time_eat }} EAT) and evening ({{ evening_time_gmt }} GMT / {{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT) sessions during this season of focused prayer and Spirit‑led planning.</p>
                     <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
                         {% if is_morning_live and forty_days_config.morning_youtube_url %}
                             <a href="{{ forty_days_config.morning_youtube_url }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
@@ -464,7 +464,8 @@
                         <div>
                             {% if is_morning_live %}
                             <div class="mb-6">
-                                <p class="text-lg font-semibold mb-3" style="color: var(--primary);">🔴 LIVE NOW - Morning Session (Starts at 5:00 AM)</p>
+                                <p class="text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Morning Session</p>
+                                <p class="text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ morning_time_gmt }} GMT / {{ morning_time_cat }} CAT / {{ morning_time_eat }} EAT</p>
                                 <div class="flex flex-wrap gap-3 justify-center md:justify-start">
                                 {% if forty_days_config.morning_youtube_url %}
                                 <a href="{{ forty_days_config.morning_youtube_url }}" 
@@ -494,7 +495,8 @@
                             </div>
                             {% elif is_evening_live %}
                             <div class="mb-6">
-                                <p class="text-lg font-semibold mb-3" style="color: var(--primary);">🔴 LIVE NOW - Evening Session (Starts at 6:00 PM)</p>
+                                <p class="text-lg font-semibold mb-2" style="color: var(--primary);">🔴 LIVE NOW - Evening Session</p>
+                                <p class="text-sm mb-3" style="color: var(--text_secondary);">Starts at: {{ evening_time_gmt }} GMT / {{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT</p>
                                 <div class="flex flex-wrap gap-3 justify-center md:justify-start">
                                 {% if forty_days_config.evening_youtube_url %}
                                 <a href="{{ forty_days_config.evening_youtube_url }}" 
@@ -616,7 +618,7 @@
                     <div>
                         <h3 class="font-bold text-xl" style="color: var(--text);">Uplift Your Morning</h3>
                         <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
-                            Daily (Monday–Sunday) morning devotion, 5:00–5:30am Ghana time (GMT) – worship, Word and prayer to start your day with God.
+                            Daily (Monday–Sunday) morning devotion, {{ morning_time_gmt }} GMT ({{ morning_time_cat }} CAT / {{ morning_time_eat }} EAT) – worship, Word and prayer to start your day with God.
                         </p>
                     </div>
                 </div>
@@ -626,7 +628,7 @@
                     <div>
                         <h3 class="font-bold text-xl" style="color: var(--text);">Access Hour</h3>
                         <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
-                            Wednesday evening prayer session, 6:00–7:00pm Ghana time (GMT), where we stand in the gap for families, leaders and nations.
+                            Wednesday evening prayer session, {{ evening_time_gmt }} GMT ({{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT), where we stand in the gap for families, leaders and nations.
                         </p>
                     </div>
                 </div>
@@ -636,7 +638,7 @@
                     <div>
                         <h3 class="font-bold text-xl" style="color: var(--text);">Edify</h3>
                         <p class="text-lg leading-relaxed font-medium" style="color: var(--text_secondary);">
-                            Friday evening Bible study, 6:00–7:00pm Ghana time (GMT), focused on practical, life‑shaping teaching from God’s Word.
+                            Friday evening Bible study, {{ evening_time_gmt }} GMT ({{ evening_time_cat }} CAT / {{ evening_time_eat }} EAT), focused on practical, life‑shaping teaching from God's Word.
                         </p>
                     </div>
                 </div>

@@ -117,6 +117,17 @@ class HomeView(TemplateView):
                 time_until = (next_session - now_accra).total_seconds()
                 context['next_session_timestamp'] = int(time_until)
         
+        # Add timezone information for all sections (always available)
+        # GMT = same as Ghana time (Africa/Accra)
+        # CAT (Central Africa Time) = GMT + 2
+        # EAT (East Africa Time) = GMT + 3
+        context['morning_time_gmt'] = '5:00 AM'
+        context['morning_time_cat'] = '7:00 AM'
+        context['morning_time_eat'] = '8:00 AM'
+        context['evening_time_gmt'] = '6:00 PM'
+        context['evening_time_cat'] = '8:00 PM'
+        context['evening_time_eat'] = '9:00 PM'
+        
         return context
 
 
