@@ -537,7 +537,7 @@
         </div>
         
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden lg:hidden border-t border-gray-200 bg-white shadow-lg">
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-gray-200 bg-white shadow-lg max-h-[calc(100vh-96px)] overflow-y-auto">
             <div class="px-4 py-6 space-y-1">
                 <a href="{% url 'pages:home' %}" class="block px-4 py-3 font-semibold transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Home</a>
                 
@@ -565,19 +565,39 @@
                 </div>
                 
                 <div class="pt-4 space-y-3 border-t border-gray-200 mt-4">
+                    {% if request.user.is_authenticated and request.user.is_staff %}
+                        <a href="{% url 'pages:admin_dashboard' %}"
+                           class="block px-4 py-3 rounded-md text-center font-semibold transition-all border"
+                           style="border-color: var(--border); color: var(--text_secondary); font-size: 16px;">
+                            Dashboard
+                        </a>
+                        <form method="post" action="{% url 'admin_logout' %}" style="display: block;">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="w-full px-4 py-3 rounded-md font-semibold text-sm transition-colors border-0 bg-transparent cursor-pointer"
+                                    style="color: var(--text_secondary); font-size: 16px;">
+                                Logout
+                            </button>
+                        </form>
+                    {% elif not request.user.is_authenticated %}
+                        <a href="{% url 'admin_login' %}"
+                           class="block px-4 py-3 rounded-md text-center font-semibold transition-colors border"
+                           style="border-color: var(--border); color: var(--text_secondary); font-size: 16px;">
+                            Login
+                        </a>
+                    {% endif %}
                     <a href="{% url 'pages:donate' %}" 
                        class="block px-4 py-3 border-2 rounded-md text-center font-semibold hover:text-white transition-colors"
-                       style="border-color: var(--primary); color: var(--primary); font-size: 18px;"
+                       style="border-color: var(--primary); color: var(--primary); font-size: 16px;"
                        onmouseover="this.style.background='var(--primary)'; this.style.color='white'" 
                        onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
                         Give
                     </a>
                     <a href="{% url 'subscriptions:subscribe' %}" 
                        class="block px-4 py-3 rounded-md text-center font-semibold text-white transition-colors shadow-sm"
-                       style="background: var(--primary);"
+                       style="background: var(--primary); font-size: 16px;"
                        onmouseover="this.style.background='var(--primary_hover)'" 
-                       onmouseout="this.style.background='var(--primary)'" 
-                       style="background: var(--primary); font-size: 18px;">
+                       onmouseout="this.style.background='var(--primary)'">
                         Subscribe
                     </a>
                 </div>
