@@ -1,0 +1,18 @@
+FastR SMS API Configuration
+===========================
+
+Your FastR API Credentials:
+---------------------------
+Public Key: DJbhctlognNbQuEhPMTB9A
+Secret Key: 9fzban1DkdoJUbOfOrzvD-H-7BUc6QP96uf0gYSKUn8
+
+IMPORTANT: Use the SECRET KEY for authentication, not the public key!
+
+Add to your .env file:
+----------------------
+FASTR_API_KEY=9fzban1DkdoJUbOfOrzvD-H-7BUc6QP96uf0gYSKUn8
+FASTR_API_BASE_URL=https://prompt.pywe.org/api/client
+FASTR_SENDER_ID=COME CENTRE
+
+The system will use these credentials to send SMS notifications when counseling bookings are approved.
+

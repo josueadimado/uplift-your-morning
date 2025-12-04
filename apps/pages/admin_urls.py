@@ -54,5 +54,11 @@ urlpatterns = [
     
     # Site Settings
     path('sitesettings/edit/', admin_views.SiteSettingsUpdateView.as_view(), name='sitesettings_edit'),
+    
+    # Counseling Bookings
+    path('counseling/', admin_views.CounselingBookingListView.as_view(), name='counseling_list'),
+    path('counseling/<int:pk>/', admin_views.CounselingBookingDetailView.as_view(), name='counseling_detail'),
+    path('counseling/<int:pk>/approve/', admin_views.CounselingBookingApproveView.as_view(), name='counseling_approve'),
+    path('counseling/<int:pk>/reject/', admin_views.CounselingBookingRejectView.as_view(), name='counseling_reject'),
 ]
 

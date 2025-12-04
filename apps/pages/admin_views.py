@@ -16,7 +16,7 @@ from apps.devotions.models import Devotion, DevotionSeries
 from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory
 from apps.community.models import PrayerRequest, Testimony
-from apps.pages.models import Donation, FortyDaysConfig, SiteSettings
+from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking
 
 
 class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -608,4 +608,96 @@ class SiteSettingsUpdateView(StaffRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Site settings updated successfully!')
         return super().form_valid(form)
+
+
+# ==================== COUNSELING BOOKINGS ====================
+
+from .notifications import send_booking_approval_notifications, create_google_calendar_event
+
+class CounselingBookingListView(StaffRequiredMixin, ListView):
+    """List all counseling bookings."""
+    model = CounselingBooking
+    template_name = 'admin/counseling/list.html'
+    context_object_name = 'bookings'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = CounselingBooking.objects.all()
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                full_name__icontains=search
+            ) | queryset.filter(
+                email__icontains=search
+            ) | queryset.filter(
+                phone__icontains=search
+            )
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = CounselingBooking.objects.count()
+        context['pending'] = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_PENDING).count()
+        context['approved'] = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_APPROVED).count()
+        return context
+
+
+class CounselingBookingDetailView(StaffRequiredMixin, DetailView):
+    """View details of a counseling booking."""
+    model = CounselingBooking
+    template_name = 'admin/counseling/detail.html'
+    context_object_name = 'booking'
+
+
+class CounselingBookingApproveView(StaffRequiredMixin, View):
+    """Approve a counseling booking and send notifications."""
+    def post(self, request, pk):
+        booking = get_object_or_404(CounselingBooking, pk=pk)
+        
+        if booking.status != CounselingBooking.STATUS_PENDING:
+            messages.error(request, 'Only pending bookings can be approved.')
+            return redirect('manage:counseling_detail', pk=pk)
+        
+        # Update booking status
+        booking.status = CounselingBooking.STATUS_APPROVED
+        if not booking.approved_date:
+            booking.approved_date = booking.preferred_date
+        if not booking.approved_time:
+            booking.approved_time = booking.preferred_time
+        booking.save()
+        
+        # Send notifications (email and SMS)
+        try:
+            send_booking_approval_notifications(booking)
+            messages.success(request, f'Booking approved and notifications sent to {booking.email}')
+        except Exception as e:
+            messages.warning(request, f'Booking approved but notifications failed: {str(e)}')
+        
+        # Create Google Calendar event
+        try:
+            create_google_calendar_event(booking)
+            messages.success(request, 'Google Calendar event created successfully.')
+        except Exception as e:
+            messages.warning(request, f'Google Calendar event creation failed: {str(e)}')
+        
+        return redirect('manage:counseling_detail', pk=pk)
+
+
+class CounselingBookingRejectView(StaffRequiredMixin, View):
+    """Reject a counseling booking."""
+    def post(self, request, pk):
+        booking = get_object_or_404(CounselingBooking, pk=pk)
+        
+        if booking.status != CounselingBooking.STATUS_PENDING:
+            messages.error(request, 'Only pending bookings can be rejected.')
+            return redirect('manage:counseling_detail', pk=pk)
+        
+        booking.status = CounselingBooking.STATUS_REJECTED
+        booking.save()
+        
+        messages.success(request, 'Booking rejected successfully.')
+        return redirect('manage:counseling_detail', pk=pk)
 

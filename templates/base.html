@@ -48,7 +48,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #FFFFFF;
+            background: rgba(255, 255, 255, 0.96);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -73,58 +73,14 @@
         }
         
         .loader-spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid rgba(7, 89, 68, 0.1);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(7, 89, 68, 0.18);
             border-top-color: #075944;
-            border-right-color: #075944;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
             display: block !important;
             visibility: visible !important;
-        }
-        
-        .loader-logo-wrap {
-            position: relative;
-            width: 84px;
-            height: 84px;
-            border-radius: 9999px;
-            background: radial-gradient(circle at 30% 20%, rgba(150, 250, 126, 0.25), transparent 60%),
-                        radial-gradient(circle at 70% 80%, rgba(73, 182, 148, 0.25), transparent 60%),
-                        #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 12px 30px rgba(7, 89, 68, 0.18);
-            animation: pulse 1.4s ease-in-out infinite;
-            margin-bottom: 20px;
-        }
-        
-        .loader-ring {
-            position: absolute;
-            inset: -6px;
-            border-radius: 9999px;
-            border: 3px solid rgba(229, 231, 235, 0.8);
-            border-top-color: #075944;
-            border-right-color: #0a6b52;
-            border-bottom-color: rgba(229, 231, 235, 0.8);
-            border-left-color: rgba(229, 231, 235, 0.8);
-            animation: spin 1s linear infinite;
-        }
-        
-        .loader-logo {
-            height: 42px;
-            width: auto;
-            max-width: 60px;
-            display: block;
-            position: relative;
-            z-index: 1;
-            object-fit: contain;
-        }
-        
-        .loader-logo-wrap.hidden {
-            display: none;
         }
         
         @keyframes spin {
@@ -375,16 +331,11 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body style="background: var(--background); color: var(--text); {% if hide_main_nav %}opacity: 1;{% endif %}">
-    <!-- Page Loader -->
-    <div id="page-loader" {% if hide_main_nav %}style="display: none;"{% endif %}>
+    <!-- Page Loader (shown briefly on all pages) -->
+    <div id="page-loader">
         <div class="loader-wrapper">
-            <!-- Logo with spinning ring -->
-            <div class="loader-logo-wrap">
-                <div class="loader-ring"></div>
-                <img src="{% static 'images/logo/Uplift-your-morning_logo_2.png' %}" 
-                     alt="uplift your morning" 
-                     class="loader-logo">
-            </div>
+            <!-- Simple centered spinner -->
+            <div class="loader-spinner"></div>
             <p class="mt-4 text-xs tracking-[0.2em] uppercase" style="color: #6b7280 !important;">
                 Loading...
             </p>
@@ -484,6 +435,7 @@
                         <div class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-gray-100 dropdown-menu py-2">
                             <a href="{% url 'community:testimonies' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Testimonies</a>
                             <a href="{% url 'community:prayer-request' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Prayer Requests</a>
+                            <a href="{% url 'pages:counseling_booking' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Book Counseling</a>
                         </div>
                     </div>
                     
@@ -562,6 +514,7 @@
                     <div class="text-sm font-semibold uppercase tracking-wide mb-2" style="font-size: 16px; color: var(--text_light);">Community</div>
                     <a href="{% url 'community:testimonies' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Testimonies</a>
                     <a href="{% url 'community:prayer-request' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Prayer Requests</a>
+                    <a href="{% url 'pages:counseling_booking' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Book Counseling</a>
                 </div>
                 
                 <div class="pt-4 space-y-3 border-t border-gray-200 mt-4">

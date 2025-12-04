@@ -10,7 +10,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import requests
-from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings
+from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking
+from .forms import CounselingBookingForm
 from apps.devotions.models import Devotion
 from apps.events.models import Event
 from apps.resources.models import Resource
@@ -420,3 +421,33 @@ class DonationThanksView(TemplateView):
             messages.success(request, 'Your donation has been received successfully. Thank you!')
 
         return super().get(request, *args, **kwargs)
+
+
+class CounselingBookingView(TemplateView):
+    """
+    View for users to submit counseling booking requests.
+    """
+    template_name = 'pages/counseling_booking.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CounselingBookingForm()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        form = CounselingBookingForm(request.POST)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.status = CounselingBooking.STATUS_PENDING
+            booking.save()
+            messages.success(
+                request,
+                'Your counseling booking request has been submitted successfully! '
+                'You will receive an email and SMS once it is approved.'
+            )
+            return redirect('pages:counseling_booking')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+            context = self.get_context_data(**kwargs)
+            context['form'] = form
+            return self.render_to_response(context)

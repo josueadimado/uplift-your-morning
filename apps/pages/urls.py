@@ -13,5 +13,6 @@ urlpatterns = [
     path('donate/', views.DonationView.as_view(), name='donate'),
     path('donate/checkout/', views.DonationCheckoutView.as_view(), name='donate-checkout'),
     path('donate/thanks/', views.DonationThanksView.as_view(), name='donate-thanks'),
+    path('counseling/', views.CounselingBookingView.as_view(), name='counseling_booking'),
 ]
 

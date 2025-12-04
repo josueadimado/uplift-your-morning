@@ -22,8 +22,14 @@ whitenoise>=6.6.0
 # or
 # brevo>=1.0.0
 
-# For WhatsApp integration (optional, for Phase 2)
-# twilio>=8.0.0
+# For SMS notifications (counseling bookings)
+# Using FastR API via requests (already included in requirements)
+# No additional package needed - uses requests library
+
+# For Google Calendar integration (counseling bookings)
+google-api-python-client>=2.100.0
+google-auth-httplib2>=0.1.1
+google-auth-oauthlib>=1.1.0
 
 # For file storage (optional, for production)
 # boto3>=1.28.0  # For AWS S3

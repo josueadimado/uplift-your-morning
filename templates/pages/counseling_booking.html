@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book a Counseling Session - Uplift Your Morning{% endblock %}
+
+{% block meta_description %}Book a one-on-one counseling session with our team. Submit your request and we'll confirm your appointment time.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .flatpickr-calendar {
+        font-family: inherit;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .flatpickr-day.selected {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+    }
+    .flatpickr-day.today {
+        border-color: var(--primary) !important;
+    }
+    input[type="date"]:invalid::-webkit-datetime-edit {
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-12 sm:py-16 md:py-20" style="background: #FFFFFF;">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-8 sm:mb-12">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4" style="color: var(--text);">Book a Counseling Session</h1>
+            <p class="text-lg sm:text-xl leading-relaxed font-medium" style="color: var(--text_secondary);">
+                We're here to support you on your spiritual journey. Fill out the form below to request a counseling session, and we'll confirm your appointment time.
+            </p>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="bg-white rounded-2xl shadow-lg border p-6 sm:p-8 md:p-10" style="border-color: var(--border);">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <ul class="list-disc list-inside text-sm text-red-800">
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Contact Information Section -->
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Contact Information</h2>
+                    <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Full Name *</label>
+                            {{ form.full_name }}
+                            {% if form.full_name.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.full_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Email Address (Optional)</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Phone Number *</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.phone.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">
+                                Please enter your full number with country code, e.g. +233 20 123 4567.
+                            </p>
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.country.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Country (Optional)</label>
+                            {{ form.country }}
+                            {% if form.country.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.country.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Details Section -->
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Session Details</h2>
+                    <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label for="{{ form.preferred_date.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Preferred Date *</label>
+                            {{ form.preferred_date }}
+                            {% if form.preferred_date.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.preferred_date.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">Select your preferred date for the session</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.preferred_time.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Preferred Time *</label>
+                            {{ form.preferred_time }}
+                            {% if form.preferred_time.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.preferred_time.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">Select your preferred time</p>
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.duration_minutes.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Session Duration (minutes) *</label>
+                            {{ form.duration_minutes }}
+                            {% if form.duration_minutes.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.duration_minutes.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">Typical sessions are 60 minutes. You can request 30, 45, 60, 90, or 120 minutes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information Section -->
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Additional Information</h2>
+                    <div class="space-y-4 sm:space-y-6">
+                        <div>
+                            <label for="{{ form.topic.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Topic or Reason (Optional)</label>
+                            {{ form.topic }}
+                            {% if form.topic.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.topic.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">Briefly describe what you'd like to discuss</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.message.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Additional Message (Optional)</label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.message.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">Any additional details you'd like to share</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <button type="submit" 
+                            class="w-full px-6 py-3.5 rounded-lg font-semibold text-white transition-all shadow-sm hover:shadow-md"
+                            style="background: var(--primary); font-size: 16px;"
+                            onmouseover="this.style.background='var(--primary_hover)'"
+                            onmouseout="this.style.background='var(--primary)'">
+                        Submit Booking Request
+                    </button>
+                    <p class="text-xs text-center mt-3" style="color: var(--text_light);">
+                        Your request will be reviewed and you'll receive an email and SMS confirmation once approved.
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Information Box -->
+        <div class="mt-8 sm:mt-10 bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
+            <h3 class="font-semibold mb-2" style="color: var(--text);">What happens next?</h3>
+            <ul class="space-y-2 text-sm" style="color: var(--text_secondary);">
+                <li class="flex items-start">
+                    <span class="mr-2">1.</span>
+                    <span>Submit your booking request with your preferred date and time.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">2.</span>
+                    <span>Our team will review your request and check availability.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">3.</span>
+                    <span>Once approved, you'll receive an email and SMS with the confirmed appointment details.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">4.</span>
+                    <span>The session will be added to our calendar and you'll receive a calendar invite.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Initialize date picker
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('{{ form.preferred_date.id_for_label }}');
+        if (dateInput) {
+            flatpickr(dateInput, {
+                minDate: 'today',
+                dateFormat: 'Y-m-d',
+                disableMobile: true, // Use native picker on mobile
+            });
+        }
+    });
+</script>
+{% endblock %}
+

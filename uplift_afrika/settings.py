@@ -203,3 +203,21 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
+
+# Email configuration (for counseling booking notifications)
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@upliftyourmorning.com')
+
+# FastR SMS API configuration (for counseling booking notifications)
+FASTR_API_KEY = config('FASTR_API_KEY', default='')
+FASTR_API_BASE_URL = config('FASTR_API_BASE_URL', default='https://prompt.pywe.org/api/client')
+FASTR_SENDER_ID = config('FASTR_SENDER_ID', default='COME CENTRE')
+
+# Google Calendar configuration
+GOOGLE_CALENDAR_ENABLED = config('GOOGLE_CALENDAR_ENABLED', default=False, cast=bool)
+GOOGLE_CALENDAR_EMAIL = config('GOOGLE_CALENDAR_EMAIL', default='godswilltk@gmail.com')

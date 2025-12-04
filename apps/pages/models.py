@@ -87,6 +87,77 @@ class SiteSettings(TimeStampedModel):
         verbose_name_plural = "Site Settings"
 
 
+class CounselingBooking(TimeStampedModel):
+    """
+    Model for counseling session bookings.
+    Requires admin approval before confirmation.
+    """
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CANCELLED = 'cancelled'
+    
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending Approval'),
+        (STATUS_APPROVED, 'Approved'),
+        (STATUS_REJECTED, 'Rejected'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+    
+    # User information
+    full_name = models.CharField(max_length=200)
+    # Email is optional – some users may only want to share a phone number
+    email = models.EmailField(blank=True, null=True)
+    # Store phone in international format (e.g. +233201234567)
+    phone = models.CharField(max_length=50)
+    country = models.CharField(max_length=100, blank=True)
+    
+    # Booking details
+    preferred_date = models.DateField(help_text="Preferred date for counseling session")
+    preferred_time = models.TimeField(help_text="Preferred time for counseling session")
+    duration_minutes = models.IntegerField(default=60, help_text="Session duration in minutes")
+    topic = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Brief topic or reason for counseling"
+    )
+    message = models.TextField(
+        blank=True,
+        help_text="Additional message or details"
+    )
+    
+    # Status and admin fields
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING
+    )
+    approved_date = models.DateField(null=True, blank=True, help_text="Admin-approved date")
+    approved_time = models.TimeField(null=True, blank=True, help_text="Admin-approved time")
+    admin_notes = models.TextField(blank=True, help_text="Internal admin notes")
+    
+    # Google Calendar integration
+    google_calendar_event_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Google Calendar event ID after creation"
+    )
+    
+    # Notification tracking
+    email_sent = models.BooleanField(default=False)
+    sms_sent = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Counseling Booking"
+        verbose_name_plural = "Counseling Bookings"
+    
+    def __str__(self):
+        return f"{self.full_name} - {self.preferred_date} ({self.status})"
+
+
 class FortyDaysConfig(TimeStampedModel):
     """
     Configuration for the annual "40 Days of Prayer, Planning & Planting" event.

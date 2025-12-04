@@ -101,3 +101,6 @@ dmypy.json
 # PythonAnywhere
 .pythonanywhere/
 
+# Google API credentials (never commit these)
+static/images/general/client_secret_*.json
+

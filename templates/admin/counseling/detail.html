@@ -1,0 +1,176 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <a href="{% url 'manage:counseling_list' %}" 
+       class="inline-flex items-center text-sm font-semibold mb-4"
+       style="color: var(--primary);">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Bookings
+    </a>
+    <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">Booking Details</h1>
+    <p class="text-base" style="color: var(--text_secondary);">{{ booking.full_name }}</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Details -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Contact Information -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Contact Information</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Full Name</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.full_name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Email</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.email }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Phone</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.phone }}</p>
+                </div>
+                {% if booking.country %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Country</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.country }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Booking Details -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Booking Details</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Preferred Date</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.preferred_date|date:"F d, Y" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Preferred Time</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.preferred_time|time:"g:i A" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Duration</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.duration_minutes }} minutes</p>
+                </div>
+                {% if booking.approved_date %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Approved Date</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.approved_date|date:"F d, Y" }}</p>
+                </div>
+                {% endif %}
+                {% if booking.approved_time %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Approved Time</p>
+                    <p class="text-base" style="color: var(--text);">{{ booking.approved_time|time:"g:i A" }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% if booking.topic %}
+            <div class="mt-4">
+                <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Topic</p>
+                <p class="text-base" style="color: var(--text);">{{ booking.topic }}</p>
+            </div>
+            {% endif %}
+            {% if booking.message %}
+            <div class="mt-4">
+                <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Message</p>
+                <p class="text-base whitespace-pre-wrap" style="color: var(--text);">{{ booking.message }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Admin Notes -->
+        {% if booking.admin_notes %}
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Admin Notes</h2>
+            <p class="text-base whitespace-pre-wrap" style="color: var(--text);">{{ booking.admin_notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Status Card -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Status</h2>
+            <div class="mb-4">
+                <span class="px-3 py-1 rounded text-sm font-semibold
+                    {% if booking.status == 'pending' %}bg-yellow-100 text-yellow-800
+                    {% elif booking.status == 'approved' %}bg-green-100 text-green-800
+                    {% elif booking.status == 'rejected' %}bg-red-100 text-red-800
+                    {% elif booking.status == 'completed' %}bg-blue-100 text-blue-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center">
+                    <span class="mr-2">{% if booking.email_sent %}✓{% else %}✗{% endif %}</span>
+                    <span style="color: var(--text_secondary);">Email Sent</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="mr-2">{% if booking.sms_sent %}✓{% else %}✗{% endif %}</span>
+                    <span style="color: var(--text_secondary);">SMS Sent</span>
+                </div>
+                {% if booking.google_calendar_event_id %}
+                <div class="flex items-center">
+                    <span class="mr-2">✓</span>
+                    <span style="color: var(--text_secondary);">Calendar Event Created</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        {% if booking.status == 'pending' %}
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Actions</h2>
+            <div class="space-y-3">
+                <form method="post" action="{% url 'manage:counseling_approve' booking.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="w-full px-4 py-2 rounded-lg font-semibold text-white"
+                            style="background: #10b981;"
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
+                        Approve Booking
+                    </button>
+                </form>
+                <form method="post" action="{% url 'manage:counseling_reject' booking.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="w-full px-4 py-2 rounded-lg font-semibold text-white"
+                            style="background: #ef4444;"
+                            onmouseover="this.style.background='#dc2626'"
+                            onmouseout="this.style.background='#ef4444'">
+                        Reject Booking
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Timestamps -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Timestamps</h2>
+            <div class="space-y-2 text-sm">
+                <div>
+                    <p class="font-medium mb-1" style="color: var(--text_secondary);">Created</p>
+                    <p style="color: var(--text);">{{ booking.created_at|date:"F d, Y g:i A" }}</p>
+                </div>
+                <div>
+                    <p class="font-medium mb-1" style="color: var(--text_secondary);">Last Updated</p>
+                    <p style="color: var(--text);">{{ booking.updated_at|date:"F d, Y g:i A" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

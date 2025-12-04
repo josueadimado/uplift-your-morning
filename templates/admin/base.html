@@ -111,6 +111,14 @@
                             </svg>
                             <span>Testimonies</span>
                         </a>
+                        <a href="{% url 'manage:counseling_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'counseling' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'counseling' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Counseling Bookings</span>
+                        </a>
                     </div>
 
                     <div class="pt-4">
