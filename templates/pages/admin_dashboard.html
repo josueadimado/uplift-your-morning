@@ -121,8 +121,8 @@
                 <h3 class="text-base font-semibold mb-4" style="color: var(--text);">Page Views (Last 7 Days)</h3>
                 <div class="flex items-end justify-between gap-2 h-48">
                     {% for day in stats.analytics.daily_views %}
-                    {% if stats.analytics.views_week > 0 %}
-                    {% widthratio day.count stats.analytics.views_week 100 as bar_height %}
+                    {% if stats.analytics.chart_total > 0 %}
+                    {% widthratio day.count stats.analytics.chart_total 100 as bar_height %}
                     {% else %}
                     {% with bar_height=0 %}{% endwith %}
                     {% endif %}
@@ -130,7 +130,7 @@
                         <div class="w-full flex flex-col items-center justify-end" style="height: 100%;">
                             <div class="w-full rounded-t transition-all hover:opacity-80" 
                                  style="background: linear-gradient(to top, var(--primary) 0%, var(--primary_light) 100%); 
-                                        height: {% if stats.analytics.views_week > 0 %}{{ bar_height }}%{% else %}0%{% endif %};
+                                        height: {% if stats.analytics.chart_total > 0 %}{{ bar_height }}%{% else %}0%{% endif %};
                                         min-height: {% if day.count > 0 %}8px{% else %}0px{% endif %};">
                             </div>
                         </div>

@@ -223,7 +223,8 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         try:
             now = timezone.now()
             today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            week_start = today_start - timedelta(days=7)
+            # For "this week" - use 6 days ago to today (7 days total) to match the chart
+            week_start = today_start - timedelta(days=6)
             month_start = today_start - timedelta(days=30)
             
             # Use single query with aggregation for better performance
@@ -256,16 +257,21 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Convert to dictionary for easy lookup
             daily_counts = {item['day']: item['count'] for item in daily_views_data}
             
-            # Build daily_views list with all 7 days (fill missing days with 0)
+            # Build daily_views list with all 7 days (from 6 days ago to today)
+            # This matches the week_start date range exactly
             daily_views = []
             for i in range(7):
-                day_start = today_start - timedelta(days=6-i)  # Start from 6 days ago
+                day_start = today_start - timedelta(days=6-i)  # Start from 6 days ago (i=0) to today (i=6)
                 day_date = day_start.date()
                 count = daily_counts.get(day_date, 0)
                 daily_views.append({
                     'date': day_start.strftime('%b %d'),
                     'count': count
                 })
+            
+            # Calculate the total for the chart (should match page_views_week)
+            # This ensures the bar heights are calculated correctly
+            chart_total = sum(day['count'] for day in daily_views)
         except Exception:
             # If PageView table doesn't exist or any error occurs, use empty defaults
             total_page_views = 0
@@ -274,6 +280,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             page_views_month = 0
             most_viewed_pages = []
             daily_views = []
+            chart_total = 0
 
         # Recent activity
         context['recent_devotions'] = Devotion.objects.order_by('-created_at')[:5]
@@ -321,6 +328,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 'views_month': page_views_month,
                 'most_viewed': most_viewed_pages,
                 'daily_views': daily_views,
+                'chart_total': chart_total,  # Total for chart calculation (matches the 7 days shown)
             },
         }
 
