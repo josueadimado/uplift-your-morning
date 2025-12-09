@@ -13,6 +13,8 @@ from django.utils import timezone
 from django.db.models import Sum, Q
 
 from apps.devotions.models import Devotion, DevotionSeries
+from django.http import JsonResponse
+import json
 from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory
 from apps.community.models import PrayerRequest, Testimony
@@ -700,4 +702,47 @@ class CounselingBookingRejectView(StaffRequiredMixin, View):
         
         messages.success(request, 'Booking rejected successfully.')
         return redirect('manage:counseling_detail', pk=pk)
+
+
+# ==================== DEVOTION SERIES AJAX ====================
+
+class DevotionSeriesCreateAjaxView(StaffRequiredMixin, View):
+    """Create a new devotion series via AJAX."""
+    
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            title = data.get('title', '').strip()
+            description = data.get('description', '').strip()
+            start_date = data.get('start_date') or None
+            end_date = data.get('end_date') or None
+            
+            if not title:
+                return JsonResponse({'success': False, 'error': 'Title is required'}, status=400)
+            
+            # Check if series with this title already exists
+            if DevotionSeries.objects.filter(title=title).exists():
+                return JsonResponse({'success': False, 'error': 'A series with this title already exists'}, status=400)
+            
+            # Create the series
+            series = DevotionSeries.objects.create(
+                title=title,
+                description=description,
+                start_date=start_date,
+                end_date=end_date,
+                is_active=True
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'series': {
+                    'id': series.id,
+                    'title': series.title,
+                    'slug': series.slug
+                }
+            })
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

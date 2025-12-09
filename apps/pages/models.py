@@ -211,3 +211,44 @@ class FortyDaysConfig(TimeStampedModel):
         ordering = ['-start_date']
         verbose_name = "40 Days Configuration"
         verbose_name_plural = "40 Days Configurations"
+
+
+class PageView(TimeStampedModel):
+    """
+    Tracks page views for analytics purposes.
+    Records each visit to a page on the website.
+    """
+    path = models.CharField(
+        max_length=500,
+        help_text="The URL path that was visited (e.g., /devotions/, /events/)"
+    )
+    page_name = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Human-readable page name (e.g., 'Home', 'Devotions List')"
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of the visitor"
+    )
+    user_agent = models.TextField(
+        blank=True,
+        help_text="Browser user agent string"
+    )
+    referer = models.URLField(
+        blank=True,
+        help_text="The page the user came from (if available)"
+    )
+    
+    def __str__(self):
+        return f"{self.page_name or self.path} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Page View"
+        verbose_name_plural = "Page Views"
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['path']),
+        ]

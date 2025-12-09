@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, CounselingBooking
+from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, PageView
 
 
 @admin.register(ContactMessage)
@@ -98,3 +98,16 @@ class CounselingBookingAdmin(admin.ModelAdmin):
         count = queryset.filter(status=CounselingBooking.STATUS_PENDING).update(status=CounselingBooking.STATUS_REJECTED)
         self.message_user(request, f'{count} booking(s) rejected.')
     reject_bookings.short_description = "Reject selected bookings"
+
+
+@admin.register(PageView)
+class PageViewAdmin(admin.ModelAdmin):
+    list_display = ['page_name', 'path', 'ip_address', 'created_at']
+    list_filter = ['created_at', 'path']
+    search_fields = ['path', 'page_name', 'ip_address']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+    
+    def has_add_permission(self, request):
+        # Prevent manual creation - views are tracked automatically
+        return False

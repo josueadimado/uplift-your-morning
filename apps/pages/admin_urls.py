@@ -12,6 +12,8 @@ urlpatterns = [
     path('devotions/create/', admin_views.DevotionCreateView.as_view(), name='devotions_create'),
     path('devotions/<int:pk>/edit/', admin_views.DevotionUpdateView.as_view(), name='devotions_edit'),
     path('devotions/<int:pk>/delete/', admin_views.DevotionDeleteView.as_view(), name='devotions_delete'),
+    # Devotion Series AJAX
+    path('devotions/series/create/', admin_views.DevotionSeriesCreateAjaxView.as_view(), name='devotions_series_create_ajax'),
     
     # Events
     path('events/', admin_views.EventListView.as_view(), name='events_list'),

@@ -55,13 +55,16 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static file serving
+    # Temporarily disable WhiteNoise in development to speed up startup
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static file serving
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Temporarily disabled - enable after running migrations
+    # 'apps.pages.middleware.AnalyticsMiddleware',  # Track page views for analytics
 ]
 
 ROOT_URLCONF = 'uplift_afrika.urls'
@@ -150,15 +153,25 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+# Only scan static files in development when needed (not during makemigrations)
+# This speeds up Django command execution
+if DEBUG:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',
+    ]
+else:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',
+    ]
 
 # WhiteNoise configuration for efficient static file serving
 # Use CompressedStaticFilesStorage for development (no manifest required)
 # For production, run collectstatic and use CompressedManifestStaticFilesStorage
+# Disable compression in development for faster startup
 if DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    # Don't use compressed storage in development - it's slower on startup
+    # STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    pass
 else:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -167,24 +180,20 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Caching configuration for better performance
-if not DEBUG:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
-            'TIMEOUT': 300,  # 5 minutes
-            'OPTIONS': {
-                'MAX_ENTRIES': 1000
-            }
+# Use LocMemCache for both development and production to support analytics rate limiting
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutes
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
         }
     }
-else:
-    # Use dummy cache in development
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        }
-    }
+}
+
+# Analytics settings
+ENABLE_ANALYTICS = config('ENABLE_ANALYTICS', default=True, cast=bool)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -10,14 +10,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import requests
-from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking
+from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, PageView
 from .forms import CounselingBookingForm
 from apps.devotions.models import Devotion
 from apps.events.models import Event
 from apps.resources.models import Resource
 from apps.community.models import Testimony, PrayerRequest
-from django.db.models import Sum
+from django.db.models import Sum, Count, Q
+from django.db.models.functions import TruncDate
 from django.utils import timezone
+from datetime import timedelta
 
 
 class HomeView(TemplateView):
@@ -210,12 +212,76 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         pending_donations_count = Donation.objects.filter(status=Donation.STATUS_PENDING).count()
         failed_donations_count = Donation.objects.filter(status=Donation.STATUS_FAILED).count()
 
+        # Counseling Bookings
+        total_counseling_bookings = CounselingBooking.objects.count()
+        pending_counseling = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_PENDING).count()
+        approved_counseling = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_APPROVED).count()
+        completed_counseling = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_COMPLETED).count()
+
+        # Analytics - Page Views (optimized queries)
+        # Handle case where PageView table doesn't exist yet (migrations not run)
+        try:
+            now = timezone.now()
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            week_start = today_start - timedelta(days=7)
+            month_start = today_start - timedelta(days=30)
+            
+            # Use single query with aggregation for better performance
+            total_page_views = PageView.objects.count()
+            
+            # Optimize: Use single query with date filtering for all counts
+            page_views_today = PageView.objects.filter(created_at__gte=today_start).count()
+            page_views_week = PageView.objects.filter(created_at__gte=week_start).count()
+            page_views_month = PageView.objects.filter(created_at__gte=month_start).count()
+            
+            # Most viewed pages (last 30 days) - optimized with limit
+            most_viewed_pages = list(PageView.objects.filter(
+                created_at__gte=month_start
+            ).values('path', 'page_name').annotate(
+                view_count=Count('id')
+            ).order_by('-view_count')[:10])
+            
+            # Page views by day (last 7 days) for chart
+            # Optimized: Use database aggregation for better performance
+            from django.db.models import Count as CountFunc
+            
+            daily_views_data = PageView.objects.filter(
+                created_at__gte=week_start
+            ).annotate(
+                day=TruncDate('created_at')
+            ).values('day').annotate(
+                count=CountFunc('id')
+            ).order_by('day')
+            
+            # Convert to dictionary for easy lookup
+            daily_counts = {item['day']: item['count'] for item in daily_views_data}
+            
+            # Build daily_views list with all 7 days (fill missing days with 0)
+            daily_views = []
+            for i in range(7):
+                day_start = today_start - timedelta(days=6-i)  # Start from 6 days ago
+                day_date = day_start.date()
+                count = daily_counts.get(day_date, 0)
+                daily_views.append({
+                    'date': day_start.strftime('%b %d'),
+                    'count': count
+                })
+        except Exception:
+            # If PageView table doesn't exist or any error occurs, use empty defaults
+            total_page_views = 0
+            page_views_today = 0
+            page_views_week = 0
+            page_views_month = 0
+            most_viewed_pages = []
+            daily_views = []
+
         # Recent activity
         context['recent_devotions'] = Devotion.objects.order_by('-created_at')[:5]
         context['recent_events'] = Event.objects.order_by('-created_at')[:5]
         context['recent_prayers'] = PrayerRequest.objects.order_by('-created_at')[:5]
         # Show all donations to ensure nothing is missed
         context['recent_donations'] = Donation.objects.all().order_by('-created_at')
+        context['recent_counseling'] = CounselingBooking.objects.order_by('-created_at')[:5]
 
         context['stats'] = {
             'devotions': {
@@ -241,6 +307,20 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 'successful_total': successful_donations_total,
                 'pending_count': pending_donations_count,
                 'failed_count': failed_donations_count,
+            },
+            'counseling': {
+                'total': total_counseling_bookings,
+                'pending': pending_counseling,
+                'approved': approved_counseling,
+                'completed': completed_counseling,
+            },
+            'analytics': {
+                'total_views': total_page_views,
+                'views_today': page_views_today,
+                'views_week': page_views_week,
+                'views_month': page_views_month,
+                'most_viewed': most_viewed_pages,
+                'daily_views': daily_views,
             },
         }
 

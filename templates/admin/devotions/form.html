@@ -1,4 +1,4 @@
-{% extends 'admin/base.html' %}
+{% extends 'admin/custom_base.html' %}
 
 {% block admin_content %}
 <div class="mb-6">
@@ -24,7 +24,14 @@
             </div>
             <div>
                 <label for="{{ form.series.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Series</label>
-                {{ form.series }}
+                <div class="flex items-center gap-2">
+                    <div class="flex-1">
+                        {{ form.series }}
+                    </div>
+                    <button type="button" id="create-series-btn" class="px-3 py-2 text-sm rounded-lg border hover:bg-gray-50 transition-colors" style="border-color: var(--border); color: var(--primary); white-space: nowrap;">
+                        + New Series
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -146,5 +153,151 @@
         resize: vertical;
     }
 </style>
+
+<!-- Series Creation Modal -->
+<div id="series-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4" style="max-height: 90vh; overflow-y: auto;">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold" style="color: var(--text);">Create New Series</h2>
+            <button type="button" id="close-series-modal" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <form id="series-form">
+            <div class="space-y-4">
+                <div>
+                    <label for="series-title" class="block text-sm font-medium mb-2" style="color: var(--text);">Title *</label>
+                    <input type="text" id="series-title" name="title" required
+                           class="w-full px-3 py-2 border rounded-lg" style="border-color: var(--border);">
+                </div>
+                
+                <div>
+                    <label for="series-description" class="block text-sm font-medium mb-2" style="color: var(--text);">Description</label>
+                    <textarea id="series-description" name="description" rows="3"
+                              class="w-full px-3 py-2 border rounded-lg" style="border-color: var(--border);"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="series-start-date" class="block text-sm font-medium mb-2" style="color: var(--text);">Start Date</label>
+                        <input type="date" id="series-start-date" name="start_date"
+                               class="w-full px-3 py-2 border rounded-lg" style="border-color: var(--border);">
+                    </div>
+                    <div>
+                        <label for="series-end-date" class="block text-sm font-medium mb-2" style="color: var(--text);">End Date</label>
+                        <input type="date" id="series-end-date" name="end_date"
+                               class="w-full px-3 py-2 border rounded-lg" style="border-color: var(--border);">
+                    </div>
+                </div>
+                
+                <div id="series-error" class="hidden text-sm text-red-600"></div>
+            </div>
+            
+            <div class="mt-6 flex items-center justify-end space-x-3">
+                <button type="button" id="cancel-series" class="px-4 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-lg text-white font-semibold" style="background: var(--primary);">
+                    Create Series
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('series-modal');
+    const openBtn = document.getElementById('create-series-btn');
+    const closeBtn = document.getElementById('close-series-modal');
+    const cancelBtn = document.getElementById('cancel-series');
+    const form = document.getElementById('series-form');
+    const errorDiv = document.getElementById('series-error');
+    const seriesSelect = document.getElementById('id_series');
+    
+    function openModal() {
+        modal.classList.remove('hidden');
+        document.getElementById('series-title').focus();
+    }
+    
+    function closeModal() {
+        modal.classList.add('hidden');
+        form.reset();
+        errorDiv.classList.add('hidden');
+        errorDiv.textContent = '';
+    }
+    
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    
+    // Close on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            title: document.getElementById('series-title').value.trim(),
+            description: document.getElementById('series-description').value.trim(),
+            start_date: document.getElementById('series-start-date').value || null,
+            end_date: document.getElementById('series-end-date').value || null
+        };
+        
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+        errorDiv.classList.add('hidden');
+        
+        // Get CSRF token from the form
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch('{% url "manage:devotions_series_create_ajax" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add new option to select
+                const option = document.createElement('option');
+                option.value = data.series.id;
+                option.textContent = data.series.title;
+                option.selected = true;
+                seriesSelect.appendChild(option);
+                
+                // Close modal and show success
+                closeModal();
+                alert('Series created successfully!');
+            } else {
+                // Show error
+                errorDiv.textContent = data.error || 'An error occurred';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        })
+        .catch(error => {
+            errorDiv.textContent = 'Network error. Please try again.';
+            errorDiv.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        });
+    });
+});
+</script>
 {% endblock %}
 
