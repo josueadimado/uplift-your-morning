@@ -83,6 +83,18 @@ class DevotionCreateView(StaffRequiredMixin, CreateView):
     ]
     success_url = reverse_lazy('manage:devotions_list')
 
+    def get_initial(self):
+        """
+        Prefill publish date to today and default to published.
+        """
+        from django.utils import timezone
+        initial = super().get_initial()
+        initial.update({
+            'publish_date': timezone.localdate(),
+            'is_published': True,
+        })
+        return initial
+
     def form_valid(self, form):
         messages.success(self.request, 'Devotion created successfully!')
         return super().form_valid(form)
