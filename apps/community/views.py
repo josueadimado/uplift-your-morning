@@ -6,6 +6,7 @@ from django.views.generic import ListView, CreateView
 from django.contrib import messages
 from django_countries import countries
 from .models import PrayerRequest, Testimony
+from .notifications import send_prayer_request_notification, send_testimony_notification
 
 
 class PrayerRequestCreateView(CreateView):
@@ -19,13 +20,24 @@ class PrayerRequestCreateView(CreateView):
 
     def form_valid(self, form):
         """
-        Save the prayer request and show success message.
+        Save the prayer request, send notification, and show success message.
         """
+        response = super().form_valid(form)
+        # Send email notification to admin
+        print(f"DEBUG: Attempting to send prayer request notification for: {self.object.id}")
+        try:
+            send_prayer_request_notification(self.object)
+            print(f"DEBUG: Notification function completed for prayer request: {self.object.id}")
+        except Exception as e:
+            # Don't break the submission if notification fails, but log the error
+            print(f"DEBUG: Exception in prayer request notification: {str(e)}")
+            import traceback
+            traceback.print_exc()
         messages.success(
             self.request,
             'Thank you for sharing your prayer request. We will be praying for you!'
         )
-        return super().form_valid(form)
+        return response
 
 
 class TestimonyListView(ListView):
@@ -72,10 +84,21 @@ class TestimonyCreateView(CreateView):
 
     def form_valid(self, form):
         """
-        Save the testimony (needs admin approval before being displayed).
+        Save the testimony, send notification, and show success message.
         """
+        response = super().form_valid(form)
+        # Send email notification to admin
+        print(f"DEBUG: Attempting to send testimony notification for: {self.object.id}")
+        try:
+            send_testimony_notification(self.object)
+            print(f"DEBUG: Notification function completed for testimony: {self.object.id}")
+        except Exception as e:
+            # Don't break the submission if notification fails, but log the error
+            print(f"DEBUG: Exception in testimony notification: {str(e)}")
+            import traceback
+            traceback.print_exc()
         messages.success(
             self.request,
             'Thank you for sharing your testimony! It will be reviewed and published soon.'
         )
-        return super().form_valid(form)
+        return response

@@ -23,6 +23,16 @@
     input[type="date"]:invalid::-webkit-datetime-edit {
         color: #999;
     }
+    /* Date input with icon */
+    .date-picker-wrapper {
+        position: relative;
+    }
+    .date-picker-wrapper input {
+        padding-right: 2.75rem !important; /* Make room for icon */
+    }
+    .date-picker-wrapper svg {
+        z-index: 10;
+    }
 </style>
 {% endblock %}
 
@@ -99,7 +109,14 @@
                     <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
                             <label for="{{ form.preferred_date.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Preferred Date *</label>
-                            {{ form.preferred_date }}
+                            <div class="relative date-picker-wrapper">
+                                {{ form.preferred_date }}
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg class="w-5 h-5" style="color: var(--text_secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
                             {% if form.preferred_date.errors %}
                             <p class="text-sm text-red-600 mt-1">{{ form.preferred_date.errors.0 }}</p>
                             {% endif %}

@@ -1,6 +1,7 @@
 """
 Notification functions for counseling bookings.
 Handles email and SMS notifications when bookings are approved.
+Also sends admin notifications when new bookings are submitted.
 """
 from django.core.mail import send_mail
 from django.conf import settings
@@ -8,6 +9,79 @@ from django.template.loader import render_to_string
 from .models import CounselingBooking
 import requests
 from decouple import config
+
+
+ADMIN_NOTIFICATION_EMAIL = 'comecenters@gmail.com'
+
+
+def send_booking_submission_notification(booking):
+    """
+    Send email notification to admin when a new counseling booking is submitted.
+    """
+    subject = 'New Counseling Booking Request - Uplift Your Morning'
+    
+    # Format date and time
+    preferred_date_str = booking.preferred_date.strftime('%B %d, %Y')
+    preferred_time_str = booking.preferred_time.strftime('%I:%M %p')
+    
+    # Build the email message
+    email = booking.email or 'No email provided'
+    phone = booking.phone or 'No phone provided'
+    country = booking.country or 'Not specified'
+    topic = booking.topic or 'Not specified'
+    message_text = booking.message or 'No additional message'
+    
+    message = f"""
+A new counseling booking request has been submitted on Uplift Your Morning.
+
+Contact Information:
+- Name: {booking.full_name}
+- Email: {email}
+- Phone: {phone}
+- Country: {country}
+
+Booking Details:
+- Preferred Date: {preferred_date_str}
+- Preferred Time: {preferred_time_str}
+- Duration: {booking.duration_minutes} minutes
+- Topic: {topic}
+
+Additional Message:
+{message_text}
+
+Submitted: {booking.created_at.strftime('%B %d, %Y at %I:%M %p')}
+Status: Pending Approval
+
+---
+You can review and approve this booking in the admin dashboard.
+"""
+    
+    try:
+        result = send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@upliftyourmorning.com',
+            [ADMIN_NOTIFICATION_EMAIL],
+            fail_silently=False,
+        )
+        # Log success in development
+        if settings.DEBUG:
+            print(f"✓ Booking submission notification email sent successfully to {ADMIN_NOTIFICATION_EMAIL}")
+    except Exception as e:
+        # Log the error for debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        error_msg = f"Failed to send booking submission notification email: {str(e)}"
+        logger.error(error_msg)
+        
+        # In development, also print to console
+        if settings.DEBUG:
+            print(f"ERROR: {error_msg}")
+            print(f"Email notification would be sent to {ADMIN_NOTIFICATION_EMAIL}:")
+            print(message)
+            print(f"Email backend: {settings.EMAIL_BACKEND}")
+            print(f"Email host: {getattr(settings, 'EMAIL_HOST', 'Not set')}")
+            print(f"Email user: {getattr(settings, 'EMAIL_HOST_USER', 'Not set')}")
 
 
 def send_booking_approval_notifications(booking):

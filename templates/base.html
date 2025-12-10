@@ -36,8 +36,8 @@
     <meta name="apple-mobile-web-app-title" content="Uplift Your Morning">
     {% endif %}
     
-    <!-- Tailwind CSS CDN - Only load for non-Django-admin pages -->
-    {% if request.path|slice:":7" != "/admin/" %}
+    <!-- Tailwind CSS CDN - Only load for non-Django-admin pages (but allow for /admin/login/) -->
+    {% if request.path|slice:":7" != "/admin/" or request.path == "/admin/login/" %}
     <script src="https://cdn.tailwindcss.com" defer></script>
     {% endif %}
     <style>
@@ -360,8 +360,8 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body style="background: var(--background); color: var(--text); {% if hide_main_nav %}opacity: 1;{% endif %}">
-    <!-- Page Loader (shown briefly on all pages, except Django admin) -->
-    {% if request.path|slice:":7" != "/admin/" %}
+    <!-- Page Loader (shown briefly on all pages, except Django admin and login page) -->
+    {% if request.path|slice:":7" != "/admin/" and request.path != "/admin/login/" %}
     <div id="page-loader">
         <div class="loader-wrapper">
             <!-- Logo with spinning ring -->
@@ -379,7 +379,7 @@
         </div>
     </div>
     {% endif %}
-    {% if not hide_main_nav %}
+    {% if not hide_main_nav and request.path != "/admin/login/" %}
     <!-- Top Bar - Mission Statement -->
     <div class="text-white py-2.5 text-xs" style="background: var(--secondary);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -5,6 +5,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import PrayerRequest, Testimony
 from .serializers import PrayerRequestSerializer, TestimonySerializer, TestimonyListSerializer
+from .notifications import send_prayer_request_notification, send_testimony_notification
 
 
 class PrayerRequestCreateAPIView(generics.CreateAPIView):
@@ -16,11 +17,17 @@ class PrayerRequestCreateAPIView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         """
-        Create a prayer request.
+        Create a prayer request and send notification.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        prayer_request = serializer.save()
+        # Send email notification to admin
+        try:
+            send_prayer_request_notification(prayer_request)
+        except Exception:
+            # Don't break the submission if notification fails
+            pass
         return Response(
             {'message': 'Thank you for sharing your prayer request. We will be praying for you!'},
             status=status.HTTP_201_CREATED
@@ -36,12 +43,18 @@ class TestimonyCreateAPIView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         """
-        Create a testimony (needs admin approval).
+        Create a testimony (needs admin approval) and send notification.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # Testimonies need approval, so is_approved defaults to False
-        serializer.save(is_approved=False)
+        testimony = serializer.save(is_approved=False)
+        # Send email notification to admin
+        try:
+            send_testimony_notification(testimony)
+        except Exception:
+            # Don't break the submission if notification fails
+            pass
         return Response(
             {'message': 'Thank you for sharing your testimony! It will be reviewed and published soon.'},
             status=status.HTTP_201_CREATED

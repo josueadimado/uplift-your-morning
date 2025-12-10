@@ -528,6 +528,13 @@ class CounselingBookingView(TemplateView):
             booking = form.save(commit=False)
             booking.status = CounselingBooking.STATUS_PENDING
             booking.save()
+            # Send email notification to admin
+            from .notifications import send_booking_submission_notification
+            try:
+                send_booking_submission_notification(booking)
+            except Exception:
+                # Don't break the submission if notification fails
+                pass
             messages.success(
                 request,
                 'Your counseling booking request has been submitted successfully! '
