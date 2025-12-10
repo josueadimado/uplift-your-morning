@@ -966,9 +966,15 @@
                     </a>
                 </div>
                 <div class="relative">
+                    {% if todays_devotion.image %}
+                    <img src="{{ todays_devotion.image.url }}" 
+                         alt="{{ todays_devotion.title }}" 
+                         class="rounded-xl shadow-2xl w-full h-auto">
+                    {% else %}
                     <img src="{% static 'images/general/optimized_3O8A9512.jpg' %}" 
                          alt="Today's Devotion" 
-                         class="rounded-xl shadow-2xl">
+                         class="rounded-xl shadow-2xl w-full h-auto">
+                    {% endif %}
                 </div>
             </div>
         </div>
