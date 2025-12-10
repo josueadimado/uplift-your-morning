@@ -218,6 +218,16 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         approved_counseling = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_APPROVED).count()
         completed_counseling = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_COMPLETED).count()
 
+        # Subscriptions
+        from apps.subscriptions.models import Subscriber
+        total_subscribers = Subscriber.objects.count()
+        active_subscribers = Subscriber.objects.filter(is_active=True).count()
+        email_subscribers = Subscriber.objects.filter(channel=Subscriber.CHANNEL_EMAIL, is_active=True).count()
+        whatsapp_subscribers = Subscriber.objects.filter(channel=Subscriber.CHANNEL_WHATSAPP, is_active=True).count()
+        daily_devotion_subscribers = Subscriber.objects.filter(is_active=True, receive_daily_devotion=True).count()
+        special_programs_subscribers = Subscriber.objects.filter(is_active=True, receive_special_programs=True).count()
+        recent_subscribers = Subscriber.objects.order_by('-created_at')[:5]
+
         # Analytics - Page Views (optimized queries)
         # Handle case where PageView table doesn't exist yet (migrations not run)
         try:
@@ -289,6 +299,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         # Show all donations to ensure nothing is missed
         context['recent_donations'] = Donation.objects.all().order_by('-created_at')
         context['recent_counseling'] = CounselingBooking.objects.order_by('-created_at')[:5]
+        context['recent_subscribers'] = recent_subscribers
 
         context['stats'] = {
             'devotions': {
@@ -320,6 +331,14 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 'pending': pending_counseling,
                 'approved': approved_counseling,
                 'completed': completed_counseling,
+            },
+            'subscriptions': {
+                'total': total_subscribers,
+                'active': active_subscribers,
+                'email': email_subscribers,
+                'whatsapp': whatsapp_subscribers,
+                'daily_devotion': daily_devotion_subscribers,
+                'special_programs': special_programs_subscribers,
             },
             'analytics': {
                 'total_views': total_page_views,

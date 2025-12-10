@@ -91,6 +91,56 @@
         </div>
     </section>
 
+    <!-- Subscriptions Section -->
+    <section id="subscriptions" class="mt-8">
+        <div class="bg-white rounded-xl shadow-md p-6 border" style="border-color: var(--border);">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold" style="color: var(--text);">Subscriptions</h2>
+                <a href="{% url 'admin:subscriptions_subscriber_changelist' %}" 
+                   class="text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                   style="background: var(--background_light); color: var(--primary);"
+                   onmouseover="this.style.background='var(--background_tint)'"
+                   onmouseout="this.style.background='var(--background_light)'">
+                    Manage All →
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--background_light);">
+                    <p class="text-xs uppercase tracking-wide mb-2 font-semibold" style="color: var(--text_light);">Total Subscribers</p>
+                    <p class="text-2xl font-bold" style="color: var(--text);">{{ stats.subscriptions.total }}</p>
+                    <p class="text-xs mt-1" style="color: var(--text_secondary);">
+                        <span style="color: var(--primary); font-weight: 600;">{{ stats.subscriptions.active }}</span> active
+                    </p>
+                </div>
+                
+                <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--background_light);">
+                    <p class="text-xs uppercase tracking-wide mb-2 font-semibold" style="color: var(--text_light);">Email Subscribers</p>
+                    <p class="text-2xl font-bold" style="color: var(--text);">{{ stats.subscriptions.email }}</p>
+                    <p class="text-xs mt-1" style="color: var(--text_secondary);">Active email subscribers</p>
+                </div>
+                
+                <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--background_light);">
+                    <p class="text-xs uppercase tracking-wide mb-2 font-semibold" style="color: var(--text_light);">WhatsApp Subscribers</p>
+                    <p class="text-2xl font-bold" style="color: var(--text);">{{ stats.subscriptions.whatsapp }}</p>
+                    <p class="text-xs mt-1" style="color: var(--text_secondary);">Active WhatsApp subscribers</p>
+                </div>
+                
+                <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--background_light);">
+                    <p class="text-xs uppercase tracking-wide mb-2 font-semibold" style="color: var(--text_light);">Daily Devotion</p>
+                    <p class="text-2xl font-bold" style="color: var(--primary);">{{ stats.subscriptions.daily_devotion }}</p>
+                    <p class="text-xs mt-1" style="color: var(--text_secondary);">Subscribed to daily devotions</p>
+                </div>
+                
+                <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--background_light);">
+                    <p class="text-xs uppercase tracking-wide mb-2 font-semibold" style="color: var(--text_light);">Special Programs</p>
+                    <p class="text-2xl font-bold" style="color: var(--primary);">{{ stats.subscriptions.special_programs }}</p>
+                    <p class="text-xs mt-1" style="color: var(--text_secondary);">Subscribed to special programs</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Analytics Section -->
     <section id="analytics" class="mt-8">
         <div class="bg-white rounded-xl shadow-md p-6 border" style="border-color: var(--border);">
@@ -421,6 +471,42 @@
                     {% empty %}
                         <li class="py-4 text-sm text-center" style="color: var(--text_secondary);">
                             No prayer requests yet.
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Recent Subscribers -->
+            <div class="bg-white rounded-xl shadow-md p-6 border" style="border-color: var(--border);">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-bold" style="color: var(--text);">Recent Subscribers</h2>
+                    <a href="{% url 'admin:subscriptions_subscriber_changelist' %}" class="text-xs font-semibold" style="color: var(--primary);">View all →</a>
+                </div>
+                <ul class="divide-y" style="border-color: var(--border);">
+                    {% for subscriber in recent_subscribers %}
+                    <li class="py-3 flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg px-2 -mx-2">
+                        <div class="flex-1">
+                            <p class="text-sm font-semibold mb-1" style="color: var(--text);">
+                                {% if subscriber.channel == 'email' %}
+                                    {{ subscriber.email|default:"No email" }}
+                                {% else %}
+                                    {{ subscriber.phone|default:"No phone" }}
+                                {% endif %}
+                            </p>
+                            <p class="text-xs" style="color: var(--text_secondary);">
+                                {{ subscriber.get_channel_display }} · 
+                                {% if subscriber.is_active %}
+                                    <span style="color: var(--primary);">Active</span>
+                                {% else %}
+                                    <span style="color: #ef4444;">Inactive</span>
+                                {% endif %}
+                                · {{ subscriber.created_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                    </li>
+                    {% empty %}
+                        <li class="py-4 text-sm text-center" style="color: var(--text_secondary);">
+                            No subscribers yet.
                         </li>
                     {% endfor %}
                 </ul>
