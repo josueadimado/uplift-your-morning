@@ -142,10 +142,11 @@
             <!-- Subscribers List -->
             <div class="mt-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-base font-semibold" style="color: var(--text);">All Subscribers (Most Recent 50)</h3>
+                    <h3 class="text-base font-semibold" style="color: var(--text);">Recent Subscribers</h3>
                     <a href="{% url 'manage:subscribers_list' %}" 
-                       class="text-xs font-semibold" style="color: var(--primary);">
-                        View All →
+                       class="px-4 py-2 text-sm font-semibold rounded-lg border transition-all hover:shadow-md"
+                       style="border-color: var(--border); color: var(--primary); background: var(--background_light);">
+                        View All Subscribers →
                     </a>
                 </div>
                 <div class="overflow-x-auto">
