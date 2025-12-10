@@ -12,8 +12,8 @@
 {% block og_description %}Start your day right with today's daily devotion designed to inspire and uplift your spiritual journey.{% endblock %}
 
 {% block content %}
-{# Choose a banner devotion for the month theme: prefer month_theme_devotion, fall back to today's devotion #}
-{% with banner_devotion=month_theme_devotion|default:devotion %}
+{# Choose a banner devotion: prioritize today's devotion, fall back to month theme #}
+{% with banner_devotion=devotion|default:month_theme_devotion %}
 <!-- Hero Section with Image (Monthly Theme Banner) -->
 <section class="relative overflow-hidden" style="background: #FFFFFF !important; min-height: 480px;">
     <div class="absolute inset-0">

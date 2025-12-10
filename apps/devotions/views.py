@@ -108,13 +108,19 @@ class TodayDevotionView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Monthly theme/banner: use a published devotion from the current month
+        # Monthly theme/banner: prioritize today's devotion, otherwise use most recent from current month
         today = timezone.now().date()
-        month_theme_devotion = Devotion.objects.filter(
-            publish_date__year=today.year,
-            publish_date__month=today.month,
-            is_published=True,
-        ).order_by("publish_date").first()
+        # First try to get today's devotion for the banner
+        month_theme_devotion = self.object  # Today's devotion (if available)
+        
+        # If no devotion for today, use the most recent published devotion from current month
+        if not month_theme_devotion:
+            month_theme_devotion = Devotion.objects.filter(
+                publish_date__year=today.year,
+                publish_date__month=today.month,
+                is_published=True,
+            ).order_by("-publish_date").first()
+        
         context["month_theme_devotion"] = month_theme_devotion
 
         # Increment view count when devotion is viewed
