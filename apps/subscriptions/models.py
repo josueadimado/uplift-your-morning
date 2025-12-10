@@ -2,7 +2,9 @@
 Models for managing email and WhatsApp subscriptions.
 """
 from django.db import models
+from django.utils import timezone
 from apps.core.models import TimeStampedModel
+from apps.devotions.models import Devotion
 
 
 class Subscriber(TimeStampedModel):
@@ -31,3 +33,103 @@ class Subscriber(TimeStampedModel):
         if self.channel == self.CHANNEL_EMAIL:
             return self.email or "Email subscriber"
         return self.phone or "WhatsApp subscriber"
+
+
+class ScheduledNotification(TimeStampedModel):
+    """
+    Stores scheduled notifications to be sent to subscribers.
+    Allows scheduling, previewing, and pausing notifications.
+    """
+    STATUS_SCHEDULED = 'scheduled'
+    STATUS_PAUSED = 'paused'
+    STATUS_SENT = 'sent'
+    STATUS_CANCELLED = 'cancelled'
+    
+    STATUS_CHOICES = [
+        (STATUS_SCHEDULED, 'Scheduled'),
+        (STATUS_PAUSED, 'Paused'),
+        (STATUS_SENT, 'Sent'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+    
+    # Notification details
+    title = models.CharField(max_length=200, help_text="Title/Subject of the notification")
+    devotion = models.ForeignKey(
+        Devotion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Optional: Link to a specific devotion. If not set, will use today's devotion."
+    )
+    custom_message = models.TextField(
+        blank=True,
+        help_text="Optional: Custom message to include. If devotion is set, this will be added to the devotion content."
+    )
+    
+    # Scheduling
+    scheduled_date = models.DateField(help_text="Date to send the notification")
+    scheduled_time = models.TimeField(help_text="Time to send the notification")
+    is_paused = models.BooleanField(default=False, help_text="Pause this notification from being sent")
+    
+    # Status tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_SCHEDULED)
+    sent_at = models.DateTimeField(null=True, blank=True, help_text="When the notification was actually sent")
+    
+    # Recipients
+    send_to_email = models.BooleanField(default=True, help_text="Send to email subscribers")
+    send_to_whatsapp = models.BooleanField(default=True, help_text="Send to WhatsApp subscribers")
+    only_daily_devotion_subscribers = models.BooleanField(
+        default=True,
+        help_text="Only send to subscribers who opted in for daily devotions"
+    )
+    
+    # Statistics (populated after sending)
+    email_sent_count = models.IntegerField(default=0, help_text="Number of emails sent")
+    email_failed_count = models.IntegerField(default=0, help_text="Number of emails that failed")
+    sms_sent_count = models.IntegerField(default=0, help_text="Number of SMS/WhatsApp sent")
+    sms_failed_count = models.IntegerField(default=0, help_text="Number of SMS/WhatsApp that failed")
+    
+    # Notes
+    notes = models.TextField(blank=True, help_text="Internal notes about this notification")
+    
+    class Meta:
+        ordering = ['-scheduled_date', '-scheduled_time']
+        verbose_name = "Scheduled Notification"
+        verbose_name_plural = "Scheduled Notifications"
+    
+    def __str__(self):
+        return f"{self.title} - {self.scheduled_date} at {self.scheduled_time}"
+    
+    @property
+    def scheduled_datetime(self):
+        """Return the scheduled date and time as a datetime object."""
+        from django.utils import timezone
+        from datetime import datetime
+        return timezone.make_aware(
+            datetime.combine(self.scheduled_date, self.scheduled_time)
+        )
+    
+    @property
+    def is_due(self):
+        """Check if the notification is due to be sent."""
+        if self.is_paused or self.status != self.STATUS_SCHEDULED:
+            return False
+        return timezone.now() >= self.scheduled_datetime
+    
+    def pause(self):
+        """Pause this notification."""
+        self.is_paused = True
+        self.status = self.STATUS_PAUSED
+        self.save()
+    
+    def resume(self):
+        """Resume this notification."""
+        self.is_paused = False
+        self.status = self.STATUS_SCHEDULED
+        self.save()
+    
+    def mark_as_sent(self):
+        """Mark this notification as sent."""
+        self.status = self.STATUS_SENT
+        self.sent_at = timezone.now()
+        self.save()

@@ -62,5 +62,19 @@ urlpatterns = [
     path('counseling/<int:pk>/', admin_views.CounselingBookingDetailView.as_view(), name='counseling_detail'),
     path('counseling/<int:pk>/approve/', admin_views.CounselingBookingApproveView.as_view(), name='counseling_approve'),
     path('counseling/<int:pk>/reject/', admin_views.CounselingBookingRejectView.as_view(), name='counseling_reject'),
+    
+    # Subscribers
+    path('subscribers/', admin_views.SubscriberListView.as_view(), name='subscribers_list'),
+    path('subscribers/<int:pk>/activate/', admin_views.SubscriberActivateView.as_view(), name='subscribers_activate'),
+    path('subscribers/<int:pk>/deactivate/', admin_views.SubscriberDeactivateView.as_view(), name='subscribers_deactivate'),
+    path('subscribers/<int:pk>/delete/', admin_views.SubscriberDeleteView.as_view(), name='subscribers_delete'),
+    
+    # Notifications
+    path('notifications/', admin_views.NotificationScheduleListView.as_view(), name='notifications_list'),
+    path('notifications/create/', admin_views.NotificationScheduleCreateView.as_view(), name='notifications_create'),
+    path('notifications/<int:pk>/', admin_views.NotificationScheduleDetailView.as_view(), name='notifications_detail'),
+    path('notifications/<int:pk>/pause/', admin_views.NotificationPauseView.as_view(), name='notifications_pause'),
+    path('notifications/<int:pk>/resume/', admin_views.NotificationResumeView.as_view(), name='notifications_resume'),
+    path('notifications/<int:pk>/delete/', admin_views.NotificationDeleteView.as_view(), name='notifications_delete'),
 ]
 

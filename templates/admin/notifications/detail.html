@@ -1,0 +1,358 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">{{ notification.title }}</h1>
+            <p class="text-base" style="color: var(--text_secondary);">
+                Scheduled for {{ notification.scheduled_date|date:"F d, Y" }} at {{ notification.scheduled_time|time:"g:i A" }}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            {% if notification.is_paused and notification.status == 'paused' %}
+            <form method="post" action="{% url 'manage:notifications_resume' notification.pk %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="px-4 py-2 rounded-lg font-semibold text-white transition-all"
+                        style="background: #10b981;">
+                    Resume
+                </button>
+            </form>
+            {% elif not notification.is_paused and notification.status == 'scheduled' %}
+            <form method="post" action="{% url 'manage:notifications_pause' notification.pk %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="px-4 py-2 rounded-lg font-semibold text-white transition-all"
+                        style="background: #f59e0b;">
+                    Pause
+                </button>
+            </form>
+            {% endif %}
+            <a href="{% url 'manage:notifications_list' %}" 
+               class="px-4 py-2 rounded-lg font-semibold border"
+               style="border-color: var(--border); color: var(--text);">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Status Card -->
+<div class="bg-white rounded-lg shadow p-6 mb-6 border" style="border-color: var(--border);">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm font-medium mb-2" style="color: var(--text_secondary);">Status</p>
+            {% if notification.is_paused %}
+            <span class="px-3 py-1 text-sm font-semibold rounded-full" style="background: #f59e0b; color: white;">Paused</span>
+            {% elif notification.status == 'scheduled' %}
+            <span class="px-3 py-1 text-sm font-semibold rounded-full" style="background: #3b82f6; color: white;">Scheduled</span>
+            {% elif notification.status == 'sent' %}
+            <span class="px-3 py-1 text-sm font-semibold rounded-full" style="background: #10b981; color: white;">Sent</span>
+            {% endif %}
+        </div>
+        <div class="text-right">
+            <p class="text-sm font-medium mb-2" style="color: var(--text_secondary);">Recipients</p>
+            <div class="flex gap-4">
+                {% if notification.send_to_email %}
+                <div>
+                    <p class="text-xs" style="color: var(--text_secondary);">Email</p>
+                    <p class="text-lg font-bold" style="color: #3b82f6;">{{ email_recipient_count }}</p>
+                </div>
+                {% endif %}
+                {% if notification.send_to_whatsapp %}
+                <div>
+                    <p class="text-xs" style="color: var(--text_secondary);">WhatsApp</p>
+                    <p class="text-lg font-bold" style="color: #10b981;">{{ whatsapp_recipient_count }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+        <h3 class="text-lg font-semibold mb-4" style="color: var(--text);">Notification Details</h3>
+        <div class="space-y-3 text-sm">
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Title</p>
+                <p style="color: var(--text);">{{ notification.title }}</p>
+            </div>
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Scheduled Date & Time</p>
+                <p style="color: var(--text);">
+                    {{ notification.scheduled_date|date:"F d, Y" }} at {{ notification.scheduled_time|time:"g:i A" }}
+                </p>
+            </div>
+            {% if notification.devotion %}
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Devotion</p>
+                <p style="color: var(--text);">{{ notification.devotion.title }}</p>
+            </div>
+            {% else %}
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Devotion</p>
+                <p style="color: var(--text);">Will use today's published devotion</p>
+            </div>
+            {% endif %}
+            {% if notification.custom_message %}
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Custom Message</p>
+                <p style="color: var(--text);">{{ notification.custom_message }}</p>
+            </div>
+            {% endif %}
+            {% if notification.sent_at %}
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Sent At</p>
+                <p style="color: var(--text);">{{ notification.sent_at|date:"F d, Y g:i A" }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+        <h3 class="text-lg font-semibold mb-4" style="color: var(--text);">Settings</h3>
+        <div class="space-y-3 text-sm">
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Channels</p>
+                <div class="flex gap-2 mt-1">
+                    {% if notification.send_to_email %}
+                    <span class="px-2 py-1 text-xs rounded" style="background: #3b82f6; color: white;">Email</span>
+                    {% endif %}
+                    {% if notification.send_to_whatsapp %}
+                    <span class="px-2 py-1 text-xs rounded" style="background: #10b981; color: white;">WhatsApp</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Recipient Filter</p>
+                <p style="color: var(--text);">
+                    {% if notification.only_daily_devotion_subscribers %}
+                    Only daily devotion subscribers
+                    {% else %}
+                    All active subscribers
+                    {% endif %}
+                </p>
+            </div>
+            {% if notification.notes %}
+            <div>
+                <p class="font-medium" style="color: var(--text_secondary);">Notes</p>
+                <p style="color: var(--text);">{{ notification.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Statistics (if sent) -->
+{% if notification.status == 'sent' %}
+<div class="bg-white rounded-lg shadow p-6 mb-6 border" style="border-color: var(--border);">
+    <h3 class="text-lg font-semibold mb-4" style="color: var(--text);">Sending Statistics</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Emails Sent</p>
+            <p class="text-2xl font-bold" style="color: #10b981;">{{ notification.email_sent_count }}</p>
+        </div>
+        <div>
+            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Emails Failed</p>
+            <p class="text-2xl font-bold" style="color: #ef4444;">{{ notification.email_failed_count }}</p>
+        </div>
+        <div>
+            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">SMS Sent</p>
+            <p class="text-2xl font-bold" style="color: #10b981;">{{ notification.sms_sent_count }}</p>
+        </div>
+        <div>
+            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">SMS Failed</p>
+            <p class="text-2xl font-bold" style="color: #ef4444;">{{ notification.sms_failed_count }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Devotion Check Warning -->
+{% if not has_devotion %}
+<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm font-medium text-yellow-800">
+                ⚠️ No Devotion Found for Scheduled Date
+            </p>
+            <p class="text-sm text-yellow-700 mt-1">
+                No published devotion was found for {{ notification.scheduled_date|date:"F d, Y" }}. 
+                This notification will <strong>NOT be sent</strong> if no devotion is available on the scheduled date.
+            </p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm font-medium text-green-800">
+                ✓ Devotion Available
+            </p>
+            <p class="text-sm text-green-700 mt-1">
+                Devotion "<strong>{{ devotion.title }}</strong>" is available for {{ notification.scheduled_date|date:"F d, Y" }}. 
+                Notification will be sent as scheduled.
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Message Previews -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% if notification.send_to_email %}
+    <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold" style="color: var(--text);">Email Preview</h3>
+            <span class="px-2 py-1 text-xs font-semibold rounded" style="background: #3b82f6; color: white;">
+                {{ email_recipient_count }} recipients
+            </span>
+        </div>
+        
+        <!-- Email Preview (Styled like an actual email) -->
+        <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
+            <!-- Email Header -->
+            <div class="bg-gray-50 px-4 py-3 border-b" style="border-color: #e5e7eb;">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <p class="text-xs font-semibold mb-1" style="color: #6b7280;">From:</p>
+                        <p class="text-sm" style="color: var(--text);">Uplift Your Morning &lt;noreply@upliftyourmorning.com&gt;</p>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <p class="text-xs font-semibold mb-1" style="color: #6b7280;">To:</p>
+                    <p class="text-sm" style="color: var(--text);">subscriber@example.com</p>
+                </div>
+                <div class="mt-2">
+                    <p class="text-xs font-semibold mb-1" style="color: #6b7280;">Subject:</p>
+                    <p class="text-sm font-semibold" style="color: var(--text);">{{ email_subject }}</p>
+                </div>
+            </div>
+            
+            <!-- Email Body -->
+            <div class="p-6 max-h-96 overflow-y-auto bg-white">
+                <div class="text-sm whitespace-pre-wrap" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
+{{ email_preview }}
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-xs mt-3 text-center" style="color: var(--text_secondary);">
+            📧 This is exactly how the email will appear in subscribers' inboxes
+        </p>
+    </div>
+    {% endif %}
+
+    {% if notification.send_to_whatsapp %}
+    <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold" style="color: var(--text);">WhatsApp/SMS Preview</h3>
+            <span class="px-2 py-1 text-xs font-semibold rounded" style="background: #10b981; color: white;">
+                {{ whatsapp_recipient_count }} recipients
+            </span>
+        </div>
+        
+        <!-- SMS Preview (Styled like a phone with WhatsApp) -->
+        <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
+            <!-- Phone Header -->
+            <div class="bg-gray-800 px-4 py-3 flex items-center">
+                <div class="w-8 h-8 rounded-full bg-gray-600 mr-3"></div>
+                <div>
+                    <p class="text-sm font-semibold text-white">Uplift Your Morning</p>
+                    <p class="text-xs text-gray-300">online</p>
+                </div>
+            </div>
+            
+            <!-- Message Area -->
+            <div class="p-4 max-h-96 overflow-y-auto" style="background: #ece5dd; min-height: 300px;">
+                <!-- Sample incoming message -->
+                <div class="mb-4 flex justify-start">
+                    <div class="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
+                        <div class="text-sm whitespace-pre-wrap" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
+{{ sms_preview }}
+                        </div>
+                        <p class="text-xs mt-2" style="color: #9ca3af;">{{ notification.scheduled_time|time:"g:i A" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-xs mt-3 text-center" style="color: var(--text_secondary);">
+            💬 This is exactly how the message will appear on subscribers' phones
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Sample Example Section -->
+<div class="mt-8 bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+    <h3 class="text-lg font-semibold mb-4" style="color: var(--text);">📋 Sample Message Examples</h3>
+    <p class="text-sm mb-4" style="color: var(--text_secondary);">
+        Here's what a typical message looks like with sample devotion content:
+    </p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Sample Email -->
+        <div>
+            <h4 class="text-sm font-semibold mb-3" style="color: var(--text);">Sample Email:</h4>
+            <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
+                <div class="bg-gray-50 px-4 py-2 border-b" style="border-color: #e5e7eb;">
+                    <p class="text-xs font-semibold" style="color: #6b7280;">Subject: Daily Devotion - Trusting in God's Plan</p>
+                </div>
+                <div class="p-4 bg-white text-xs" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
+                    <p class="font-semibold mb-2">Good Morning!</p>
+                    <p class="mb-4">Here's today's daily devotion from Uplift Your Morning:</p>
+                    <div class="border-l-4 pl-3 mb-4" style="border-color: var(--primary);">
+                        <p class="font-semibold mb-2">Trusting in God's Plan</p>
+                        <p class="mb-2"><strong>Scripture:</strong> Jeremiah 29:11</p>
+                        <p class="mb-2">"For I know the plans I have for you," declares the Lord, "plans to prosper you and not to harm you, plans to give you hope and a future."</p>
+                        <p class="mb-2">God has a perfect plan for your life. Trust in His timing and His ways...</p>
+                    </div>
+                    <p class="mb-2"><strong>Reflection:</strong> Take a moment to reflect on God's faithfulness in your life.</p>
+                    <p class="mb-2"><strong>Prayer:</strong> Lord, help me trust in Your perfect plan...</p>
+                    <p class="mb-4"><strong>Action Point:</strong> Write down one area where you need to trust God more.</p>
+                    <p class="mb-2">Read the full devotion online: https://upliftyourmorning.com/devotions/123/</p>
+                    <p class="text-xs mt-4" style="color: #6b7280;">Have a blessed day!<br>Uplift Your Morning</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sample SMS -->
+        <div>
+            <h4 class="text-sm font-semibold mb-3" style="color: var(--text);">Sample WhatsApp/SMS:</h4>
+            <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
+                <div class="bg-gray-800 px-4 py-2">
+                    <p class="text-xs text-white font-semibold">Uplift Your Morning</p>
+                </div>
+                <div class="p-4" style="background: #ece5dd; min-height: 200px;">
+                    <div class="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
+                        <div class="text-xs" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
+                            <p class="font-semibold mb-1">Daily Devotion: Trusting in God's Plan</p>
+                            <p class="mb-1">Scripture: Jeremiah 29:11</p>
+                            <p class="mb-2">God has a perfect plan for your life. Trust in His timing...</p>
+                            <p class="mb-1">Read more: https://upliftyourmorning.com/devotions/123/</p>
+                            <p class="text-xs mt-2">Uplift Your Morning</p>
+                        </div>
+                        <p class="text-xs mt-2" style="color: #9ca3af;">5:00 AM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

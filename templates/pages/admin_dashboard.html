@@ -96,13 +96,13 @@
         <div class="bg-white rounded-xl shadow-md p-6 border" style="border-color: var(--border);">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold" style="color: var(--text);">Subscriptions</h2>
-                <a href="{% url 'admin:subscriptions_subscriber_changelist' %}" 
-                   class="text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-                   style="background: var(--background_light); color: var(--primary);"
-                   onmouseover="this.style.background='var(--background_tint)'"
-                   onmouseout="this.style.background='var(--background_light)'">
-                    Manage All →
-                </a>
+                    <a href="{% url 'manage:subscribers_list' %}" 
+                       class="text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                       style="background: var(--background_light); color: var(--primary);"
+                       onmouseover="this.style.background='var(--background_tint)'"
+                       onmouseout="this.style.background='var(--background_light)'">
+                        Manage All →
+                    </a>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -136,6 +136,80 @@
                     <p class="text-xs uppercase tracking-wide mb-2 font-semibold" style="color: var(--text_light);">Special Programs</p>
                     <p class="text-2xl font-bold" style="color: var(--primary);">{{ stats.subscriptions.special_programs }}</p>
                     <p class="text-xs mt-1" style="color: var(--text_secondary);">Subscribed to special programs</p>
+                </div>
+            </div>
+            
+            <!-- Subscribers List -->
+            <div class="mt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-semibold" style="color: var(--text);">All Subscribers (Most Recent 50)</h3>
+                    <a href="{% url 'manage:subscribers_list' %}" 
+                       class="text-xs font-semibold" style="color: var(--primary);">
+                        View All →
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b" style="border-color: var(--border);">
+                                <th class="text-left py-3 px-4 font-semibold" style="color: var(--text_secondary);">Contact</th>
+                                <th class="text-left py-3 px-4 font-semibold" style="color: var(--text_secondary);">Channel</th>
+                                <th class="text-left py-3 px-4 font-semibold" style="color: var(--text_secondary);">Preferences</th>
+                                <th class="text-left py-3 px-4 font-semibold" style="color: var(--text_secondary);">Status</th>
+                                <th class="text-left py-3 px-4 font-semibold" style="color: var(--text_secondary);">Subscribed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subscriber in all_subscribers %}
+                            <tr class="border-b hover:bg-gray-50 transition-colors" style="border-color: var(--border);">
+                                <td class="py-3 px-4">
+                                    <p class="font-semibold" style="color: var(--text);">
+                                        {% if subscriber.channel == 'email' %}
+                                            {{ subscriber.email|default:"No email" }}
+                                        {% else %}
+                                            {{ subscriber.phone|default:"No phone" }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                          style="background: {% if subscriber.channel == 'email' %}#3b82f6{% else %}#10b981{% endif %}; color: white;">
+                                        {{ subscriber.get_channel_display }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex flex-col gap-1">
+                                        {% if subscriber.receive_daily_devotion %}
+                                        <span class="text-xs px-2 py-0.5 rounded" style="background: var(--background_tint); color: var(--primary);">Daily Devotion</span>
+                                        {% endif %}
+                                        {% if subscriber.receive_special_programs %}
+                                        <span class="text-xs px-2 py-0.5 rounded" style="background: var(--background_tint); color: var(--primary);">Special Programs</span>
+                                        {% endif %}
+                                        {% if not subscriber.receive_daily_devotion and not subscriber.receive_special_programs %}
+                                        <span class="text-xs" style="color: var(--text_secondary);">No preferences</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    {% if subscriber.is_active %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #10b981; color: white;">Active</span>
+                                    {% else %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #ef4444; color: white;">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4" style="color: var(--text_secondary);">
+                                    {{ subscriber.created_at|date:"M d, Y" }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="py-8 text-center" style="color: var(--text_secondary);">
+                                    No subscribers yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -326,6 +400,11 @@
                    style="border-color: var(--border); color: var(--primary); background: var(--background_light);">
                     View Donations
                 </a>
+                <a href="{% url 'manage:subscribers_list' %}"
+                   class="inline-flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold border transition-all hover:shadow-md"
+                   style="border-color: var(--border); color: var(--primary); background: var(--background_light);">
+                    Manage Subscribers
+                </a>
             </div>
         </div>
     </section>
@@ -480,7 +559,7 @@
             <div class="bg-white rounded-xl shadow-md p-6 border" style="border-color: var(--border);">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-base font-bold" style="color: var(--text);">Recent Subscribers</h2>
-                    <a href="{% url 'admin:subscriptions_subscriber_changelist' %}" class="text-xs font-semibold" style="color: var(--primary);">View all →</a>
+                    <a href="{% url 'manage:subscribers_list' %}" class="text-xs font-semibold" style="color: var(--primary);">View all →</a>
                 </div>
                 <ul class="divide-y" style="border-color: var(--border);">
                     {% for subscriber in recent_subscribers %}

@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, View
 from django.conf import settings
 import requests
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import Sum, Q
@@ -19,6 +19,7 @@ from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory
 from apps.community.models import PrayerRequest, Testimony
 from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking
+from apps.subscriptions.models import Subscriber, ScheduledNotification
 
 
 class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -652,6 +653,277 @@ class CounselingBookingDetailView(StaffRequiredMixin, DetailView):
     model = CounselingBooking
     template_name = 'admin/counseling/detail.html'
     context_object_name = 'booking'
+
+
+# ==================== SUBSCRIBERS ====================
+
+class SubscriberListView(StaffRequiredMixin, ListView):
+    """List all subscribers with filters and search."""
+    model = Subscriber
+    template_name = 'admin/subscribers/list.html'
+    context_object_name = 'subscribers'
+    paginate_by = 30
+
+    def get_queryset(self):
+        queryset = Subscriber.objects.all()
+        
+        # Filter by channel
+        channel = self.request.GET.get('channel')
+        if channel:
+            queryset = queryset.filter(channel=channel)
+        
+        # Filter by status
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+        
+        # Filter by preferences
+        preference = self.request.GET.get('preference')
+        if preference == 'daily':
+            queryset = queryset.filter(receive_daily_devotion=True, is_active=True)
+        elif preference == 'special':
+            queryset = queryset.filter(receive_special_programs=True, is_active=True)
+        
+        # Search
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(email__icontains=search) |
+                Q(phone__icontains=search)
+            )
+        
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = Subscriber.objects.count()
+        context['active_count'] = Subscriber.objects.filter(is_active=True).count()
+        context['inactive_count'] = Subscriber.objects.filter(is_active=False).count()
+        context['email_count'] = Subscriber.objects.filter(channel=Subscriber.CHANNEL_EMAIL, is_active=True).count()
+        context['whatsapp_count'] = Subscriber.objects.filter(channel=Subscriber.CHANNEL_WHATSAPP, is_active=True).count()
+        context['daily_devotion_count'] = Subscriber.objects.filter(is_active=True, receive_daily_devotion=True).count()
+        context['special_programs_count'] = Subscriber.objects.filter(is_active=True, receive_special_programs=True).count()
+        return context
+
+
+class SubscriberActivateView(StaffRequiredMixin, View):
+    """Activate a subscriber."""
+    def post(self, request, pk):
+        subscriber = get_object_or_404(Subscriber, pk=pk)
+        subscriber.is_active = True
+        subscriber.save()
+        messages.success(request, f'Subscriber activated: {subscriber.email or subscriber.phone}')
+        return redirect('manage:subscribers_list')
+
+
+class SubscriberDeactivateView(StaffRequiredMixin, View):
+    """Deactivate a subscriber."""
+    def post(self, request, pk):
+        subscriber = get_object_or_404(Subscriber, pk=pk)
+        subscriber.is_active = False
+        subscriber.save()
+        messages.success(request, f'Subscriber deactivated: {subscriber.email or subscriber.phone}')
+        return redirect('manage:subscribers_list')
+
+
+class SubscriberDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete a subscriber."""
+    model = Subscriber
+    template_name = 'admin/subscribers/delete.html'
+    success_url = reverse_lazy('manage:subscribers_list')
+    
+    def delete(self, request, *args, **kwargs):
+        subscriber = self.get_object()
+        messages.success(request, f'Subscriber deleted: {subscriber.email or subscriber.phone}')
+        return super().delete(request, *args, **kwargs)
+
+
+# ==================== NOTIFICATIONS ====================
+
+class NotificationScheduleListView(StaffRequiredMixin, ListView):
+    """List all scheduled notifications."""
+    model = ScheduledNotification
+    template_name = 'admin/notifications/list.html'
+    context_object_name = 'notifications'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = ScheduledNotification.objects.all()
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        return queryset.order_by('-scheduled_date', '-scheduled_time')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = ScheduledNotification.objects.count()
+        context['scheduled'] = ScheduledNotification.objects.filter(status=ScheduledNotification.STATUS_SCHEDULED, is_paused=False).count()
+        context['paused'] = ScheduledNotification.objects.filter(is_paused=True).count()
+        context['sent'] = ScheduledNotification.objects.filter(status=ScheduledNotification.STATUS_SENT).count()
+        return context
+
+
+class NotificationScheduleCreateView(StaffRequiredMixin, CreateView):
+    """Create a new scheduled notification."""
+    model = ScheduledNotification
+    template_name = 'admin/notifications/form.html'
+    fields = [
+        'title', 'devotion', 'custom_message', 'scheduled_date', 'scheduled_time',
+        'send_to_email', 'send_to_whatsapp', 'only_daily_devotion_subscribers', 'notes'
+    ]
+    success_url = reverse_lazy('manage:notifications_list')
+
+    def get_initial(self):
+        """Set default values for the form."""
+        from datetime import date, time
+        from django.utils import timezone
+        
+        # Get today's date
+        today = date.today()
+        
+        # Default time: 5:00 AM
+        default_time = time(5, 0)
+        
+        return {
+            'title': 'Daily Devotion - Uplift Your Morning',
+            'scheduled_date': today,
+            'scheduled_time': default_time,
+            'send_to_email': True,
+            'send_to_whatsapp': True,
+            'only_daily_devotion_subscribers': True,
+        }
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Notification scheduled successfully!')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get today's devotion for preview
+        from datetime import date
+        from apps.devotions.models import Devotion
+        try:
+            today_devotion = Devotion.objects.filter(
+                is_published=True,
+                publish_date=date.today()
+            ).first()
+            context['today_devotion'] = today_devotion
+        except:
+            context['today_devotion'] = None
+        return context
+
+
+class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
+    """View details and preview of a scheduled notification."""
+    model = ScheduledNotification
+    template_name = 'admin/notifications/detail.html'
+    context_object_name = 'notification'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        notification = self.get_object()
+        
+        # Build preview messages
+        from apps.subscriptions.management.commands.send_daily_devotions import Command as DevotionCommand
+        command = DevotionCommand()
+        
+        # Get the devotion to use
+        devotion = notification.devotion
+        if not devotion:
+            from datetime import date
+            from apps.devotions.models import Devotion
+            devotion = Devotion.objects.filter(
+                is_published=True,
+                publish_date=notification.scheduled_date
+            ).first()
+        
+        # Build email preview with subject
+        if devotion:
+            email_subject = f'{notification.title} - {devotion.title}'
+            email_preview = command._build_devotion_email(devotion)
+            if notification.custom_message:
+                email_preview += f"\n\n{notification.custom_message}"
+            sms_preview = command._build_devotion_sms(devotion)
+            if notification.custom_message:
+                sms_preview += f"\n\n{notification.custom_message[:100]}..."  # Truncate for SMS
+            has_devotion = True
+        else:
+            email_subject = notification.title
+            email_preview = command._build_no_devotion_email()
+            if notification.custom_message:
+                email_preview += f"\n\n{notification.custom_message}"
+            sms_preview = command._build_no_devotion_sms()
+            if notification.custom_message:
+                sms_preview += f"\n\n{notification.custom_message[:100]}..."
+            has_devotion = False
+        
+        context['email_subject'] = email_subject
+        context['email_preview'] = email_preview
+        context['sms_preview'] = sms_preview
+        context['devotion'] = devotion
+        context['has_devotion'] = has_devotion
+        
+        # Get recipient counts
+        from apps.subscriptions.models import Subscriber
+        email_count = 0
+        whatsapp_count = 0
+        
+        if notification.send_to_email:
+            email_qs = Subscriber.objects.filter(
+                channel=Subscriber.CHANNEL_EMAIL,
+                is_active=True,
+                email__isnull=False
+            ).exclude(email='')
+            if notification.only_daily_devotion_subscribers:
+                email_qs = email_qs.filter(receive_daily_devotion=True)
+            email_count = email_qs.count()
+        
+        if notification.send_to_whatsapp:
+            whatsapp_qs = Subscriber.objects.filter(
+                channel=Subscriber.CHANNEL_WHATSAPP,
+                is_active=True,
+                phone__isnull=False
+            ).exclude(phone='')
+            if notification.only_daily_devotion_subscribers:
+                whatsapp_qs = whatsapp_qs.filter(receive_daily_devotion=True)
+            whatsapp_count = whatsapp_qs.count()
+        
+        context['email_recipient_count'] = email_count
+        context['whatsapp_recipient_count'] = whatsapp_count
+        
+        return context
+
+
+class NotificationPauseView(StaffRequiredMixin, View):
+    """Pause a scheduled notification."""
+    def post(self, request, pk):
+        notification = get_object_or_404(ScheduledNotification, pk=pk)
+        notification.pause()
+        messages.success(request, f'Notification "{notification.title}" has been paused.')
+        return redirect('manage:notifications_detail', pk=pk)
+
+
+class NotificationResumeView(StaffRequiredMixin, View):
+    """Resume a paused notification."""
+    def post(self, request, pk):
+        notification = get_object_or_404(ScheduledNotification, pk=pk)
+        notification.resume()
+        messages.success(request, f'Notification "{notification.title}" has been resumed.')
+        return redirect('manage:notifications_detail', pk=pk)
+
+
+class NotificationDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete a scheduled notification."""
+    model = ScheduledNotification
+    template_name = 'admin/notifications/delete.html'
+    success_url = reverse_lazy('manage:notifications_list')
+    
+    def delete(self, request, *args, **kwargs):
+        notification = self.get_object()
+        messages.success(request, f'Notification "{notification.title}" has been deleted.')
+        return super().delete(request, *args, **kwargs)
 
 
 class CounselingBookingApproveView(StaffRequiredMixin, View):

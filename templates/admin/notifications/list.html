@@ -1,0 +1,191 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">Scheduled Notifications</h1>
+            <p class="text-base" style="color: var(--text_secondary);">Schedule and manage notifications to subscribers</p>
+        </div>
+        <a href="{% url 'manage:notifications_create' %}" 
+           class="px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+           style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%);">
+            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Schedule Notification
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Total</p>
+        <p class="text-2xl font-bold" style="color: var(--text);">{{ total }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Scheduled</p>
+        <p class="text-2xl font-bold" style="color: #3b82f6;">{{ scheduled }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Paused</p>
+        <p class="text-2xl font-bold" style="color: #f59e0b;">{{ paused }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Sent</p>
+        <p class="text-2xl font-bold" style="color: #10b981;">{{ sent }}</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow p-4 mb-6 border" style="border-color: var(--border);">
+    <form method="get" class="flex flex-col sm:flex-row gap-4">
+        <select name="status" class="px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+            <option value="">All Statuses</option>
+            <option value="scheduled" {% if request.GET.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+            <option value="paused" {% if request.GET.status == 'paused' %}selected{% endif %}>Paused</option>
+            <option value="sent" {% if request.GET.status == 'sent' %}selected{% endif %}>Sent</option>
+            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <button type="submit" 
+                class="px-6 py-2 rounded-lg font-semibold text-white"
+                style="background: var(--primary);">
+            Filter
+        </button>
+        {% if request.GET.status %}
+        <a href="{% url 'manage:notifications_list' %}" 
+           class="px-6 py-2 rounded-lg font-semibold border"
+           style="border-color: var(--border); color: var(--text);">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Notifications Table -->
+<div class="bg-white rounded-lg shadow border overflow-hidden" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead style="background: var(--background_light);">
+                <tr>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Title</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Scheduled</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Channels</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Status</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                <tr class="border-t hover:bg-gray-50 transition-colors" style="border-color: var(--border);">
+                    <td class="px-4 py-3">
+                        <p class="text-sm font-semibold" style="color: var(--text);">{{ notification.title }}</p>
+                        {% if notification.devotion %}
+                        <p class="text-xs" style="color: var(--text_secondary);">Devotion: {{ notification.devotion.title }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm" style="color: var(--text_secondary);">
+                        {{ notification.scheduled_date|date:"M d, Y" }}<br>
+                        <span class="text-xs">{{ notification.scheduled_time|time:"g:i A" }}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-col gap-1">
+                            {% if notification.send_to_email %}
+                            <span class="text-xs px-2 py-0.5 rounded inline-block" style="background: #3b82f6; color: white;">Email</span>
+                            {% endif %}
+                            {% if notification.send_to_whatsapp %}
+                            <span class="text-xs px-2 py-0.5 rounded inline-block" style="background: #10b981; color: white;">WhatsApp</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if notification.is_paused %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #f59e0b; color: white;">Paused</span>
+                        {% elif notification.status == 'scheduled' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #3b82f6; color: white;">Scheduled</span>
+                        {% elif notification.status == 'sent' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #10b981; color: white;">Sent</span>
+                        {% elif notification.status == 'cancelled' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #ef4444; color: white;">Cancelled</span>
+                        {% endif %}
+                        {% if notification.sent_at %}
+                        <p class="text-xs mt-1" style="color: var(--text_secondary);">
+                            Sent: {{ notification.sent_at|date:"M d, Y g:i A" }}
+                        </p>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-2">
+                            <a href="{% url 'manage:notifications_detail' notification.pk %}" 
+                               class="text-xs px-2 py-1 rounded border transition-colors"
+                               style="border-color: var(--primary); color: var(--primary);"
+                               onmouseover="this.style.background='var(--primary)'; this.style.color='white'"
+                               onmouseout="this.style.background='transparent'; this.style.color='var(--primary)'">
+                                View
+                            </a>
+                            {% if notification.is_paused and notification.status == 'paused' %}
+                            <form method="post" action="{% url 'manage:notifications_resume' notification.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="text-xs px-2 py-1 rounded border transition-colors"
+                                        style="border-color: #10b981; color: #10b981;"
+                                        onmouseover="this.style.background='#10b981'; this.style.color='white'"
+                                        onmouseout="this.style.background='transparent'; this.style.color='#10b981'">
+                                    Resume
+                                </button>
+                            </form>
+                            {% elif not notification.is_paused and notification.status == 'scheduled' %}
+                            <form method="post" action="{% url 'manage:notifications_pause' notification.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="text-xs px-2 py-1 rounded border transition-colors"
+                                        style="border-color: #f59e0b; color: #f59e0b;"
+                                        onmouseover="this.style.background='#f59e0b'; this.style.color='white'"
+                                        onmouseout="this.style.background='transparent'; this.style.color='#f59e0b'">
+                                    Pause
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-sm" style="color: var(--text_secondary);">
+                        No notifications scheduled yet.
+                        <a href="{% url 'manage:notifications_create' %}" class="text-primary ml-2">Create one →</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="px-4 py-3 border-t flex justify-between items-center" style="border-color: var(--border);">
+        <div class="text-sm" style="color: var(--text_secondary);">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </div>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+               class="px-3 py-1 rounded border text-sm"
+               style="border-color: var(--border); color: var(--text);">
+                Previous
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+               class="px-3 py-1 rounded border text-sm"
+               style="border-color: var(--border); color: var(--text);">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -18,13 +18,17 @@ The subscription system allows users to subscribe to receive daily devotions via
 - Active/inactive status tracking
 - Admin interface for managing subscribers
 
-### Automated Email Sending
-- Daily command to send today's devotion to all active email subscribers
+### Automated Notification Sending
+- **Automated daily sending** - Set up once, runs automatically forever
+- Sends to both **email** and **WhatsApp** subscribers based on their preference
 - Only sends to subscribers who opted in for daily devotions
-- Includes full devotion content in email
-- Link to read devotion online
+- Email subscribers receive full devotion content
+- WhatsApp subscribers receive concise SMS with link
+- Includes link to read full devotion online
 
-## Setting Up Automated Daily Emails
+## Setting Up Automated Daily Notifications
+
+**IMPORTANT**: You only need to set this up **ONCE**. After setup, the system runs **automatically every day** - you don't need to do anything manually!
 
 ### Step 1: Configure Email Settings
 
@@ -42,7 +46,19 @@ DEFAULT_FROM_EMAIL=noreply@upliftyourmorning.com
 
 **Important**: For Gmail, you must use an App Password, not your regular password. See the main deployment guide for instructions.
 
-### Step 2: Set Up SITE_URL (Optional)
+### Step 2: Configure SMS/WhatsApp Settings (Optional)
+
+If you have WhatsApp subscribers, add FastR API settings to your `.env` file:
+
+```bash
+FASTR_API_KEY=your-secret-key-here
+FASTR_API_BASE_URL=https://prompt.pywe.org/api/client
+FASTR_SENDER_ID=COME CENTRE
+```
+
+**Note**: This is the same API used for counseling booking SMS notifications.
+
+### Step 3: Set Up SITE_URL (Optional)
 
 Add to your `.env` file for proper links in emails:
 
@@ -52,30 +68,110 @@ SITE_URL=https://upliftyourmorning.com
 
 If not set, it defaults to `https://upliftyourmorning.com`.
 
-### Step 3: Set Up Cron Job (Production)
+### Step 4: Set Up Automated Scheduled Task (ONE-TIME SETUP)
 
-On your production server (PythonAnywhere), set up a scheduled task to run daily:
+**This is the key step!** You'll set up a scheduled task that runs automatically. The command checks for:
+1. **Scheduled notifications** that are due to be sent (at their specific scheduled time)
+2. **Daily devotions** to send to all subscribers
 
-1. Go to PythonAnywhere Dashboard
-2. Click "Tasks" tab
-3. Create a new scheduled task:
-   - **Command**: `cd ~/uplift-your-morning && source venv/bin/activate && python manage.py send_daily_devotions`
-   - **Schedule**: Daily at 5:00 AM (or your preferred time, before devotion time)
-   - **Enabled**: Yes
+**IMPORTANT**: For scheduled notifications to work at any time, the command needs to run **frequently** (every hour or every 15 minutes), not just once per day. This way, when you schedule a notification for 2:00 PM, it will be sent at 2:00 PM.
 
-**Note**: Make sure the time is set before your devotion time so subscribers receive it in the morning.
+#### On PythonAnywhere (Production Server):
 
-### Step 4: Test the Command
+**Option 1: Run Every Hour (Recommended for Scheduled Notifications)**
 
-Before setting up the cron job, test the command manually:
+1. Log into your PythonAnywhere account
+2. Go to the **"Tasks"** tab in the dashboard
+3. Click **"Create a new scheduled task"**
+4. Fill in the details:
+   - **Command**: 
+     ```bash
+     cd ~/your-project-folder && source venv/bin/activate && python manage.py send_daily_devotions
+     ```
+     (Replace `your-project-folder` with your actual project folder name)
+   - **Schedule**: 
+     - **Frequency**: Hourly
+     - **Time**: Every hour (e.g., :00 minutes past each hour)
+   - **Enabled**: ✅ Yes
+5. Click **"Create"**
+
+**Option 2: Run Every 15 Minutes (Best for Precise Timing)**
+
+If you want notifications to be sent more precisely (within 15 minutes of scheduled time):
+
+1. Create **4 scheduled tasks** (one for each 15-minute interval):
+   - Task 1: Every hour at :00 (e.g., 5:00, 6:00, 7:00...)
+   - Task 2: Every hour at :15 (e.g., 5:15, 6:15, 7:15...)
+   - Task 3: Every hour at :30 (e.g., 5:30, 6:30, 7:30...)
+   - Task 4: Every hour at :45 (e.g., 5:45, 6:45, 7:45...)
+
+**Option 3: Run Once Daily (For Basic Daily Devotions Only)**
+
+If you only want to send daily devotions at a fixed time (not using scheduled notifications):
+
+1. Create a scheduled task:
+   - **Frequency**: Daily
+   - **Time**: 5:00 AM (or your preferred time)
+   - This will send daily devotions but won't check for scheduled notifications at other times
+
+#### On Other Servers (Linux/VPS):
+
+**For Hourly Checks (Recommended):**
+
+1. Open your crontab:
+   ```bash
+   crontab -e
+   ```
+
+2. Add this line (runs every hour at minute 0):
+   ```bash
+   0 * * * * cd /path/to/your/project && source venv/bin/activate && python manage.py send_daily_devotions
+   ```
+
+**For Every 15 Minutes (Best Precision):**
+
+Add these 4 lines:
+```bash
+0,15,30,45 * * * * cd /path/to/your/project && source venv/bin/activate && python manage.py send_daily_devotions
+```
+
+**For Once Daily (Basic Setup):**
+
+Add this line (runs daily at 5:00 AM):
+```bash
+0 5 * * * cd /path/to/your/project && source venv/bin/activate && python manage.py send_daily_devotions
+```
+
+## How Scheduled Notifications Work
+
+When you schedule a notification for a specific date and time (e.g., "December 25, 2024 at 2:00 PM"):
+
+1. **The notification is stored** in the database with status "Scheduled"
+2. **The command runs** (every hour or every 15 minutes, depending on your setup)
+3. **The command checks** if any scheduled notifications are due (current time >= scheduled time)
+4. **If due and not paused**, the notification is sent to all selected recipients
+5. **Status updates** to "Sent" and statistics are recorded
+
+**Example Timeline:**
+- You schedule a notification for **Dec 25, 2024 at 2:00 PM**
+- Command runs at **2:00 PM** (or within 15 minutes if checking every 15 min)
+- System checks: "Is current time (2:00 PM) >= scheduled time (2:00 PM)? Yes!"
+- Notification is sent immediately
+- Status changes to "Sent"
+
+### Step 5: Test the Command (Before Setting Up Automation)
+
+Before setting up the scheduled task, test the command manually to make sure everything works:
 
 ```bash
-# Test run (dry-run, doesn't actually send emails)
+# Test run (dry-run, doesn't actually send emails/SMS)
 python manage.py send_daily_devotions --dry-run
 
-# Actual test (sends to real subscribers)
+# Actual test (sends to real subscribers - use carefully!)
 python manage.py send_daily_devotions
 ```
+
+**After testing, set up the scheduled task (Step 4) so it runs automatically.**
 
 ## Command Options
 
@@ -104,15 +200,22 @@ python manage.py send_daily_devotions
 
 ## How It Works
 
-1. **Command Execution**: Runs daily via cron job
+1. **Automatic Execution**: The scheduled task runs automatically every day at the time you set (e.g., 5:00 AM)
 2. **Devotion Lookup**: Finds today's published devotion (by `publish_date`)
-3. **Subscriber Filtering**: Gets all active email subscribers who opted in for daily devotions
-4. **Email Sending**: Sends personalized email to each subscriber with:
+3. **Subscriber Filtering**: Gets all active subscribers who opted in for daily devotions:
+   - **Email subscribers** (`channel='email'`) → Receive email
+   - **WhatsApp subscribers** (`channel='whatsapp'`) → Receive SMS/WhatsApp
+4. **Notification Sending**: 
+   - **Email subscribers**: Receive full devotion content via email
+   - **WhatsApp subscribers**: Receive concise SMS/WhatsApp message with link
+5. **Content Includes**:
    - Today's devotion title and content
    - Scripture reference and passage
    - Reflection, prayer, and action points
    - Link to read full devotion online
    - Unsubscribe link
+
+**You don't need to do anything - it runs automatically every day!**
 
 ## Email Content
 

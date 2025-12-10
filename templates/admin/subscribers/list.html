@@ -1,0 +1,212 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">Subscribers</h1>
+    <p class="text-base" style="color: var(--text_secondary);">Manage email and WhatsApp subscribers</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Total Subscribers</p>
+        <p class="text-2xl font-bold" style="color: var(--text);">{{ total }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Active</p>
+        <p class="text-2xl font-bold" style="color: #10b981;">{{ active_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Email</p>
+        <p class="text-2xl font-bold" style="color: #3b82f6;">{{ email_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">WhatsApp</p>
+        <p class="text-2xl font-bold" style="color: #10b981;">{{ whatsapp_count }}</p>
+    </div>
+</div>
+
+<!-- Additional Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Daily Devotion Subscribers</p>
+        <p class="text-2xl font-bold" style="color: var(--primary);">{{ daily_devotion_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Special Programs Subscribers</p>
+        <p class="text-2xl font-bold" style="color: var(--primary);">{{ special_programs_count }}</p>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="bg-white rounded-lg shadow p-4 mb-6 border" style="border-color: var(--border);">
+    <form method="get" class="flex flex-col sm:flex-row gap-4">
+        <input type="text" 
+               name="search" 
+               value="{{ request.GET.search }}" 
+               placeholder="Search by email or phone..."
+               class="flex-1 px-4 py-2 border rounded-lg"
+               style="border-color: var(--border);">
+        <select name="channel" class="px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+            <option value="">All Channels</option>
+            <option value="email" {% if request.GET.channel == 'email' %}selected{% endif %}>Email</option>
+            <option value="whatsapp" {% if request.GET.channel == 'whatsapp' %}selected{% endif %}>WhatsApp</option>
+        </select>
+        <select name="status" class="px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+            <option value="">All Statuses</option>
+            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+        <select name="preference" class="px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+            <option value="">All Preferences</option>
+            <option value="daily" {% if request.GET.preference == 'daily' %}selected{% endif %}>Daily Devotion</option>
+            <option value="special" {% if request.GET.preference == 'special' %}selected{% endif %}>Special Programs</option>
+        </select>
+        <button type="submit" 
+                class="px-6 py-2 rounded-lg font-semibold text-white"
+                style="background: var(--primary);">
+            Filter
+        </button>
+        {% if request.GET.search or request.GET.channel or request.GET.status or request.GET.preference %}
+        <a href="{% url 'manage:subscribers_list' %}" 
+           class="px-6 py-2 rounded-lg font-semibold border"
+           style="border-color: var(--border); color: var(--text);">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Subscribers Table -->
+<div class="bg-white rounded-lg shadow border overflow-hidden" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead style="background: var(--background_light);">
+                <tr>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Contact</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Channel</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Preferences</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Status</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Subscribed</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subscriber in subscribers %}
+                <tr class="border-t hover:bg-gray-50 transition-colors" style="border-color: var(--border);">
+                    <td class="px-4 py-3">
+                        <p class="text-sm font-semibold" style="color: var(--text);">
+                            {% if subscriber.channel == 'email' %}
+                                {{ subscriber.email|default:"No email" }}
+                            {% else %}
+                                {{ subscriber.phone|default:"No phone" }}
+                            {% endif %}
+                        </p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                              style="background: {% if subscriber.channel == 'email' %}#3b82f6{% else %}#10b981{% endif %}; color: white;">
+                            {{ subscriber.get_channel_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-col gap-1">
+                            {% if subscriber.receive_daily_devotion %}
+                            <span class="text-xs px-2 py-0.5 rounded inline-block" style="background: var(--background_tint); color: var(--primary);">Daily Devotion</span>
+                            {% endif %}
+                            {% if subscriber.receive_special_programs %}
+                            <span class="text-xs px-2 py-0.5 rounded inline-block" style="background: var(--background_tint); color: var(--primary);">Special Programs</span>
+                            {% endif %}
+                            {% if not subscriber.receive_daily_devotion and not subscriber.receive_special_programs %}
+                            <span class="text-xs" style="color: var(--text_secondary);">No preferences</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if subscriber.is_active %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #10b981; color: white;">Active</span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: #ef4444; color: white;">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm" style="color: var(--text_secondary);">
+                        {{ subscriber.created_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-2">
+                            {% if subscriber.is_active %}
+                            <form method="post" action="{% url 'manage:subscribers_deactivate' subscriber.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="text-xs px-2 py-1 rounded border transition-colors"
+                                        style="border-color: #ef4444; color: #ef4444;"
+                                        onmouseover="this.style.background='#ef4444'; this.style.color='white'"
+                                        onmouseout="this.style.background='transparent'; this.style.color='#ef4444'"
+                                        onclick="return confirm('Deactivate this subscriber?')">
+                                    Deactivate
+                                </button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'manage:subscribers_activate' subscriber.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="text-xs px-2 py-1 rounded border transition-colors"
+                                        style="border-color: #10b981; color: #10b981;"
+                                        onmouseover="this.style.background='#10b981'; this.style.color='white'"
+                                        onmouseout="this.style.background='transparent'; this.style.color='#10b981'">
+                                    Activate
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'manage:subscribers_delete' subscriber.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="text-xs px-2 py-1 rounded border transition-colors"
+                                        style="border-color: #ef4444; color: #ef4444;"
+                                        onmouseover="this.style.background='#ef4444'; this.style.color='white'"
+                                        onmouseout="this.style.background='transparent'; this.style.color='#ef4444'"
+                                        onclick="return confirm('Delete this subscriber? This action cannot be undone.')">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-sm" style="color: var(--text_secondary);">
+                        No subscribers found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="px-4 py-3 border-t flex justify-between items-center" style="border-color: var(--border);">
+        <div class="text-sm" style="color: var(--text_secondary);">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </div>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.channel %}&channel={{ request.GET.channel }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.preference %}&preference={{ request.GET.preference }}{% endif %}" 
+               class="px-3 py-1 rounded border text-sm"
+               style="border-color: var(--border); color: var(--text);">
+                Previous
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.channel %}&channel={{ request.GET.channel }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.preference %}&preference={{ request.GET.preference }}{% endif %}" 
+               class="px-3 py-1 rounded border text-sm"
+               style="border-color: var(--border); color: var(--text);">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -227,6 +227,8 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         daily_devotion_subscribers = Subscriber.objects.filter(is_active=True, receive_daily_devotion=True).count()
         special_programs_subscribers = Subscriber.objects.filter(is_active=True, receive_special_programs=True).count()
         recent_subscribers = Subscriber.objects.order_by('-created_at')[:5]
+        # Get all subscribers for the list (limit to 50 most recent for performance)
+        all_subscribers = Subscriber.objects.order_by('-created_at')[:50]
 
         # Analytics - Page Views (optimized queries)
         # Handle case where PageView table doesn't exist yet (migrations not run)
@@ -300,6 +302,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context['recent_donations'] = Donation.objects.all().order_by('-created_at')
         context['recent_counseling'] = CounselingBooking.objects.order_by('-created_at')[:5]
         context['recent_subscribers'] = recent_subscribers
+        context['all_subscribers'] = all_subscribers
 
         context['stats'] = {
             'devotions': {

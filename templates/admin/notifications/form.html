@@ -1,0 +1,203 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">Schedule Notification</h1>
+    <p class="text-sm mt-1" style="color: var(--text_secondary);">Create a new notification to send to subscribers</p>
+</div>
+
+<style>
+    .form-input {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        background: white;
+        color: var(--text);
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(7, 89, 68, 0.1);
+    }
+    .form-select {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        background: white;
+        color: var(--text);
+        cursor: pointer;
+    }
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(7, 89, 68, 0.1);
+    }
+    .form-textarea {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        background: white;
+        color: var(--text);
+        min-height: 100px;
+        resize: vertical;
+    }
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(7, 89, 68, 0.1);
+    }
+    .form-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: 0.25rem;
+        cursor: pointer;
+        accent-color: var(--primary);
+    }
+</style>
+
+<form method="post" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    {% csrf_token %}
+    
+    <div class="space-y-6">
+        <div>
+            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Title/Subject *</label>
+            <input type="text" 
+                   name="{{ form.title.name }}" 
+                   id="{{ form.title.id_for_label }}" 
+                   value="{{ form.title.value|default:'' }}"
+                   class="form-input"
+                   placeholder="e.g., Daily Devotion - Uplift Your Morning"
+                   required>
+            {% if form.title.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.title.errors.0 }}</p>
+            {% endif %}
+            <p class="text-xs mt-1" style="color: var(--text_secondary);">This will be the subject line for emails</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="{{ form.scheduled_date.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Scheduled Date *</label>
+                <input type="date" 
+                       name="{{ form.scheduled_date.name }}" 
+                       id="{{ form.scheduled_date.id_for_label }}" 
+                       value="{{ form.scheduled_date.value|default:'' }}"
+                       class="form-input"
+                       required>
+                {% if form.scheduled_date.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.scheduled_date.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.scheduled_time.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Scheduled Time *</label>
+                <input type="time" 
+                       name="{{ form.scheduled_time.name }}" 
+                       id="{{ form.scheduled_time.id_for_label }}" 
+                       value="{{ form.scheduled_time.value|default:'' }}"
+                       class="form-input"
+                       required>
+                {% if form.scheduled_time.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.scheduled_time.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <label for="{{ form.devotion.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Devotion (Optional)</label>
+            <select name="{{ form.devotion.name }}" 
+                    id="{{ form.devotion.id_for_label }}" 
+                    class="form-select">
+                <option value="">-- Use today's devotion (auto) --</option>
+                {% for choice in form.devotion.field.queryset %}
+                <option value="{{ choice.pk }}" {% if form.devotion.value == choice.pk %}selected{% endif %}>
+                    {{ choice.title }} ({{ choice.publish_date|date:"M d, Y" }})
+                </option>
+                {% endfor %}
+            </select>
+            {% if form.devotion.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.devotion.errors.0 }}</p>
+            {% endif %}
+            <p class="text-xs mt-1" style="color: var(--text_secondary);">
+                If not selected, the system will use today's published devotion. If today's devotion is not found, a placeholder message will be sent.
+            </p>
+        </div>
+
+        <div>
+            <label for="{{ form.custom_message.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Custom Message (Optional)</label>
+            <textarea name="{{ form.custom_message.name }}" 
+                      id="{{ form.custom_message.id_for_label }}" 
+                      class="form-textarea"
+                      placeholder="Add any additional message to include with the devotion...">{{ form.custom_message.value|default:'' }}</textarea>
+            {% if form.custom_message.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.custom_message.errors.0 }}</p>
+            {% endif %}
+            <p class="text-xs mt-1" style="color: var(--text_secondary);">This will be added to the devotion content (if a devotion is selected)</p>
+        </div>
+
+        <div class="border-t pt-4" style="border-color: var(--border);">
+            <h3 class="text-sm font-semibold mb-4" style="color: var(--text);">Recipients</h3>
+            <div class="space-y-4 p-4 rounded-lg" style="background: var(--background_light);">
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="{{ form.send_to_email.name }}" 
+                           id="{{ form.send_to_email.id_for_label }}" 
+                           class="form-checkbox"
+                           {% if form.send_to_email.value %}checked{% endif %}>
+                    <label for="{{ form.send_to_email.id_for_label }}" class="ml-3 text-sm cursor-pointer" style="color: var(--text);">Send to Email Subscribers</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="{{ form.send_to_whatsapp.name }}" 
+                           id="{{ form.send_to_whatsapp.id_for_label }}" 
+                           class="form-checkbox"
+                           {% if form.send_to_whatsapp.value %}checked{% endif %}>
+                    <label for="{{ form.send_to_whatsapp.id_for_label }}" class="ml-3 text-sm cursor-pointer" style="color: var(--text);">Send to WhatsApp Subscribers</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="{{ form.only_daily_devotion_subscribers.name }}" 
+                           id="{{ form.only_daily_devotion_subscribers.id_for_label }}" 
+                           class="form-checkbox"
+                           {% if form.only_daily_devotion_subscribers.value %}checked{% endif %}>
+                    <label for="{{ form.only_daily_devotion_subscribers.id_for_label }}" class="ml-3 text-sm cursor-pointer" style="color: var(--text);">Only send to subscribers who opted in for daily devotions</label>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Internal Notes (Optional)</label>
+            <textarea name="{{ form.notes.name }}" 
+                      id="{{ form.notes.id_for_label }}" 
+                      class="form-textarea"
+                      placeholder="Add any internal notes about this notification...">{{ form.notes.value|default:'' }}</textarea>
+            {% if form.notes.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.notes.errors.0 }}</p>
+            {% endif %}
+            <p class="text-xs mt-1" style="color: var(--text_secondary);">These notes are only visible to admins</p>
+        </div>
+    </div>
+
+    <div class="flex gap-4 mt-8 pt-6 border-t" style="border-color: var(--border);">
+        <button type="submit" 
+                class="px-6 py-2 rounded-lg font-semibold text-white transition-all hover:shadow-lg"
+                style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%);">
+            Schedule Notification
+        </button>
+        <a href="{% url 'manage:notifications_list' %}" 
+           class="px-6 py-2 rounded-lg font-semibold border"
+           style="border-color: var(--border); color: var(--text);">
+            Cancel
+        </a>
+    </div>
+</form>
+{% endblock %}
+
