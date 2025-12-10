@@ -74,6 +74,20 @@ class SubscribeAPIView(generics.CreateAPIView):
             # Normalize phone number (remove spaces and common separators)
             phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
             
+            # Validate that phone number includes country code (must start with +)
+            if not phone.startswith('+'):
+                return Response(
+                    {'error': 'Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Validate minimum length (country code + at least 7 digits)
+            if len(phone) < 8:  # +1 (country code) + 7 digits minimum
+                return Response(
+                    {'error': 'Please enter a valid phone number with country code.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             # Check if already subscribed (active)
             existing_subscriber = Subscriber.objects.filter(
                 phone=phone,

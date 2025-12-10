@@ -84,6 +84,16 @@ class SubscribeView(TemplateView):
             # Normalize phone number (remove spaces and common separators)
             phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
             
+            # Validate that phone number includes country code (must start with +)
+            if not phone.startswith('+'):
+                messages.error(request, 'Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).')
+                return redirect('subscriptions:subscribe')
+            
+            # Validate minimum length (country code + at least 7 digits)
+            if len(phone) < 8:  # +1 (country code) + 7 digits minimum
+                messages.error(request, 'Please enter a valid phone number with country code.')
+                return redirect('subscriptions:subscribe')
+            
             # Check if already subscribed (active)
             existing_subscriber = Subscriber.objects.filter(
                 phone=phone,

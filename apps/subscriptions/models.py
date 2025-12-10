@@ -44,8 +44,14 @@ class Subscriber(TimeStampedModel):
         if self.channel == self.CHANNEL_WHATSAPP:
             if not self.phone:
                 raise ValidationError({'phone': 'Phone number is required for WhatsApp subscriptions.'})
-            # Normalize phone number (remove spaces and common separators)
+            # Normalize phone number (remove spaces and common separators, but keep +)
             self.phone = self.phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '').strip()
+            # Validate that phone number includes country code (must start with +)
+            if not self.phone.startswith('+'):
+                raise ValidationError({'phone': 'Phone number must include country code starting with + (e.g., +233 for Ghana, +1 for USA).'})
+            # Validate minimum length (country code + at least 7 digits)
+            if len(self.phone) < 8:  # +1 (country code) + 7 digits minimum
+                raise ValidationError({'phone': 'Please enter a valid phone number with country code.'})
 
     def save(self, *args, **kwargs):
         """

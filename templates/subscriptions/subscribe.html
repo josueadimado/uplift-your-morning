@@ -42,9 +42,12 @@
             <div>
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
                 <input type="tel" name="phone" id="phone" required 
-                       placeholder="+1234567890" 
+                       placeholder="+233123456789" 
+                       pattern="^\+[1-9]\d{1,14}$"
                        class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">Include country code (e.g., +233 for Ghana)</p>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                    <strong>Required:</strong> Include country code starting with + (e.g., +233 for Ghana, +1 for USA, +44 for UK)
+                </p>
             </div>
             <div class="flex items-center">
                 <input type="checkbox" name="receive_daily_devotion" id="daily_whatsapp" checked 
@@ -68,5 +71,70 @@
         </a>
     </div>
 </div>
+
+<script>
+// Validate WhatsApp phone number before form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const whatsappForm = document.querySelector('form[action*="subscribe"]');
+    const phoneInput = document.getElementById('phone');
+    
+    if (phoneInput && whatsappForm) {
+        // Find the WhatsApp form (the one with phone input)
+        const forms = document.querySelectorAll('form');
+        let whatsappFormElement = null;
+        forms.forEach(form => {
+            const hiddenInput = form.querySelector('input[name="channel"][value="whatsapp"]');
+            if (hiddenInput) {
+                whatsappFormElement = form;
+            }
+        });
+        
+        if (whatsappFormElement) {
+            whatsappFormElement.addEventListener('submit', function(e) {
+                const phone = phoneInput.value.trim();
+                
+                // Check if phone starts with +
+                if (!phone.startsWith('+')) {
+                    e.preventDefault();
+                    alert('Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).');
+                    phoneInput.focus();
+                    return false;
+                }
+                
+                // Check minimum length
+                if (phone.length < 8) {
+                    e.preventDefault();
+                    alert('Please enter a valid phone number with country code.');
+                    phoneInput.focus();
+                    return false;
+                }
+            });
+            
+            // Real-time validation feedback
+            phoneInput.addEventListener('input', function() {
+                const phone = this.value.trim();
+                const helpText = this.parentElement.querySelector('p');
+                
+                if (phone && !phone.startsWith('+')) {
+                    if (helpText) {
+                        helpText.style.color = '#dc2626'; // red
+                        helpText.textContent = '⚠️ Phone number must start with + (country code required)';
+                    }
+                } else if (phone && phone.length < 8) {
+                    if (helpText) {
+                        helpText.style.color = '#dc2626'; // red
+                        helpText.textContent = '⚠️ Please enter a complete phone number with country code';
+                    }
+                } else if (phone) {
+                    if (helpText) {
+                        helpText.style.color = '#6b7280'; // gray
+                        helpText.innerHTML = '<strong>Required:</strong> Include country code starting with + (e.g., +233 for Ghana, +1 for USA, +44 for UK)';
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
 {% endblock %}
 
