@@ -29,41 +29,87 @@ class SubscribeAPIView(generics.CreateAPIView):
         receive_special = data.get('receive_special_programs', True)
 
         if channel == Subscriber.CHANNEL_EMAIL:
-            subscriber, created = Subscriber.objects.get_or_create(
+            # Normalize email (lowercase)
+            email = email.lower()
+            
+            # Check if already subscribed (active)
+            existing_subscriber = Subscriber.objects.filter(
                 email=email,
                 channel=Subscriber.CHANNEL_EMAIL,
-                defaults={
-                    'receive_daily_devotion': receive_daily,
-                    'receive_special_programs': receive_special,
-                    'is_active': True
-                }
-            )
-            if not created:
-                subscriber.is_active = True
-                subscriber.receive_daily_devotion = receive_daily
-                subscriber.receive_special_programs = receive_special
-                subscriber.save()
-                message = 'Subscription preferences updated.'
+                is_active=True
+            ).first()
+            
+            if existing_subscriber:
+                return Response(
+                    {'error': 'This email address is already subscribed. If you want to update your preferences, please contact us or unsubscribe first.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if exists but inactive (reactivate)
+            inactive_subscriber = Subscriber.objects.filter(
+                email=email,
+                channel=Subscriber.CHANNEL_EMAIL,
+                is_active=False
+            ).first()
+            
+            if inactive_subscriber:
+                # Reactivate and update preferences
+                inactive_subscriber.is_active = True
+                inactive_subscriber.receive_daily_devotion = receive_daily
+                inactive_subscriber.receive_special_programs = receive_special
+                inactive_subscriber.save()
+                message = 'Your subscription has been reactivated! You will receive daily devotions via email.'
             else:
+                # Create new subscriber
+                Subscriber.objects.create(
+                    email=email,
+                    channel=Subscriber.CHANNEL_EMAIL,
+                    receive_daily_devotion=receive_daily,
+                    receive_special_programs=receive_special,
+                    is_active=True
+                )
                 message = 'Successfully subscribed via email!'
         
         elif channel == Subscriber.CHANNEL_WHATSAPP:
-            subscriber, created = Subscriber.objects.get_or_create(
+            # Normalize phone number (remove spaces and common separators)
+            phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+            
+            # Check if already subscribed (active)
+            existing_subscriber = Subscriber.objects.filter(
                 phone=phone,
                 channel=Subscriber.CHANNEL_WHATSAPP,
-                defaults={
-                    'receive_daily_devotion': receive_daily,
-                    'receive_special_programs': receive_special,
-                    'is_active': True
-                }
-            )
-            if not created:
-                subscriber.is_active = True
-                subscriber.receive_daily_devotion = receive_daily
-                subscriber.receive_special_programs = receive_special
-                subscriber.save()
-                message = 'Subscription preferences updated.'
+                is_active=True
+            ).first()
+            
+            if existing_subscriber:
+                return Response(
+                    {'error': 'This phone number is already subscribed. If you want to update your preferences, please contact us or unsubscribe first.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if exists but inactive (reactivate)
+            inactive_subscriber = Subscriber.objects.filter(
+                phone=phone,
+                channel=Subscriber.CHANNEL_WHATSAPP,
+                is_active=False
+            ).first()
+            
+            if inactive_subscriber:
+                # Reactivate and update preferences
+                inactive_subscriber.is_active = True
+                inactive_subscriber.receive_daily_devotion = receive_daily
+                inactive_subscriber.receive_special_programs = receive_special
+                inactive_subscriber.save()
+                message = 'Your subscription has been reactivated! You will receive daily devotions via WhatsApp.'
             else:
+                # Create new subscriber
+                Subscriber.objects.create(
+                    phone=phone,
+                    channel=Subscriber.CHANNEL_WHATSAPP,
+                    receive_daily_devotion=receive_daily,
+                    receive_special_programs=receive_special,
+                    is_active=True
+                )
                 message = 'Successfully subscribed via WhatsApp!'
 
         return Response({'message': message}, status=status.HTTP_201_CREATED)

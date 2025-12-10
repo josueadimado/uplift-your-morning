@@ -4,6 +4,8 @@ Views for email and WhatsApp subscriptions.
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.generic import TemplateView
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from .models import Subscriber
 
 
@@ -28,25 +30,50 @@ class SubscribeView(TemplateView):
                 messages.error(request, 'Please provide your email address.')
                 return redirect('subscriptions:subscribe')
             
-            # Check if already subscribed
-            subscriber, created = Subscriber.objects.get_or_create(
+            # Validate email format
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, 'Please enter a valid email address.')
+                return redirect('subscriptions:subscribe')
+            
+            # Normalize email (lowercase)
+            email = email.lower()
+            
+            # Check if already subscribed (active)
+            existing_subscriber = Subscriber.objects.filter(
                 email=email,
                 channel=Subscriber.CHANNEL_EMAIL,
-                defaults={
-                    'receive_daily_devotion': receive_daily,
-                    'receive_special_programs': receive_special,
-                    'is_active': True
-                }
-            )
+                is_active=True
+            ).first()
             
-            if not created:
-                # Update existing subscriber
-                subscriber.is_active = True
-                subscriber.receive_daily_devotion = receive_daily
-                subscriber.receive_special_programs = receive_special
-                subscriber.save()
-                messages.info(request, 'Your subscription preferences have been updated.')
+            if existing_subscriber:
+                messages.warning(request, 'This email address is already subscribed. If you want to update your preferences, please contact us or unsubscribe first.')
+                return redirect('subscriptions:subscribe')
+            
+            # Check if exists but inactive (reactivate)
+            inactive_subscriber = Subscriber.objects.filter(
+                email=email,
+                channel=Subscriber.CHANNEL_EMAIL,
+                is_active=False
+            ).first()
+            
+            if inactive_subscriber:
+                # Reactivate and update preferences
+                inactive_subscriber.is_active = True
+                inactive_subscriber.receive_daily_devotion = receive_daily
+                inactive_subscriber.receive_special_programs = receive_special
+                inactive_subscriber.save()
+                messages.success(request, 'Your subscription has been reactivated! You will receive daily devotions via email.')
             else:
+                # Create new subscriber
+                Subscriber.objects.create(
+                    email=email,
+                    channel=Subscriber.CHANNEL_EMAIL,
+                    receive_daily_devotion=receive_daily,
+                    receive_special_programs=receive_special,
+                    is_active=True
+                )
                 messages.success(request, 'Thank you for subscribing! You will receive daily devotions via email.')
 
         elif channel == Subscriber.CHANNEL_WHATSAPP:
@@ -54,25 +81,43 @@ class SubscribeView(TemplateView):
                 messages.error(request, 'Please provide your phone number.')
                 return redirect('subscriptions:subscribe')
             
-            # Check if already subscribed
-            subscriber, created = Subscriber.objects.get_or_create(
+            # Normalize phone number (remove spaces and common separators)
+            phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+            
+            # Check if already subscribed (active)
+            existing_subscriber = Subscriber.objects.filter(
                 phone=phone,
                 channel=Subscriber.CHANNEL_WHATSAPP,
-                defaults={
-                    'receive_daily_devotion': receive_daily,
-                    'receive_special_programs': receive_special,
-                    'is_active': True
-                }
-            )
+                is_active=True
+            ).first()
             
-            if not created:
-                # Update existing subscriber
-                subscriber.is_active = True
-                subscriber.receive_daily_devotion = receive_daily
-                subscriber.receive_special_programs = receive_special
-                subscriber.save()
-                messages.info(request, 'Your subscription preferences have been updated.')
+            if existing_subscriber:
+                messages.warning(request, 'This phone number is already subscribed. If you want to update your preferences, please contact us or unsubscribe first.')
+                return redirect('subscriptions:subscribe')
+            
+            # Check if exists but inactive (reactivate)
+            inactive_subscriber = Subscriber.objects.filter(
+                phone=phone,
+                channel=Subscriber.CHANNEL_WHATSAPP,
+                is_active=False
+            ).first()
+            
+            if inactive_subscriber:
+                # Reactivate and update preferences
+                inactive_subscriber.is_active = True
+                inactive_subscriber.receive_daily_devotion = receive_daily
+                inactive_subscriber.receive_special_programs = receive_special
+                inactive_subscriber.save()
+                messages.success(request, 'Your subscription has been reactivated! You will receive daily devotions via WhatsApp.')
             else:
+                # Create new subscriber
+                Subscriber.objects.create(
+                    phone=phone,
+                    channel=Subscriber.CHANNEL_WHATSAPP,
+                    receive_daily_devotion=receive_daily,
+                    receive_special_programs=receive_special,
+                    is_active=True
+                )
                 messages.success(request, 'Thank you for subscribing! You will receive daily devotions via WhatsApp.')
 
         return redirect('subscriptions:subscribe')

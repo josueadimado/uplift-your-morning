@@ -29,6 +29,31 @@ class Subscriber(TimeStampedModel):
     class Meta:
         unique_together = ("email", "phone", "channel")
 
+    def clean(self):
+        """
+        Normalize email and phone before saving.
+        """
+        from django.core.exceptions import ValidationError
+        
+        if self.channel == self.CHANNEL_EMAIL:
+            if not self.email:
+                raise ValidationError({'email': 'Email is required for email subscriptions.'})
+            # Normalize email (lowercase)
+            self.email = self.email.lower().strip()
+        
+        if self.channel == self.CHANNEL_WHATSAPP:
+            if not self.phone:
+                raise ValidationError({'phone': 'Phone number is required for WhatsApp subscriptions.'})
+            # Normalize phone number (remove spaces and common separators)
+            self.phone = self.phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '').strip()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to run clean() and normalize data.
+        """
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         if self.channel == self.CHANNEL_EMAIL:
             return self.email or "Email subscriber"
