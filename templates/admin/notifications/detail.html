@@ -9,7 +9,18 @@
                 Scheduled for {{ notification.scheduled_date|date:"F d, Y" }} at {{ notification.scheduled_time|time:"g:i A" }}
             </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
+            {% if notification.status != 'sent' %}
+            <form method="post" action="{% url 'manage:notifications_send_now' notification.pk %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        onclick="return confirm('Are you sure you want to send this notification now? This will send it immediately to all selected recipients.');"
+                        class="px-6 py-2 rounded-lg font-semibold text-white transition-all shadow-lg hover:shadow-xl"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    ✉️ Send Now
+                </button>
+            </form>
+            {% endif %}
             {% if notification.is_paused and notification.status == 'paused' %}
             <form method="post" action="{% url 'manage:notifications_resume' notification.pk %}">
                 {% csrf_token %}

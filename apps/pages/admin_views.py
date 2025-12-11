@@ -1222,6 +1222,135 @@ class NotificationResumeView(StaffRequiredMixin, View):
         return redirect('manage:notifications_detail', pk=pk)
 
 
+class NotificationSendNowView(StaffRequiredMixin, View):
+    """Manually send a notification immediately."""
+    def post(self, request, pk):
+        notification = get_object_or_404(ScheduledNotification, pk=pk)
+        
+        # Check if already sent
+        if notification.status == ScheduledNotification.STATUS_SENT:
+            messages.warning(request, f'Notification "{notification.title}" has already been sent.')
+            return redirect('manage:notifications_detail', pk=pk)
+        
+        # Use the same logic as the command
+        from apps.subscriptions.management.commands.send_daily_devotions import Command as DevotionCommand
+        command = DevotionCommand()
+        
+        # Get the devotion to use (use today's date for manual sends, or scheduled date)
+        from datetime import date
+        from apps.devotions.models import Devotion
+        
+        devotion = notification.devotion
+        if not devotion:
+            # For manual sends, try today's devotion first, then scheduled date
+            devotion = Devotion.objects.filter(
+                is_published=True,
+                publish_date=date.today()
+            ).first()
+            
+            if not devotion:
+                # Fall back to scheduled date
+                devotion = Devotion.objects.filter(
+                    is_published=True,
+                    publish_date=notification.scheduled_date
+                ).first()
+        
+        # Check if devotion exists
+        if not devotion:
+            messages.error(
+                request, 
+                f'No published devotion found for today or scheduled date ({notification.scheduled_date}). '
+                'Please publish a devotion first or link a specific devotion to this notification.'
+            )
+            return redirect('manage:notifications_detail', pk=pk)
+        
+        # Build messages
+        email_subject = f'{notification.title} - {devotion.title}' if devotion else notification.title
+        email_message = command._build_devotion_email(devotion)
+        if notification.custom_message:
+            email_message += f"\n\n{notification.custom_message}"
+        
+        sms_message = command._build_devotion_sms(devotion)
+        if notification.custom_message:
+            sms_message += f"\n\n{notification.custom_message[:100]}..."
+        
+        # Get recipients
+        from apps.subscriptions.models import Subscriber
+        email_subscribers = []
+        whatsapp_subscribers = []
+        
+        if notification.send_to_email:
+            email_qs = Subscriber.objects.filter(
+                channel=Subscriber.CHANNEL_EMAIL,
+                is_active=True,
+                email__isnull=False
+            ).exclude(email='')
+            if notification.only_daily_devotion_subscribers:
+                email_qs = email_qs.filter(receive_daily_devotion=True)
+            email_subscribers = list(email_qs)
+        
+        if notification.send_to_whatsapp:
+            whatsapp_qs = Subscriber.objects.filter(
+                channel=Subscriber.CHANNEL_WHATSAPP,
+                is_active=True,
+                phone__isnull=False
+            ).exclude(phone='')
+            if notification.only_daily_devotion_subscribers:
+                whatsapp_qs = whatsapp_qs.filter(receive_daily_devotion=True)
+            whatsapp_subscribers = list(whatsapp_qs)
+        
+        if not email_subscribers and not whatsapp_subscribers:
+            messages.warning(request, 'No active subscribers found for the selected channels and filters.')
+            return redirect('manage:notifications_detail', pk=pk)
+        
+        # Send emails
+        email_sent = 0
+        email_failed = 0
+        if email_subscribers:
+            from django.core.mail import send_mail
+            for subscriber in email_subscribers:
+                try:
+                    send_mail(
+                        email_subject,
+                        email_message,
+                        settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@upliftyourmorning.com',
+                        [subscriber.email],
+                        fail_silently=False,
+                    )
+                    email_sent += 1
+                except Exception as e:
+                    email_failed += 1
+                    messages.error(request, f'Failed to send email to {subscriber.email}: {str(e)}')
+        
+        # Send SMS
+        sms_sent = 0
+        sms_failed = 0
+        if whatsapp_subscribers:
+            for subscriber in whatsapp_subscribers:
+                try:
+                    command._send_sms(subscriber.phone, sms_message)
+                    sms_sent += 1
+                except Exception as e:
+                    sms_failed += 1
+                    messages.error(request, f'Failed to send SMS to {subscriber.phone}: {str(e)}')
+        
+        # Update notification
+        notification.email_sent_count = email_sent
+        notification.email_failed_count = email_failed
+        notification.sms_sent_count = sms_sent
+        notification.sms_failed_count = sms_failed
+        notification.mark_as_sent()
+        notification.notes = (notification.notes or '') + f'\n[Manually sent on {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}]'
+        notification.save()
+        
+        messages.success(
+            request, 
+            f'Notification sent! Email: {email_sent} sent, {email_failed} failed. '
+            f'SMS: {sms_sent} sent, {sms_failed} failed.'
+        )
+        return redirect('manage:notifications_detail', pk=pk)
+
+
 class NotificationDeleteView(StaffRequiredMixin, DeleteView):
     """Delete a scheduled notification."""
     model = ScheduledNotification

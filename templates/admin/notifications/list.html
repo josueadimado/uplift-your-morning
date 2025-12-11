@@ -116,7 +116,7 @@
                         {% endif %}
                     </td>
                     <td class="px-4 py-3">
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-wrap">
                             <a href="{% url 'manage:notifications_detail' notification.pk %}" 
                                class="text-xs px-2 py-1 rounded border transition-colors"
                                style="border-color: var(--primary); color: var(--primary);"
@@ -124,6 +124,19 @@
                                onmouseout="this.style.background='transparent'; this.style.color='var(--primary)'">
                                 View
                             </a>
+                            {% if notification.status != 'sent' %}
+                            <form method="post" action="{% url 'manage:notifications_send_now' notification.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        onclick="return confirm('Are you sure you want to send this notification now?');"
+                                        class="text-xs px-2 py-1 rounded border transition-colors font-semibold"
+                                        style="border-color: #10b981; color: #10b981; background: #f0fdf4;"
+                                        onmouseover="this.style.background='#10b981'; this.style.color='white'"
+                                        onmouseout="this.style.background='#f0fdf4'; this.style.color='#10b981'">
+                                    ✉️ Send Now
+                                </button>
+                            </form>
+                            {% endif %}
                             {% if notification.is_paused and notification.status == 'paused' %}
                             <form method="post" action="{% url 'manage:notifications_resume' notification.pk %}" class="inline">
                                 {% csrf_token %}
