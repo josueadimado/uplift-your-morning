@@ -151,11 +151,12 @@ Uplift Your Morning Team
 
 def send_booking_approval_sms(booking):
     """Send SMS notification using FastR API (prompt.pywe.org)."""
-    api_key = config('FASTR_API_KEY', default='')
+    secret_key = config('FASTR_API_KEY', default='')
+    public_key = config('FASTR_API_PUBLIC_KEY', default='DJbhctlognNbQuEhPMTB9A')
     api_base_url = config('FASTR_API_BASE_URL', default='https://prompt.pywe.org/api/client')
     sender_id = config('FASTR_SENDER_ID', default='COME CENTRE')
     
-    if not api_key:
+    if not secret_key:
         # SMS not configured, skip silently
         if settings.DEBUG:
             print(f"SMS not configured. Would send SMS to {booking.phone}")
@@ -184,9 +185,9 @@ def send_booking_approval_sms(booking):
             'Content-Type': 'application/json',
         }
         
-        # Try API key in header first (Bearer token)
-        if api_key:
-            headers['Authorization'] = f'Bearer {api_key}'
+        # Method 1: Try Bearer token with secret key
+        if secret_key:
+            headers['Authorization'] = f'Bearer {secret_key}'
         
         data = {
             'to': phone,
@@ -194,17 +195,38 @@ def send_booking_approval_sms(booking):
             'sender_id': sender_id,
         }
         
-        # Also try including API key in data if Bearer doesn't work
-        alt_data = {
+        # Method 2: Try with secret key in body
+        alt_data_1 = {
             'to': phone,
             'message': message_body,
             'sender_id': sender_id,
-            'api_key': api_key,
+            'api_key': secret_key,
+        }
+        
+        # Method 3: Try with both public and secret keys
+        alt_data_2 = {
+            'to': phone,
+            'message': message_body,
+            'sender_id': sender_id,
+            'public_key': public_key,
+            'secret_key': secret_key,
+        }
+        
+        # Method 4: Try with public key in header, secret in body
+        alt_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {public_key}',
+        }
+        alt_data_3 = {
+            'to': phone,
+            'message': message_body,
+            'sender_id': sender_id,
+            'secret_key': secret_key,
         }
         
         # Send SMS via FastR API
         try:
-            # First try with Bearer token
+            # Method 1: Try with Bearer token (secret key)
             response = requests.post(
                 f'{api_base_url}/sms/send',
                 json=data,
@@ -212,13 +234,32 @@ def send_booking_approval_sms(booking):
                 timeout=30
             )
             
-            # If 401, try with API key in body
+            # Method 2: If 401, try with secret key in body
             if response.status_code == 401:
                 headers_no_auth = {'Content-Type': 'application/json'}
                 response = requests.post(
                     f'{api_base_url}/sms/send',
-                    json=alt_data,
+                    json=alt_data_1,
                     headers=headers_no_auth,
+                    timeout=30
+                )
+            
+            # Method 3: If still 401, try with both public and secret keys
+            if response.status_code == 401:
+                headers_no_auth = {'Content-Type': 'application/json'}
+                response = requests.post(
+                    f'{api_base_url}/sms/send',
+                    json=alt_data_2,
+                    headers=headers_no_auth,
+                    timeout=30
+                )
+            
+            # Method 4: If still 401, try public key in header, secret in body
+            if response.status_code == 401:
+                response = requests.post(
+                    f'{api_base_url}/sms/send',
+                    json=alt_data_3,
+                    headers=alt_headers,
                     timeout=30
                 )
             
@@ -238,7 +279,19 @@ def send_booking_approval_sms(booking):
                     # Response might not be JSON, but status code is OK
                     return True
             elif response.status_code == 401:
-                raise Exception("Authentication failed. Please check your FASTR_API_KEY in .env file. Make sure you're using the SECRET key, not the public key.")
+                error_detail = ""
+                try:
+                    error_data = response.json() if response.content else {}
+                    error_detail = error_data.get('message') or error_data.get('error', '')
+                except:
+                    pass
+                raise Exception(
+                    f"Authentication failed (HTTP 401). "
+                    f"Please verify your FASTR_API_KEY in .env file. "
+                    f"Make sure you're using the SECRET key (9fzban1DkdoJUbOfOrzvD-H-7BUc6QP96uf0gYSKUn8), "
+                    f"not the public key (DJbhctlognNbQuEhPMTB9A). "
+                    f"{'API message: ' + error_detail if error_detail else ''}"
+                )
             elif response.status_code == 403:
                 raise Exception("Access forbidden. Please verify your API key has proper permissions")
             else:

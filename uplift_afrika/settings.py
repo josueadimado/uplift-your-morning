@@ -223,7 +223,8 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@upliftyourmorning.com')
 
 # FastR SMS API configuration (for counseling booking notifications)
-FASTR_API_KEY = config('FASTR_API_KEY', default='')
+FASTR_API_KEY = config('FASTR_API_KEY', default='')  # Secret key
+FASTR_API_PUBLIC_KEY = config('FASTR_API_PUBLIC_KEY', default='DJbhctlognNbQuEhPMTB9A')  # Public key
 FASTR_API_BASE_URL = config('FASTR_API_BASE_URL', default='https://prompt.pywe.org/api/client')
 FASTR_SENDER_ID = config('FASTR_SENDER_ID', default='COME CENTRE')
 

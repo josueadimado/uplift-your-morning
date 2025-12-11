@@ -272,11 +272,12 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
     
     def _send_sms(self, phone, message):
         """Send SMS via FastR API."""
-        api_key = config('FASTR_API_KEY', default='')
+        secret_key = config('FASTR_API_KEY', default='')
+        public_key = config('FASTR_API_PUBLIC_KEY', default='DJbhctlognNbQuEhPMTB9A')
         api_base_url = config('FASTR_API_BASE_URL', default='https://prompt.pywe.org/api/client')
         sender_id = config('FASTR_SENDER_ID', default='COME CENTRE')
         
-        if not api_key:
+        if not secret_key:
             # SMS not configured, skip silently
             if settings.DEBUG:
                 self.stdout.write(self.style.WARNING(f'SMS not configured. Would send SMS to {phone}'))
@@ -293,9 +294,9 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             'Content-Type': 'application/json',
         }
         
-        # Try API key in header first (Bearer token)
-        if api_key:
-            headers['Authorization'] = f'Bearer {api_key}'
+        # Method 1: Try Bearer token with secret key
+        if secret_key:
+            headers['Authorization'] = f'Bearer {secret_key}'
         
         data = {
             'to': phone,
@@ -303,17 +304,38 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             'sender_id': sender_id,
         }
         
-        # Also try including API key in data if Bearer doesn't work
-        alt_data = {
+        # Method 2: Try with API key in body (secret key)
+        alt_data_1 = {
             'to': phone,
             'message': message,
             'sender_id': sender_id,
-            'api_key': api_key,
+            'api_key': secret_key,
+        }
+        
+        # Method 3: Try with both public and secret keys
+        alt_data_2 = {
+            'to': phone,
+            'message': message,
+            'sender_id': sender_id,
+            'public_key': public_key,
+            'secret_key': secret_key,
+        }
+        
+        # Method 4: Try with public key in header, secret in body
+        alt_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {public_key}',
+        }
+        alt_data_3 = {
+            'to': phone,
+            'message': message,
+            'sender_id': sender_id,
+            'secret_key': secret_key,
         }
         
         # Send SMS via FastR API
         try:
-            # First try with Bearer token
+            # Method 1: Try with Bearer token (secret key)
             response = requests.post(
                 f'{api_base_url}/sms/send',
                 json=data,
@@ -321,13 +343,32 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                 timeout=30
             )
             
-            # If 401, try with API key in body
+            # Method 2: If 401, try with secret key in body
             if response.status_code == 401:
                 headers_no_auth = {'Content-Type': 'application/json'}
                 response = requests.post(
                     f'{api_base_url}/sms/send',
-                    json=alt_data,
+                    json=alt_data_1,
                     headers=headers_no_auth,
+                    timeout=30
+                )
+            
+            # Method 3: If still 401, try with both public and secret keys
+            if response.status_code == 401:
+                headers_no_auth = {'Content-Type': 'application/json'}
+                response = requests.post(
+                    f'{api_base_url}/sms/send',
+                    json=alt_data_2,
+                    headers=headers_no_auth,
+                    timeout=30
+                )
+            
+            # Method 4: If still 401, try public key in header, secret in body
+            if response.status_code == 401:
+                response = requests.post(
+                    f'{api_base_url}/sms/send',
+                    json=alt_data_3,
+                    headers=alt_headers,
                     timeout=30
                 )
             
