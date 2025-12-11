@@ -71,6 +71,12 @@
                     <p class="text-lg font-bold" style="color: #3b82f6;">{{ email_recipient_count }}</p>
                 </div>
                 {% endif %}
+                {% if notification.send_to_sms %}
+                <div>
+                    <p class="text-xs" style="color: var(--text_secondary);">SMS</p>
+                    <p class="text-lg font-bold" style="color: #f57c00;">{{ sms_recipient_count|default:0 }}</p>
+                </div>
+                {% endif %}
                 {% if notification.send_to_whatsapp %}
                 <div>
                     <p class="text-xs" style="color: var(--text_secondary);">WhatsApp</p>
@@ -271,13 +277,13 @@
     {% if notification.send_to_whatsapp %}
     <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold" style="color: var(--text);">WhatsApp/SMS Preview</h3>
+            <h3 class="text-lg font-semibold" style="color: var(--text);">WhatsApp Preview</h3>
             <span class="px-2 py-1 text-xs font-semibold rounded" style="background: #10b981; color: white;">
                 {{ whatsapp_recipient_count }} recipients
             </span>
         </div>
         
-        <!-- SMS Preview (Styled like a phone with WhatsApp) -->
+        <!-- WhatsApp Preview (Styled like a phone with WhatsApp - full email content) -->
         <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
             <!-- Phone Header -->
             <div class="bg-gray-800 px-4 py-3 flex items-center">
@@ -294,6 +300,46 @@
                 <div class="mb-4 flex justify-start">
                     <div class="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
                         <div class="text-sm whitespace-pre-wrap" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
+{{ whatsapp_preview }}
+                        </div>
+                        <p class="text-xs mt-2" style="color: #9ca3af;">{{ notification.scheduled_time|time:"g:i A" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-xs mt-3 text-center" style="color: var(--text_secondary);">
+            💬 This is exactly how the full devotion email content will appear on subscribers' WhatsApp
+        </p>
+    </div>
+    {% endif %}
+    
+    {% if notification.send_to_sms %}
+    <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold" style="color: var(--text);">SMS Preview</h3>
+            <span class="px-2 py-1 text-xs font-semibold rounded" style="background: #f57c00; color: white;">
+                {{ sms_recipient_count }} recipients
+            </span>
+        </div>
+        
+        <!-- SMS Preview (Short message) -->
+        <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
+            <!-- Phone Header -->
+            <div class="bg-gray-800 px-4 py-3 flex items-center">
+                <div class="w-8 h-8 rounded-full bg-gray-600 mr-3"></div>
+                <div>
+                    <p class="text-sm font-semibold text-white">Uplift Your Morning</p>
+                    <p class="text-xs text-gray-300">SMS</p>
+                </div>
+            </div>
+            
+            <!-- Message Area -->
+            <div class="p-4 max-h-96 overflow-y-auto" style="background: #f3f4f6; min-height: 200px;">
+                <!-- Sample incoming message -->
+                <div class="mb-4 flex justify-start">
+                    <div class="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
+                        <div class="text-sm whitespace-pre-wrap" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
 {{ sms_preview }}
                         </div>
                         <p class="text-xs mt-2" style="color: #9ca3af;">{{ notification.scheduled_time|time:"g:i A" }}</p>
@@ -303,7 +349,7 @@
         </div>
         
         <p class="text-xs mt-3 text-center" style="color: var(--text_secondary);">
-            💬 This is exactly how the message will appear on subscribers' phones
+            📱 This is exactly how the short SMS message will appear on subscribers' phones
         </p>
     </div>
     {% endif %}
@@ -342,14 +388,44 @@
             </div>
         </div>
         
-        <!-- Sample SMS -->
+        <!-- Sample WhatsApp -->
         <div>
-            <h4 class="text-sm font-semibold mb-3" style="color: var(--text);">Sample WhatsApp/SMS:</h4>
+            <h4 class="text-sm font-semibold mb-3" style="color: var(--text);">Sample WhatsApp (Full Content):</h4>
             <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
                 <div class="bg-gray-800 px-4 py-2">
                     <p class="text-xs text-white font-semibold">Uplift Your Morning</p>
                 </div>
-                <div class="p-4" style="background: #ece5dd; min-height: 200px;">
+                <div class="p-4 max-h-96 overflow-y-auto" style="background: #ece5dd; min-height: 300px;">
+                    <div class="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
+                        <div class="text-xs" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
+                            <p class="font-semibold mb-2">Good Morning!</p>
+                            <p class="mb-4">Here's today's daily devotion from Uplift Your Morning:</p>
+                            <div class="border-l-4 pl-3 mb-4" style="border-color: var(--primary);">
+                                <p class="font-semibold mb-2">Trusting in God's Plan</p>
+                                <p class="mb-2"><strong>Scripture:</strong> Jeremiah 29:11</p>
+                                <p class="mb-2">"For I know the plans I have for you," declares the Lord...</p>
+                                <p class="mb-2">God has a perfect plan for your life. Trust in His timing and His ways...</p>
+                                <p class="mb-2"><strong>Reflection:</strong> Take a moment to reflect...</p>
+                                <p class="mb-2"><strong>Prayer:</strong> Lord, help me trust in Your perfect plan...</p>
+                                <p class="mb-2"><strong>Action Point:</strong> Write down one area where you need to trust God more.</p>
+                            </div>
+                            <p class="mb-2">Read the full devotion online: https://upliftyourmorning.com/devotions/123/</p>
+                            <p class="text-xs mt-2">Have a blessed day!<br>Uplift Your Morning</p>
+                        </div>
+                        <p class="text-xs mt-2" style="color: #9ca3af;">5:00 AM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sample SMS -->
+        <div>
+            <h4 class="text-sm font-semibold mb-3" style="color: var(--text);">Sample SMS (Short):</h4>
+            <div class="border rounded-lg overflow-hidden shadow-sm" style="border-color: #e5e7eb;">
+                <div class="bg-gray-800 px-4 py-2">
+                    <p class="text-xs text-white font-semibold">Uplift Your Morning</p>
+                </div>
+                <div class="p-4" style="background: #f3f4f6; min-height: 200px;">
                     <div class="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
                         <div class="text-xs" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
                             <p class="font-semibold mb-1">Daily Devotion: Trusting in God's Plan</p>

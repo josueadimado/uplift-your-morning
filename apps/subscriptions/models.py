@@ -9,13 +9,15 @@ from apps.devotions.models import Devotion
 
 class Subscriber(TimeStampedModel):
     """
-    Stores subscribers who want to receive daily devotions via email or WhatsApp.
+    Stores subscribers who want to receive daily devotions via email, SMS, or WhatsApp.
     """
     CHANNEL_EMAIL = "email"
+    CHANNEL_SMS = "sms"
     CHANNEL_WHATSAPP = "whatsapp"
 
     CHANNEL_CHOICES = [
         (CHANNEL_EMAIL, "Email"),
+        (CHANNEL_SMS, "SMS"),
         (CHANNEL_WHATSAPP, "WhatsApp"),
     ]
 
@@ -41,9 +43,10 @@ class Subscriber(TimeStampedModel):
             # Normalize email (lowercase)
             self.email = self.email.lower().strip()
         
-        if self.channel == self.CHANNEL_WHATSAPP:
+        if self.channel in [self.CHANNEL_SMS, self.CHANNEL_WHATSAPP]:
             if not self.phone:
-                raise ValidationError({'phone': 'Phone number is required for WhatsApp subscriptions.'})
+                channel_name = "SMS" if self.channel == self.CHANNEL_SMS else "WhatsApp"
+                raise ValidationError({'phone': f'Phone number is required for {channel_name} subscriptions.'})
             # Normalize phone number (remove spaces and common separators, but keep +)
             self.phone = self.phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '').strip()
             # Validate that phone number includes country code (must start with +)
@@ -63,7 +66,10 @@ class Subscriber(TimeStampedModel):
     def __str__(self):
         if self.channel == self.CHANNEL_EMAIL:
             return self.email or "Email subscriber"
-        return self.phone or "WhatsApp subscriber"
+        elif self.channel == self.CHANNEL_SMS:
+            return self.phone or "SMS subscriber"
+        else:  # CHANNEL_WHATSAPP
+            return self.phone or "WhatsApp subscriber"
 
 
 class ScheduledNotification(TimeStampedModel):
@@ -108,6 +114,7 @@ class ScheduledNotification(TimeStampedModel):
     
     # Recipients
     send_to_email = models.BooleanField(default=True, help_text="Send to email subscribers")
+    send_to_sms = models.BooleanField(default=True, help_text="Send to SMS subscribers")
     send_to_whatsapp = models.BooleanField(default=True, help_text="Send to WhatsApp subscribers")
     only_daily_devotion_subscribers = models.BooleanField(
         default=True,
@@ -117,8 +124,10 @@ class ScheduledNotification(TimeStampedModel):
     # Statistics (populated after sending)
     email_sent_count = models.IntegerField(default=0, help_text="Number of emails sent")
     email_failed_count = models.IntegerField(default=0, help_text="Number of emails that failed")
-    sms_sent_count = models.IntegerField(default=0, help_text="Number of SMS/WhatsApp sent")
-    sms_failed_count = models.IntegerField(default=0, help_text="Number of SMS/WhatsApp that failed")
+    sms_sent_count = models.IntegerField(default=0, help_text="Number of SMS sent")
+    sms_failed_count = models.IntegerField(default=0, help_text="Number of SMS that failed")
+    whatsapp_sent_count = models.IntegerField(default=0, help_text="Number of WhatsApp messages sent")
+    whatsapp_failed_count = models.IntegerField(default=0, help_text="Number of WhatsApp messages that failed")
     
     # Notes
     notes = models.TextField(blank=True, help_text="Internal notes about this notification")

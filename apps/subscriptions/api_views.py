@@ -70,6 +70,62 @@ class SubscribeAPIView(generics.CreateAPIView):
                 )
                 message = 'Successfully subscribed via email!'
         
+        elif channel == Subscriber.CHANNEL_SMS:
+            # Normalize phone number (remove spaces and common separators)
+            phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+            
+            # Validate that phone number includes country code (must start with +)
+            if not phone.startswith('+'):
+                return Response(
+                    {'error': 'Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Validate minimum length (country code + at least 7 digits)
+            if len(phone) < 8:  # +1 (country code) + 7 digits minimum
+                return Response(
+                    {'error': 'Please enter a valid phone number with country code.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if already subscribed (active)
+            existing_subscriber = Subscriber.objects.filter(
+                phone=phone,
+                channel=Subscriber.CHANNEL_SMS,
+                is_active=True
+            ).first()
+            
+            if existing_subscriber:
+                return Response(
+                    {'error': 'This phone number is already subscribed. If you want to update your preferences, please contact us or unsubscribe first.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if exists but inactive (reactivate)
+            inactive_subscriber = Subscriber.objects.filter(
+                phone=phone,
+                channel=Subscriber.CHANNEL_SMS,
+                is_active=False
+            ).first()
+            
+            if inactive_subscriber:
+                # Reactivate and update preferences
+                inactive_subscriber.is_active = True
+                inactive_subscriber.receive_daily_devotion = receive_daily
+                inactive_subscriber.receive_special_programs = receive_special
+                inactive_subscriber.save()
+                message = 'Your subscription has been reactivated! You will receive daily devotions via SMS.'
+            else:
+                # Create new subscriber
+                Subscriber.objects.create(
+                    phone=phone,
+                    channel=Subscriber.CHANNEL_SMS,
+                    receive_daily_devotion=receive_daily,
+                    receive_special_programs=receive_special,
+                    is_active=True
+                )
+                message = 'Successfully subscribed via SMS!'
+        
         elif channel == Subscriber.CHANNEL_WHATSAPP:
             # Normalize phone number (remove spaces and common separators)
             phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
@@ -162,14 +218,15 @@ class UnsubscribeAPIView(generics.CreateAPIView):
                              status=status.HTTP_404_NOT_FOUND)
         
         elif phone:
+            # Try to find subscriber by phone (could be SMS or WhatsApp)
             subscriber = Subscriber.objects.filter(
-                phone=phone,
-                channel=Subscriber.CHANNEL_WHATSAPP
+                phone=phone
             ).first()
             if subscriber:
                 subscriber.is_active = False
                 subscriber.save()
-                return Response({'message': 'Successfully unsubscribed from WhatsApp notifications.'}, 
+                channel_name = "SMS" if subscriber.channel == Subscriber.CHANNEL_SMS else "WhatsApp"
+                return Response({'message': f'Successfully unsubscribed from {channel_name} notifications.'}, 
                              status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Phone number not found.'}, 

@@ -156,6 +156,14 @@
                 </div>
                 <div class="flex items-center">
                     <input type="checkbox" 
+                           name="{{ form.send_to_sms.name }}" 
+                           id="{{ form.send_to_sms.id_for_label }}" 
+                           class="form-checkbox"
+                           {% if form.send_to_sms.value %}checked{% endif %}>
+                    <label for="{{ form.send_to_sms.id_for_label }}" class="ml-3 text-sm cursor-pointer" style="color: var(--text);">Send to SMS Subscribers (short messages via FastR API)</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" 
                            name="{{ form.send_to_whatsapp.name }}" 
                            id="{{ form.send_to_whatsapp.id_for_label }}" 
                            class="form-checkbox"

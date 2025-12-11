@@ -76,6 +76,60 @@ class SubscribeView(TemplateView):
                 )
                 messages.success(request, 'Thank you for subscribing! You will receive daily devotions via email.')
 
+        elif channel == Subscriber.CHANNEL_SMS:
+            if not phone:
+                messages.error(request, 'Please provide your phone number.')
+                return redirect('subscriptions:subscribe')
+            
+            # Normalize phone number (remove spaces and common separators)
+            phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+            
+            # Validate that phone number includes country code (must start with +)
+            if not phone.startswith('+'):
+                messages.error(request, 'Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).')
+                return redirect('subscriptions:subscribe')
+            
+            # Validate minimum length (country code + at least 7 digits)
+            if len(phone) < 8:  # +1 (country code) + 7 digits minimum
+                messages.error(request, 'Please enter a valid phone number with country code.')
+                return redirect('subscriptions:subscribe')
+            
+            # Check if already subscribed (active)
+            existing_subscriber = Subscriber.objects.filter(
+                phone=phone,
+                channel=Subscriber.CHANNEL_SMS,
+                is_active=True
+            ).first()
+            
+            if existing_subscriber:
+                messages.warning(request, 'This phone number is already subscribed. If you want to update your preferences, please contact us or unsubscribe first.')
+                return redirect('subscriptions:subscribe')
+            
+            # Check if exists but inactive (reactivate)
+            inactive_subscriber = Subscriber.objects.filter(
+                phone=phone,
+                channel=Subscriber.CHANNEL_SMS,
+                is_active=False
+            ).first()
+            
+            if inactive_subscriber:
+                # Reactivate and update preferences
+                inactive_subscriber.is_active = True
+                inactive_subscriber.receive_daily_devotion = receive_daily
+                inactive_subscriber.receive_special_programs = receive_special
+                inactive_subscriber.save()
+                messages.success(request, 'Your subscription has been reactivated! You will receive daily devotions via SMS.')
+            else:
+                # Create new subscriber
+                Subscriber.objects.create(
+                    phone=phone,
+                    channel=Subscriber.CHANNEL_SMS,
+                    receive_daily_devotion=receive_daily,
+                    receive_special_programs=receive_special,
+                    is_active=True
+                )
+                messages.success(request, 'Thank you for subscribing! You will receive daily devotions via SMS.')
+
         elif channel == Subscriber.CHANNEL_WHATSAPP:
             if not phone:
                 messages.error(request, 'Please provide your phone number.')
@@ -154,14 +208,15 @@ def unsubscribe(request):
                 messages.error(request, 'Email address not found in our subscription list.')
         
         elif phone:
+            # Try to find subscriber by phone (could be SMS or WhatsApp)
             subscriber = Subscriber.objects.filter(
-                phone=phone,
-                channel=Subscriber.CHANNEL_WHATSAPP
+                phone=phone
             ).first()
             if subscriber:
                 subscriber.is_active = False
                 subscriber.save()
-                messages.success(request, 'You have been unsubscribed from WhatsApp notifications.')
+                channel_name = "SMS" if subscriber.channel == Subscriber.CHANNEL_SMS else "WhatsApp"
+                messages.success(request, f'You have been unsubscribed from {channel_name} notifications.')
             else:
                 messages.error(request, 'Phone number not found in our subscription list.')
         else:

@@ -173,105 +173,46 @@ def send_booking_approval_sms(booking):
             f"Uplift Your Morning"
         )
         
-        # Format phone number (ensure it starts with +, but do not assume a specific country)
+        # Format phone number (Ghana format: 233XXXXXXXXX - no + sign, just digits)
         phone = booking.phone.strip()
-        if not phone.startswith('+'):
-            # If user omitted the +, just add it in front of the digits they provided
-            phone = '+' + phone.lstrip(' +0')
+        # Remove + sign and any spaces/dashes
+        phone = phone.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
         
         # Prepare request to FastR API
-        # Try different authentication methods based on API requirements
+        # According to actual API documentation: Both keys go in request body
         headers = {
             'Content-Type': 'application/json',
         }
         
-        # Method 1: Try Bearer token with secret key
-        if secret_key:
-            headers['Authorization'] = f'Bearer {secret_key}'
-        
+        # Request body according to FastR API documentation
         data = {
-            'to': phone,
+            'api_key_public': public_key,
+            'api_key_secret': secret_key,
             'message': message_body,
+            'recipients': [phone],  # Array of phone numbers
             'sender_id': sender_id,
-        }
-        
-        # Method 2: Try with secret key in body
-        alt_data_1 = {
-            'to': phone,
-            'message': message_body,
-            'sender_id': sender_id,
-            'api_key': secret_key,
-        }
-        
-        # Method 3: Try with both public and secret keys
-        alt_data_2 = {
-            'to': phone,
-            'message': message_body,
-            'sender_id': sender_id,
-            'public_key': public_key,
-            'secret_key': secret_key,
-        }
-        
-        # Method 4: Try with public key in header, secret in body
-        alt_headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {public_key}',
-        }
-        alt_data_3 = {
-            'to': phone,
-            'message': message_body,
-            'sender_id': sender_id,
-            'secret_key': secret_key,
+            'scheduled': False,
+            'time_scheduled': None,
         }
         
         # Send SMS via FastR API
         try:
-            # Method 1: Try with Bearer token (secret key)
             response = requests.post(
-                f'{api_base_url}/sms/send',
+                f'{api_base_url}/sms/send-sms',
                 json=data,
                 headers=headers,
                 timeout=30
             )
             
-            # Method 2: If 401, try with secret key in body
-            if response.status_code == 401:
-                headers_no_auth = {'Content-Type': 'application/json'}
-                response = requests.post(
-                    f'{api_base_url}/sms/send',
-                    json=alt_data_1,
-                    headers=headers_no_auth,
-                    timeout=30
-                )
-            
-            # Method 3: If still 401, try with both public and secret keys
-            if response.status_code == 401:
-                headers_no_auth = {'Content-Type': 'application/json'}
-                response = requests.post(
-                    f'{api_base_url}/sms/send',
-                    json=alt_data_2,
-                    headers=headers_no_auth,
-                    timeout=30
-                )
-            
-            # Method 4: If still 401, try public key in header, secret in body
-            if response.status_code == 401:
-                response = requests.post(
-                    f'{api_base_url}/sms/send',
-                    json=alt_data_3,
-                    headers=alt_headers,
-                    timeout=30
-                )
-            
-            # Check response
-            if response.status_code in [200, 201]:
+            # Check response according to FastR API documentation
+            if response.status_code == 201:  # FastR returns 201 Created for successful sends
                 try:
                     response_data = response.json()
-                    if response_data.get('status') == 'success' or response_data.get('success'):
-                        sms_id = response_data.get('data', {}).get('sms_id')
+                    if response_data.get('status') == 'sent':
+                        message_id = response_data.get('id')
                         if settings.DEBUG:
-                            print(f"SMS sent successfully. SMS ID: {sms_id}")
-                        return sms_id
+                            print(f"SMS sent successfully. Message ID: {message_id}")
+                        return message_id
                     else:
                         error_msg = response_data.get('message') or response_data.get('error', 'Unknown error')
                         raise Exception(f"API returned error: {error_msg}")

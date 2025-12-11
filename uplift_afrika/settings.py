@@ -165,15 +165,11 @@ else:
     ]
 
 # WhiteNoise configuration for efficient static file serving
-# Use CompressedStaticFilesStorage for development (no manifest required)
-# For production, run collectstatic and use CompressedManifestStaticFilesStorage
-# Disable compression in development for faster startup
-if DEBUG:
-    # Don't use compressed storage in development - it's slower on startup
-    # STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-    pass
-else:
+# Disable in development for faster startup - only enable in production after collectstatic
+if not DEBUG:
+    # Only use in production after running collectstatic
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# In DEBUG mode, don't set STATICFILES_STORAGE to avoid slow startup
 
 # Media files (user uploads)
 MEDIA_URL = 'media/'
@@ -222,11 +218,16 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@upliftyourmorning.com')
 
-# FastR SMS API configuration (for counseling booking notifications)
+# FastR SMS API configuration (for SMS notifications)
 FASTR_API_KEY = config('FASTR_API_KEY', default='')  # Secret key
 FASTR_API_PUBLIC_KEY = config('FASTR_API_PUBLIC_KEY', default='DJbhctlognNbQuEhPMTB9A')  # Public key
 FASTR_API_BASE_URL = config('FASTR_API_BASE_URL', default='https://prompt.pywe.org/api/client')
 FASTR_SENDER_ID = config('FASTR_SENDER_ID', default='COME CENTRE')
+
+# Twilio WhatsApp API configuration (for WhatsApp notifications)
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')
+TWILIO_WHATSAPP_FROM = config('TWILIO_WHATSAPP_FROM', default='whatsapp:+14155238886')  # Twilio sandbox number or your WhatsApp Business number
 
 # Google Calendar configuration
 GOOGLE_CALENDAR_ENABLED = config('GOOGLE_CALENDAR_ENABLED', default=False, cast=bool)

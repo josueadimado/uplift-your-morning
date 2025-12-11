@@ -94,6 +94,9 @@
                             {% if notification.send_to_email %}
                             <span class="text-xs px-2 py-0.5 rounded inline-block" style="background: #3b82f6; color: white;">Email</span>
                             {% endif %}
+                            {% if notification.send_to_sms %}
+                            <span class="text-xs px-2 py-0.5 rounded inline-block" style="background: #f57c00; color: white;">SMS</span>
+                            {% endif %}
                             {% if notification.send_to_whatsapp %}
                             <span class="text-xs px-2 py-0.5 rounded inline-block" style="background: #10b981; color: white;">WhatsApp</span>
                             {% endif %}

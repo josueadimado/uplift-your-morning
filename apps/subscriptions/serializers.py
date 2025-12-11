@@ -27,6 +27,9 @@ class SubscribeSerializer(serializers.Serializer):
         if channel == Subscriber.CHANNEL_EMAIL and not email:
             raise serializers.ValidationError("Email is required for email subscriptions.")
         
+        if channel == Subscriber.CHANNEL_SMS and not phone:
+            raise serializers.ValidationError("Phone number is required for SMS subscriptions.")
+        
         if channel == Subscriber.CHANNEL_WHATSAPP and not phone:
             raise serializers.ValidationError("Phone number is required for WhatsApp subscriptions.")
         

@@ -1099,6 +1099,7 @@ class NotificationScheduleCreateView(StaffRequiredMixin, CreateView):
             'scheduled_date': today,
             'scheduled_time': default_time,
             'send_to_email': True,
+            'send_to_sms': True,
             'send_to_whatsapp': True,
             'only_daily_devotion_subscribers': True,
         }
@@ -1156,6 +1157,10 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
             sms_preview = command._build_devotion_sms(devotion)
             if notification.custom_message:
                 sms_preview += f"\n\n{notification.custom_message[:100]}..."  # Truncate for SMS
+            # WhatsApp preview uses full email content (same as email)
+            whatsapp_preview = command._build_devotion_email(devotion)
+            if notification.custom_message:
+                whatsapp_preview += f"\n\n{notification.custom_message}"
             has_devotion = True
         else:
             email_subject = notification.title
@@ -1165,17 +1170,23 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
             sms_preview = command._build_no_devotion_sms()
             if notification.custom_message:
                 sms_preview += f"\n\n{notification.custom_message[:100]}..."
+            # WhatsApp preview uses full email content (same as email)
+            whatsapp_preview = command._build_no_devotion_email()
+            if notification.custom_message:
+                whatsapp_preview += f"\n\n{notification.custom_message}"
             has_devotion = False
         
         context['email_subject'] = email_subject
         context['email_preview'] = email_preview
         context['sms_preview'] = sms_preview
+        context['whatsapp_preview'] = whatsapp_preview  # Full email content for WhatsApp
         context['devotion'] = devotion
         context['has_devotion'] = has_devotion
         
         # Get recipient counts
         from apps.subscriptions.models import Subscriber
         email_count = 0
+        sms_count = 0
         whatsapp_count = 0
         
         if notification.send_to_email:
@@ -1188,6 +1199,16 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
                 email_qs = email_qs.filter(receive_daily_devotion=True)
             email_count = email_qs.count()
         
+        if notification.send_to_sms:
+            sms_qs = Subscriber.objects.filter(
+                channel=Subscriber.CHANNEL_SMS,
+                is_active=True,
+                phone__isnull=False
+            ).exclude(phone='')
+            if notification.only_daily_devotion_subscribers:
+                sms_qs = sms_qs.filter(receive_daily_devotion=True)
+            sms_count = sms_qs.count()
+        
         if notification.send_to_whatsapp:
             whatsapp_qs = Subscriber.objects.filter(
                 channel=Subscriber.CHANNEL_WHATSAPP,
@@ -1199,6 +1220,7 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
             whatsapp_count = whatsapp_qs.count()
         
         context['email_recipient_count'] = email_count
+        context['sms_recipient_count'] = sms_count
         context['whatsapp_recipient_count'] = whatsapp_count
         
         return context
@@ -1274,9 +1296,15 @@ class NotificationSendNowView(StaffRequiredMixin, View):
         if notification.custom_message:
             sms_message += f"\n\n{notification.custom_message[:100]}..."
         
+        # WhatsApp gets the full email content (same as email)
+        whatsapp_message = command._build_devotion_email(devotion)
+        if notification.custom_message:
+            whatsapp_message += f"\n\n{notification.custom_message}"
+        
         # Get recipients
         from apps.subscriptions.models import Subscriber
         email_subscribers = []
+        sms_subscribers = []
         whatsapp_subscribers = []
         
         if notification.send_to_email:
@@ -1289,6 +1317,16 @@ class NotificationSendNowView(StaffRequiredMixin, View):
                 email_qs = email_qs.filter(receive_daily_devotion=True)
             email_subscribers = list(email_qs)
         
+        if notification.send_to_sms:
+            sms_qs = Subscriber.objects.filter(
+                channel=Subscriber.CHANNEL_SMS,
+                is_active=True,
+                phone__isnull=False
+            ).exclude(phone='')
+            if notification.only_daily_devotion_subscribers:
+                sms_qs = sms_qs.filter(receive_daily_devotion=True)
+            sms_subscribers = list(sms_qs)
+        
         if notification.send_to_whatsapp:
             whatsapp_qs = Subscriber.objects.filter(
                 channel=Subscriber.CHANNEL_WHATSAPP,
@@ -1299,7 +1337,7 @@ class NotificationSendNowView(StaffRequiredMixin, View):
                 whatsapp_qs = whatsapp_qs.filter(receive_daily_devotion=True)
             whatsapp_subscribers = list(whatsapp_qs)
         
-        if not email_subscribers and not whatsapp_subscribers:
+        if not email_subscribers and not sms_subscribers and not whatsapp_subscribers:
             messages.warning(request, 'No active subscribers found for the selected channels and filters.')
             return redirect('manage:notifications_detail', pk=pk)
         
@@ -1354,24 +1392,41 @@ class NotificationSendNowView(StaffRequiredMixin, View):
                     for email in emails[:3]:  # Limit to 3 to avoid spam
                         messages.error(request, f'❌ {email}: {error_msg}')
         
-        # Send SMS - Fixed: Group errors by error message directly
+        # Send SMS (via FastR API - short messages)
         sms_sent = 0
         sms_failed = 0
         sms_errors = {}
-        if whatsapp_subscribers:
-            for subscriber in whatsapp_subscribers:
+        if sms_subscribers:
+            for subscriber in sms_subscribers:
                 try:
                     command._send_sms(subscriber.phone, sms_message)
                     sms_sent += 1
                 except Exception as e:
                     sms_failed += 1
                     error_msg = str(e)
-                    # Group by error message directly to prevent corruption
                     if error_msg not in sms_errors:
                         sms_errors[error_msg] = []
                     sms_errors[error_msg].append(subscriber.phone)
         
-        # Display SMS errors - Show grouped errors properly
+        # Send WhatsApp (via Twilio API - full email content)
+        whatsapp_sent = 0
+        whatsapp_failed = 0
+        whatsapp_errors = {}
+        if whatsapp_subscribers:
+            from apps.subscriptions.whatsapp import send_whatsapp_message
+            for subscriber in whatsapp_subscribers:
+                try:
+                    # WhatsApp gets the full devotion email content
+                    send_whatsapp_message(subscriber.phone, whatsapp_message)
+                    whatsapp_sent += 1
+                except Exception as e:
+                    whatsapp_failed += 1
+                    error_msg = str(e)
+                    if error_msg not in whatsapp_errors:
+                        whatsapp_errors[error_msg] = []
+                    whatsapp_errors[error_msg].append(subscriber.phone)
+        
+        # Display SMS errors
         if sms_errors:
             for error_msg, phones in sms_errors.items():
                 if len(phones) > 3:
@@ -1380,14 +1435,28 @@ class NotificationSendNowView(StaffRequiredMixin, View):
                         f'❌ SMS Error ({len(phones)} recipients): {error_msg}'
                     )
                 else:
-                    for phone in phones:
-                        messages.error(request, f'❌ {phone}: {error_msg}')
+                    for phone in phones[:3]:  # Limit to 3 to avoid spam
+                        messages.error(request, f'❌ SMS {phone}: {error_msg}')
         
-        # Update notification
+        # Display WhatsApp errors
+        if whatsapp_errors:
+            for error_msg, phones in whatsapp_errors.items():
+                if len(phones) > 3:
+                    messages.error(
+                        request,
+                        f'❌ WhatsApp Error ({len(phones)} recipients): {error_msg}'
+                    )
+                else:
+                    for phone in phones[:3]:  # Limit to 3 to avoid spam
+                        messages.error(request, f'❌ WhatsApp {phone}: {error_msg}')
+        
+        # Update notification statistics
         notification.email_sent_count = email_sent
         notification.email_failed_count = email_failed
         notification.sms_sent_count = sms_sent
         notification.sms_failed_count = sms_failed
+        notification.whatsapp_sent_count = whatsapp_sent
+        notification.whatsapp_failed_count = whatsapp_failed
         notification.mark_as_sent()
         notification.notes = (notification.notes or '') + f'\n[Manually sent on {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}]'
         notification.save()
@@ -1395,7 +1464,8 @@ class NotificationSendNowView(StaffRequiredMixin, View):
         messages.success(
             request, 
             f'Notification sent! Email: {email_sent} sent, {email_failed} failed. '
-            f'SMS: {sms_sent} sent, {sms_failed} failed.'
+            f'SMS: {sms_sent} sent, {sms_failed} failed. '
+            f'WhatsApp: {whatsapp_sent} sent, {whatsapp_failed} failed.'
         )
         return redirect('manage:notifications_detail', pk=pk)
 

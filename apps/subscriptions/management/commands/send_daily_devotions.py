@@ -76,6 +76,12 @@ class Command(BaseCommand):
         ).exclude(email='')
         
         # Get active WhatsApp subscribers who want daily devotions
+        sms_subscribers = Subscriber.objects.filter(
+            channel=Subscriber.CHANNEL_SMS,
+            is_active=True,
+            phone__isnull=False
+        ).exclude(phone='')
+        
         whatsapp_subscribers = Subscriber.objects.filter(
             channel=Subscriber.CHANNEL_WHATSAPP,
             is_active=True,
@@ -84,10 +90,12 @@ class Command(BaseCommand):
         ).exclude(phone='')
         
         total_email = email_subscribers.count()
+        total_sms = sms_subscribers.count()
         total_whatsapp = whatsapp_subscribers.count()
-        total_subscribers = total_email + total_whatsapp
+        total_subscribers = total_email + total_sms + total_whatsapp
         
         self.stdout.write(f'\nFound {total_email} active email subscribers for daily devotions')
+        self.stdout.write(f'Found {total_sms} active SMS subscribers for daily devotions')
         self.stdout.write(f'Found {total_whatsapp} active WhatsApp subscribers for daily devotions')
         self.stdout.write(f'Total: {total_subscribers} subscribers')
         
@@ -98,6 +106,7 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(self.style.WARNING('\nDRY RUN MODE - No messages will be sent'))
             self.stdout.write(f'Would send to {total_email} email subscribers')
+            self.stdout.write(f'Would send to {total_sms} SMS subscribers')
             self.stdout.write(f'Would send to {total_whatsapp} WhatsApp subscribers')
             if devotion:
                 self.stdout.write(f'Devotion: {devotion.title}')
@@ -138,30 +147,50 @@ class Command(BaseCommand):
                         f'  Failed to send to {subscriber.email}: {str(e)}'
                     ))
         
-        # Send WhatsApp/SMS messages
+        # Send SMS messages (via FastR API - short messages)
         sms_sent_count = 0
         sms_failed_count = 0
         
-        if total_whatsapp > 0:
-            self.stdout.write(f'\nSending WhatsApp/SMS to {total_whatsapp} subscribers...')
+        if total_sms > 0:
+            self.stdout.write(f'\nSending SMS to {total_sms} subscribers...')
             
-            for subscriber in whatsapp_subscribers:
+            for subscriber in sms_subscribers:
                 try:
                     self._send_sms(subscriber.phone, sms_message)
                     sms_sent_count += 1
                     if sms_sent_count % 10 == 0:
-                        self.stdout.write(f'  Sent to {sms_sent_count} WhatsApp subscribers...')
+                        self.stdout.write(f'  Sent to {sms_sent_count} SMS subscribers...')
                 except Exception as e:
                     sms_failed_count += 1
                     self.stdout.write(self.style.ERROR(
-                        f'  Failed to send to {subscriber.phone}: {str(e)}'
+                        f'  Failed to send SMS to {subscriber.phone}: {str(e)}'
+                    ))
+        
+        # Send WhatsApp messages (via Twilio API)
+        whatsapp_sent_count = 0
+        whatsapp_failed_count = 0
+        
+        if total_whatsapp > 0:
+            self.stdout.write(f'\nSending WhatsApp to {total_whatsapp} subscribers...')
+            from apps.subscriptions.whatsapp import send_whatsapp_message
+            for subscriber in whatsapp_subscribers:
+                try:
+                    send_whatsapp_message(subscriber.phone, sms_message)
+                    whatsapp_sent_count += 1
+                    if whatsapp_sent_count % 10 == 0:
+                        self.stdout.write(f'  Sent to {whatsapp_sent_count} WhatsApp subscribers...')
+                except Exception as e:
+                    whatsapp_failed_count += 1
+                    self.stdout.write(self.style.ERROR(
+                        f'  Failed to send WhatsApp to {subscriber.phone}: {str(e)}'
                     ))
         
         # Summary
         self.stdout.write('\n' + '=' * 60)
         self.stdout.write(self.style.SUCCESS(f'✓ Email: {email_sent_count} sent, {email_failed_count} failed'))
-        self.stdout.write(self.style.SUCCESS(f'✓ WhatsApp/SMS: {sms_sent_count} sent, {sms_failed_count} failed'))
-        self.stdout.write(self.style.SUCCESS(f'✓ Total: {email_sent_count + sms_sent_count} sent, {email_failed_count + sms_failed_count} failed'))
+        self.stdout.write(self.style.SUCCESS(f'✓ SMS: {sms_sent_count} sent, {sms_failed_count} failed'))
+        self.stdout.write(self.style.SUCCESS(f'✓ WhatsApp: {whatsapp_sent_count} sent, {whatsapp_failed_count} failed'))
+        self.stdout.write(self.style.SUCCESS(f'✓ Total: {email_sent_count + sms_sent_count + whatsapp_sent_count} sent, {email_failed_count + sms_failed_count + whatsapp_failed_count} failed'))
         self.stdout.write('=' * 60)
     
     def _build_devotion_email(self, devotion):
@@ -283,122 +312,69 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                 self.stdout.write(self.style.WARNING(f'SMS not configured. Would send SMS to {phone}'))
             return
         
-        # Format phone number (ensure it starts with +)
+        # Format phone number (Ghana format: 233XXXXXXXXX - no + sign, just digits)
         phone = phone.strip()
-        if not phone.startswith('+'):
-            phone = '+' + phone.lstrip(' +0')
+        # Remove + sign and any spaces/dashes
+        phone = phone.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
         
         # Prepare request to FastR API
-        # Try different authentication methods based on API requirements
+        # According to actual API documentation: Both keys go in request body
         headers = {
             'Content-Type': 'application/json',
         }
         
-        # Method 1: Try Bearer token with secret key
-        if secret_key:
-            headers['Authorization'] = f'Bearer {secret_key}'
-        
+        # Request body according to FastR API documentation
         data = {
-            'to': phone,
+            'api_key_public': public_key,
+            'api_key_secret': secret_key,
             'message': message,
+            'recipients': [phone],  # Array of phone numbers
             'sender_id': sender_id,
-        }
-        
-        # Method 2: Try with API key in body (secret key)
-        alt_data_1 = {
-            'to': phone,
-            'message': message,
-            'sender_id': sender_id,
-            'api_key': secret_key,
-        }
-        
-        # Method 3: Try with both public and secret keys
-        alt_data_2 = {
-            'to': phone,
-            'message': message,
-            'sender_id': sender_id,
-            'public_key': public_key,
-            'secret_key': secret_key,
-        }
-        
-        # Method 4: Try with public key in header, secret in body
-        alt_headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {public_key}',
-        }
-        alt_data_3 = {
-            'to': phone,
-            'message': message,
-            'sender_id': sender_id,
-            'secret_key': secret_key,
+            'scheduled': False,
+            'time_scheduled': None,
         }
         
         # Send SMS via FastR API
         try:
-            # Method 1: Try with Bearer token (secret key)
             response = requests.post(
-                f'{api_base_url}/sms/send',
+                f'{api_base_url}/sms/send-sms',
                 json=data,
                 headers=headers,
                 timeout=30
             )
             
-            # Method 2: If 401, try with secret key in body
-            if response.status_code == 401:
-                headers_no_auth = {'Content-Type': 'application/json'}
-                response = requests.post(
-                    f'{api_base_url}/sms/send',
-                    json=alt_data_1,
-                    headers=headers_no_auth,
-                    timeout=30
-                )
-            
-            # Method 3: If still 401, try with both public and secret keys
-            if response.status_code == 401:
-                headers_no_auth = {'Content-Type': 'application/json'}
-                response = requests.post(
-                    f'{api_base_url}/sms/send',
-                    json=alt_data_2,
-                    headers=headers_no_auth,
-                    timeout=30
-                )
-            
-            # Method 4: If still 401, try public key in header, secret in body
-            if response.status_code == 401:
-                response = requests.post(
-                    f'{api_base_url}/sms/send',
-                    json=alt_data_3,
-                    headers=alt_headers,
-                    timeout=30
-                )
-            
-            # Check response
-            if response.status_code in [200, 201]:
+            # Check response according to FastR API documentation
+            if response.status_code == 201:  # FastR returns 201 Created for successful sends
                 try:
                     response_data = response.json()
-                    if response_data.get('status') == 'success' or response_data.get('success'):
+                    if response_data.get('status') == 'sent':
                         return True
                     else:
-                        error_msg = response_data.get('message') or response_data.get('error', 'Unknown error')
+                        error_msg = response_data.get('message', 'Unknown error')
                         raise Exception(f"API returned error: {error_msg}")
                 except ValueError:
                     # Response might not be JSON, but status code is OK
                     return True
-            elif response.status_code == 401:
-                # Provide detailed error message for authentication failures
-                error_detail = ""
+            elif response.status_code == 400:
+                # Bad Request - invalid parameters
                 try:
                     error_data = response.json() if response.content else {}
-                    error_detail = error_data.get('message') or error_data.get('error', '')
+                    error_msg = error_data.get('message', 'Invalid request parameters')
                 except:
-                    pass
-                
+                    error_msg = 'Invalid request parameters'
+                raise Exception(f"Bad Request: {error_msg}")
+            elif response.status_code == 401:
+                # Unauthorized - invalid API key
+                try:
+                    error_data = response.json() if response.content else {}
+                    error_msg = error_data.get('message', 'Authentication failed')
+                except:
+                    error_msg = 'Authentication failed'
                 raise Exception(
                     f"Authentication failed (HTTP 401). "
                     f"Please verify your FASTR_API_KEY in .env file. "
-                    f"Make sure you're using the SECRET key (9fzban1DkdoJUbOfOrzvD-H-7BUc6QP96uf0gYSKUn8), "
-                    f"not the public key (DJbhctlognNbQuEhPMTB9A). "
-                    f"{'API message: ' + error_detail if error_detail else ''}"
+                    f"Make sure you're using the SECRET key (9fzban1DkdoJUbOfOrzvD-H-7BUc6QP96uf0gYSKUn8). "
+                    f"API message: {error_msg}"
                 )
             elif response.status_code == 403:
                 raise Exception("Access forbidden. Please verify your API key has proper permissions")
@@ -476,6 +452,10 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             sms_message = self._build_devotion_sms(devotion)
             if notification.custom_message:
                 sms_message += f"\n\n{notification.custom_message[:100]}..."
+            # WhatsApp gets the full email content (same as email)
+            whatsapp_message = self._build_devotion_email(devotion)
+            if notification.custom_message:
+                whatsapp_message += f"\n\n{notification.custom_message}"
         else:
             email_subject = notification.title
             email_message = self._build_no_devotion_email()
@@ -484,9 +464,14 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             sms_message = self._build_no_devotion_sms()
             if notification.custom_message:
                 sms_message += f"\n\n{notification.custom_message[:100]}..."
+            # WhatsApp gets the full email content (same as email)
+            whatsapp_message = self._build_no_devotion_email()
+            if notification.custom_message:
+                whatsapp_message += f"\n\n{notification.custom_message}"
         
         # Get recipients
         email_subscribers = []
+        sms_subscribers = []
         whatsapp_subscribers = []
         
         if notification.send_to_email:
@@ -499,6 +484,16 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                 email_qs = email_qs.filter(receive_daily_devotion=True)
             email_subscribers = list(email_qs)
         
+        if notification.send_to_sms:
+            sms_qs = Subscriber.objects.filter(
+                channel=Subscriber.CHANNEL_SMS,
+                is_active=True,
+                phone__isnull=False
+            ).exclude(phone='')
+            if notification.only_daily_devotion_subscribers:
+                sms_qs = sms_qs.filter(receive_daily_devotion=True)
+            sms_subscribers = list(sms_qs)
+        
         if notification.send_to_whatsapp:
             whatsapp_qs = Subscriber.objects.filter(
                 channel=Subscriber.CHANNEL_WHATSAPP,
@@ -509,8 +504,8 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                 whatsapp_qs = whatsapp_qs.filter(receive_daily_devotion=True)
             whatsapp_subscribers = list(whatsapp_qs)
         
-        total_recipients = len(email_subscribers) + len(whatsapp_subscribers)
-        self.stdout.write(f'  Recipients: {len(email_subscribers)} email, {len(whatsapp_subscribers)} WhatsApp')
+        total_recipients = len(email_subscribers) + len(sms_subscribers) + len(whatsapp_subscribers)
+        self.stdout.write(f'  Recipients: {len(email_subscribers)} email, {len(sms_subscribers)} SMS, {len(whatsapp_subscribers)} WhatsApp')
         
         if dry_run:
             self.stdout.write(self.style.WARNING('  DRY RUN: Would send notification'))
@@ -566,25 +561,77 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                             f'  ❌ Failed to send email to {email}: {error_msg}'
                         ))
         
-        # Send SMS
+        # Send SMS (via FastR API - short messages)
         sms_sent = 0
         sms_failed = 0
-        if whatsapp_subscribers:
-            for subscriber in whatsapp_subscribers:
+        sms_errors = {}
+        if sms_subscribers:
+            for subscriber in sms_subscribers:
                 try:
                     self._send_sms(subscriber.phone, sms_message)
                     sms_sent += 1
                 except Exception as e:
                     sms_failed += 1
-                    self.stdout.write(self.style.ERROR(f'  Failed to send SMS to {subscriber.phone}: {str(e)}'))
+                    error_msg = str(e)
+                    if error_msg not in sms_errors:
+                        sms_errors[error_msg] = []
+                    sms_errors[error_msg].append(subscriber.phone)
         
-        # Update notification
+        # Send WhatsApp (via Twilio API - full email content)
+        whatsapp_sent = 0
+        whatsapp_failed = 0
+        whatsapp_errors = {}
+        if whatsapp_subscribers:
+            from apps.subscriptions.whatsapp import send_whatsapp_message
+            for subscriber in whatsapp_subscribers:
+                try:
+                    # WhatsApp gets the full devotion email content
+                    send_whatsapp_message(subscriber.phone, whatsapp_message)
+                    whatsapp_sent += 1
+                except Exception as e:
+                    whatsapp_failed += 1
+                    error_msg = str(e)
+                    if error_msg not in whatsapp_errors:
+                        whatsapp_errors[error_msg] = []
+                    whatsapp_errors[error_msg].append(subscriber.phone)
+        
+        # Display grouped SMS errors
+        if sms_errors:
+            for error_msg, phones in sms_errors.items():
+                if len(phones) > 3:
+                    self.stdout.write(self.style.ERROR(
+                        f'  ❌ SMS Error ({len(phones)} recipients): {error_msg}'
+                    ))
+                else:
+                    for phone in phones:
+                        self.stdout.write(self.style.ERROR(
+                            f'  ❌ Failed to send SMS to {phone}: {error_msg}'
+                        ))
+        
+        # Display grouped WhatsApp errors
+        if whatsapp_errors:
+            for error_msg, phones in whatsapp_errors.items():
+                if len(phones) > 3:
+                    self.stdout.write(self.style.ERROR(
+                        f'  ❌ WhatsApp Error ({len(phones)} recipients): {error_msg}'
+                    ))
+                else:
+                    for phone in phones:
+                        self.stdout.write(self.style.ERROR(
+                            f'  ❌ Failed to send WhatsApp to {phone}: {error_msg}'
+                        ))
+        
+        # Update notification statistics
         notification.email_sent_count = email_sent
         notification.email_failed_count = email_failed
         notification.sms_sent_count = sms_sent
         notification.sms_failed_count = sms_failed
+        notification.whatsapp_sent_count = whatsapp_sent
+        notification.whatsapp_failed_count = whatsapp_failed
         notification.mark_as_sent()
+        notification.save()
         
         self.stdout.write(self.style.SUCCESS(
-            f'  ✓ Sent: {email_sent} email, {sms_sent} SMS | Failed: {email_failed} email, {sms_failed} SMS'
+            f'  ✓ Sent: {email_sent} email, {sms_sent} SMS, {whatsapp_sent} WhatsApp | '
+            f'Failed: {email_failed} email, {sms_failed} SMS, {whatsapp_failed} WhatsApp'
         ))
