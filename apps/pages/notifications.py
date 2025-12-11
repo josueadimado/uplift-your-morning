@@ -179,10 +179,14 @@ def send_booking_approval_sms(booking):
             phone = '+' + phone.lstrip(' +0')
         
         # Prepare request to FastR API
+        # Try different authentication methods based on API requirements
         headers = {
-            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json',
         }
+        
+        # Try API key in header first (Bearer token)
+        if api_key:
+            headers['Authorization'] = f'Bearer {api_key}'
         
         data = {
             'to': phone,
@@ -190,32 +194,66 @@ def send_booking_approval_sms(booking):
             'sender_id': sender_id,
         }
         
-        # Send SMS via FastR API
-        response = requests.post(
-            f'{api_base_url}/sms/send',
-            json=data,
-            headers=headers,
-            timeout=30
-        )
+        # Also try including API key in data if Bearer doesn't work
+        alt_data = {
+            'to': phone,
+            'message': message_body,
+            'sender_id': sender_id,
+            'api_key': api_key,
+        }
         
-        if response.status_code == 201:
-            response_data = response.json()
-            if response_data.get('status') == 'success':
-                sms_id = response_data.get('data', {}).get('sms_id')
-                if settings.DEBUG:
-                    print(f"SMS sent successfully. SMS ID: {sms_id}")
-                return sms_id
+        # Send SMS via FastR API
+        try:
+            # First try with Bearer token
+            response = requests.post(
+                f'{api_base_url}/sms/send',
+                json=data,
+                headers=headers,
+                timeout=30
+            )
+            
+            # If 401, try with API key in body
+            if response.status_code == 401:
+                headers_no_auth = {'Content-Type': 'application/json'}
+                response = requests.post(
+                    f'{api_base_url}/sms/send',
+                    json=alt_data,
+                    headers=headers_no_auth,
+                    timeout=30
+                )
+            
+            # Check response
+            if response.status_code in [200, 201]:
+                try:
+                    response_data = response.json()
+                    if response_data.get('status') == 'success' or response_data.get('success'):
+                        sms_id = response_data.get('data', {}).get('sms_id')
+                        if settings.DEBUG:
+                            print(f"SMS sent successfully. SMS ID: {sms_id}")
+                        return sms_id
+                    else:
+                        error_msg = response_data.get('message') or response_data.get('error', 'Unknown error')
+                        raise Exception(f"API returned error: {error_msg}")
+                except ValueError:
+                    # Response might not be JSON, but status code is OK
+                    return True
+            elif response.status_code == 401:
+                raise Exception("Authentication failed. Please check your FASTR_API_KEY in .env file. Make sure you're using the SECRET key, not the public key.")
+            elif response.status_code == 403:
+                raise Exception("Access forbidden. Please verify your API key has proper permissions")
             else:
-                error_msg = response_data.get('message', 'Unknown error')
-                if settings.DEBUG:
-                    print(f"SMS API returned error: {error_msg}")
-                raise Exception(f"SMS API error: {error_msg}")
-        else:
-            error_data = response.json() if response.content else {}
-            error_msg = error_data.get('message', f'HTTP {response.status_code}')
-            if settings.DEBUG:
-                print(f"SMS sending failed with status {response.status_code}: {error_msg}")
-            raise Exception(f"SMS sending failed: {error_msg}")
+                try:
+                    error_data = response.json() if response.content else {}
+                    error_msg = error_data.get('message') or error_data.get('error', f'HTTP {response.status_code}')
+                except ValueError:
+                    error_msg = f'HTTP {response.status_code}'
+                raise Exception(f"API error: {error_msg}")
+        except requests.exceptions.Timeout:
+            raise Exception("Request timed out. Please try again later")
+        except requests.exceptions.ConnectionError:
+            raise Exception("Connection error. Please check your internet connection")
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Network error: {str(e)}")
             
     except requests.exceptions.RequestException as e:
         # Network or request error

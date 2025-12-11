@@ -1325,6 +1325,7 @@ class NotificationSendNowView(StaffRequiredMixin, View):
         # Send SMS
         sms_sent = 0
         sms_failed = 0
+        sms_errors = []
         if whatsapp_subscribers:
             for subscriber in whatsapp_subscribers:
                 try:
@@ -1332,7 +1333,44 @@ class NotificationSendNowView(StaffRequiredMixin, View):
                     sms_sent += 1
                 except Exception as e:
                     sms_failed += 1
-                    messages.error(request, f'Failed to send SMS to {subscriber.phone}: {str(e)}')
+                    error_msg = str(e)
+                    # Group similar errors
+                    if 'Authentication failed' in error_msg or '401' in error_msg:
+                        if 'auth_error' not in [err.get('type') for err in sms_errors]:
+                            sms_errors.append({
+                                'type': 'auth_error',
+                                'message': 'Authentication failed - Please check your FASTR_API_KEY in .env file',
+                                'count': 0
+                            })
+                        sms_errors[-1]['count'] += 1
+                    else:
+                        sms_errors.append({
+                            'type': 'individual',
+                            'phone': subscriber.phone,
+                            'message': error_msg
+                        })
+        
+        # Display SMS errors in a better format
+        if sms_errors:
+            error_summary = []
+            for err in sms_errors:
+                if err['type'] == 'auth_error':
+                    error_summary.append(f"❌ Authentication Error: {err['message']} (affected {err['count']} recipients)")
+                else:
+                    error_summary.append(f"❌ {err['phone']}: {err['message']}")
+            
+            if len(error_summary) > 5:
+                # Show summary if too many errors
+                messages.error(
+                    request,
+                    f'SMS sending completed with {sms_failed} failures. '
+                    f'First error: {error_summary[0]}. '
+                    f'Please check your SMS API configuration.'
+                )
+            else:
+                # Show all errors if few
+                for err_msg in error_summary[:5]:  # Limit to 5 messages
+                    messages.error(request, err_msg)
         
         # Update notification
         notification.email_sent_count = email_sent
