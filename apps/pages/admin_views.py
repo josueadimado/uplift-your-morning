@@ -1266,6 +1266,51 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
         context['sms_recipient_count'] = sms_count
         context['whatsapp_recipient_count'] = whatsapp_count
         
+        # Get error details from session (if notification was just sent)
+        error_details = self.request.session.pop(f'notification_{notification.pk}_errors', None)
+        if error_details:
+            context['error_details'] = error_details
+        
+        # Calculate statistics for display (only if notification has been sent)
+        if notification.status == 'sent':
+            # Use actual attempts (sent + failed) to calculate totals, not current recipient counts
+            # This ensures accuracy even if subscriber counts changed after sending
+            email_attempts = notification.email_sent_count + notification.email_failed_count
+            sms_attempts = notification.sms_sent_count + notification.sms_failed_count
+            whatsapp_attempts = notification.whatsapp_sent_count + notification.whatsapp_failed_count
+            
+            total_recipients = email_attempts + sms_attempts + whatsapp_attempts
+            total_sent = notification.email_sent_count + notification.sms_sent_count + notification.whatsapp_sent_count
+            total_failed = notification.email_failed_count + notification.sms_failed_count + notification.whatsapp_failed_count
+            success_rate = (total_sent / total_recipients * 100) if total_recipients > 0 else 0
+            
+            # Calculate per-channel success rates based on actual attempts (sent + failed)
+            email_total = notification.email_sent_count + notification.email_failed_count
+            email_rate = (notification.email_sent_count / email_total * 100) if email_total > 0 else 0
+            
+            sms_total = notification.sms_sent_count + notification.sms_failed_count
+            sms_rate = (notification.sms_sent_count / sms_total * 100) if sms_total > 0 else 0
+            
+            whatsapp_total = notification.whatsapp_sent_count + notification.whatsapp_failed_count
+            whatsapp_rate = (notification.whatsapp_sent_count / whatsapp_total * 100) if whatsapp_total > 0 else 0
+            
+            context['total_recipients'] = total_recipients
+            context['total_sent'] = total_sent
+            context['total_failed'] = total_failed
+            context['success_rate'] = success_rate
+            context['email_rate'] = email_rate
+            context['sms_rate'] = sms_rate
+            context['whatsapp_rate'] = whatsapp_rate
+        else:
+            # Set default values for unsent notifications
+            context['total_recipients'] = email_count + sms_count + whatsapp_count
+            context['total_sent'] = 0
+            context['total_failed'] = 0
+            context['success_rate'] = 0
+            context['email_rate'] = 0
+            context['sms_rate'] = 0
+            context['whatsapp_rate'] = 0
+        
         return context
 
 
