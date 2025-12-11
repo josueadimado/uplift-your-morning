@@ -6,75 +6,62 @@
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
     <h1 class="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8">Subscribe for Daily Devotions</h1>
     
-    <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 sm:mb-8">
-        <h2 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Email Subscription</h2>
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            <input type="hidden" name="channel" value="email">
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                <input type="email" name="email" id="email" required 
-                       class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            <div class="flex items-center">
-                <input type="checkbox" name="receive_daily_devotion" id="daily_email" checked 
-                       class="mr-2">
-                <label for="daily_email" class="text-sm sm:text-base text-gray-700">Receive daily devotions</label>
-            </div>
-            <div class="flex items-center">
-                <input type="checkbox" name="receive_special_programs" id="special_email" checked 
-                       class="mr-2">
-                <label for="special_email" class="text-sm sm:text-base text-gray-700">Receive special programs (e.g., 40 Days of Prayer)</label>
-            </div>
-            <button type="submit"
-                    class="w-full text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold"
-                    style="background: var(--primary);">
-                Subscribe via Email
-            </button>
-        </form>
-    </div>
-    
-    <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 sm:mb-8">
-        <h2 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">SMS Subscription</h2>
-        <p class="text-sm sm:text-base text-gray-600 mb-4">Receive short SMS messages with daily devotions and updates.</p>
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            <input type="hidden" name="channel" value="sms">
-            <div>
-                <label for="phone_sms" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                <input type="tel" name="phone" id="phone_sms" required 
-                       placeholder="+233123456789" 
-                       pattern="^\+[1-9]\d{1,14}$"
-                       class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">
-                    <strong>Required:</strong> Include country code starting with + (e.g., +233 for Ghana, +1 for USA, +44 for UK)
-                </p>
-            </div>
-            <div class="flex items-center">
-                <input type="checkbox" name="receive_daily_devotion" id="daily_sms" checked 
-                       class="mr-2">
-                <label for="daily_sms" class="text-sm sm:text-base text-gray-700">Receive daily devotions</label>
-            </div>
-            <div class="flex items-center">
-                <input type="checkbox" name="receive_special_programs" id="special_sms" checked 
-                       class="mr-2">
-                <label for="special_sms" class="text-sm sm:text-base text-gray-700">Receive special programs</label>
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700">
-                Subscribe via SMS
-            </button>
-        </form>
-    </div>
-    
     <div class="bg-white rounded-lg shadow-md p-6 sm:p-8">
-        <h2 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">WhatsApp Subscription</h2>
-        <p class="text-sm sm:text-base text-gray-600 mb-4">Receive WhatsApp messages with daily devotions and updates.</p>
-        <form method="post" class="space-y-4">
+        <p class="text-sm sm:text-base text-gray-600 mb-6">Choose how you'd like to receive daily devotions and updates. You can select one or multiple channels.</p>
+        
+        <form method="post" id="subscriptionForm" class="space-y-6">
             {% csrf_token %}
-            <input type="hidden" name="channel" value="whatsapp">
-            <div>
-                <label for="phone_whatsapp" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                <input type="tel" name="phone" id="phone_whatsapp" required 
+            
+            <!-- Channel Selection -->
+            <div class="border-b pb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-4">Select Notification Channels *</label>
+                <div class="space-y-3">
+                    <div class="flex items-start">
+                        <input type="checkbox" name="channels" value="email" id="channel_email" 
+                               class="mt-1 mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <div class="flex-1">
+                            <label for="channel_email" class="text-sm sm:text-base font-medium text-gray-700 cursor-pointer">
+                                📧 Email
+                            </label>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1">Receive full devotion content via email</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <input type="checkbox" name="channels" value="sms" id="channel_sms" 
+                               class="mt-1 mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <div class="flex-1">
+                            <label for="channel_sms" class="text-sm sm:text-base font-medium text-gray-700 cursor-pointer">
+                                📱 SMS
+                            </label>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1">Receive short SMS messages with daily devotions</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <input type="checkbox" name="channels" value="whatsapp" id="channel_whatsapp" 
+                               class="mt-1 mr-3 h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                        <div class="flex-1">
+                            <label for="channel_whatsapp" class="text-sm sm:text-base font-medium text-gray-700 cursor-pointer">
+                                💬 WhatsApp
+                            </label>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1">Receive full devotion content via WhatsApp</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Email Field (shown when email is selected) -->
+            <div id="email_field" class="hidden">
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                <input type="email" name="email" id="email" 
+                       class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            
+            <!-- Phone Field (shown when SMS or WhatsApp is selected) -->
+            <div id="phone_field" class="hidden">
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                <input type="tel" name="phone" id="phone" 
                        placeholder="+233123456789" 
                        pattern="^\+[1-9]\d{1,14}$"
                        class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -82,18 +69,26 @@
                     <strong>Required:</strong> Include country code starting with + (e.g., +233 for Ghana, +1 for USA, +44 for UK)
                 </p>
             </div>
-            <div class="flex items-center">
-                <input type="checkbox" name="receive_daily_devotion" id="daily_whatsapp" checked 
-                       class="mr-2">
-                <label for="daily_whatsapp" class="text-sm sm:text-base text-gray-700">Receive daily devotions</label>
+            
+            <!-- Preferences -->
+            <div class="border-t pt-6 space-y-3">
+                <div class="flex items-center">
+                    <input type="checkbox" name="receive_daily_devotion" id="receive_daily" checked 
+                           class="mr-2 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="receive_daily" class="text-sm sm:text-base text-gray-700 cursor-pointer">Receive daily devotions</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" name="receive_special_programs" id="receive_special" checked 
+                           class="mr-2 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="receive_special" class="text-sm sm:text-base text-gray-700 cursor-pointer">Receive special programs (e.g., 40 Days of Prayer)</label>
+                </div>
             </div>
-            <div class="flex items-center">
-                <input type="checkbox" name="receive_special_programs" id="special_whatsapp" checked 
-                       class="mr-2">
-                <label for="special_whatsapp" class="text-sm sm:text-base text-gray-700">Receive special programs</label>
-            </div>
-            <button type="submit" class="w-full bg-green-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-green-700">
-                Subscribe via WhatsApp
+            
+            <!-- Submit Button -->
+            <button type="submit" 
+                    class="w-full text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-all hover:shadow-lg"
+                    style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary_light) 100%);">
+                Subscribe
             </button>
         </form>
     </div>
@@ -106,86 +101,128 @@
 </div>
 
 <script>
-// Validate phone numbers for SMS and WhatsApp forms
 document.addEventListener('DOMContentLoaded', function() {
-    // Validate SMS form
-    const smsForm = document.querySelector('input[name="channel"][value="sms"]')?.closest('form');
-    const phoneSmsInput = document.getElementById('phone_sms');
+    const form = document.getElementById('subscriptionForm');
+    const emailCheckbox = document.getElementById('channel_email');
+    const smsCheckbox = document.getElementById('channel_sms');
+    const whatsappCheckbox = document.getElementById('channel_whatsapp');
+    const emailField = document.getElementById('email_field');
+    const phoneField = document.getElementById('phone_field');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
     
-    if (smsForm && phoneSmsInput) {
-        smsForm.addEventListener('submit', function(e) {
-            const phone = phoneSmsInput.value.trim();
-            
-            if (!phone.startsWith('+')) {
-                e.preventDefault();
-                alert('Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).');
-                phoneSmsInput.focus();
-                return false;
-            }
-            
-            if (phone.length < 8) {
-                e.preventDefault();
-                alert('Please enter a valid phone number with country code.');
-                phoneSmsInput.focus();
-                return false;
-            }
-        });
+    // Show/hide fields based on channel selection
+    function toggleFields() {
+        const emailSelected = emailCheckbox.checked;
+        const phoneSelected = smsCheckbox.checked || whatsappCheckbox.checked;
         
-        // Real-time validation for SMS
-        phoneSmsInput.addEventListener('input', function() {
-            validatePhoneInput(this);
-        });
+        if (emailSelected) {
+            emailField.classList.remove('hidden');
+            emailInput.required = true;
+        } else {
+            emailField.classList.add('hidden');
+            emailInput.required = false;
+            emailInput.value = '';
+        }
+        
+        if (phoneSelected) {
+            phoneField.classList.remove('hidden');
+            phoneInput.required = true;
+        } else {
+            phoneField.classList.add('hidden');
+            phoneInput.required = false;
+            phoneInput.value = '';
+        }
     }
     
-    // Validate WhatsApp form
-    const whatsappForm = document.querySelector('input[name="channel"][value="whatsapp"]')?.closest('form');
-    const phoneWhatsappInput = document.getElementById('phone_whatsapp');
+    // Listen for channel checkbox changes
+    emailCheckbox.addEventListener('change', toggleFields);
+    smsCheckbox.addEventListener('change', toggleFields);
+    whatsappCheckbox.addEventListener('change', toggleFields);
     
-    if (whatsappForm && phoneWhatsappInput) {
-        whatsappForm.addEventListener('submit', function(e) {
-            const phone = phoneWhatsappInput.value.trim();
-            
-            if (!phone.startsWith('+')) {
+    // Initial state
+    toggleFields();
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const channels = Array.from(document.querySelectorAll('input[name="channels"]:checked')).map(cb => cb.value);
+        
+        // Check if at least one channel is selected
+        if (channels.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one notification channel (Email, SMS, or WhatsApp).');
+            return false;
+        }
+        
+        // Validate email if email channel is selected
+        if (channels.includes('email')) {
+            const email = emailInput.value.trim();
+            if (!email) {
                 e.preventDefault();
-                alert('Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).');
-                phoneWhatsappInput.focus();
+                alert('Please enter your email address.');
+                emailInput.focus();
                 return false;
             }
             
-            if (phone.length < 8) {
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
                 e.preventDefault();
-                alert('Please enter a valid phone number with country code.');
-                phoneWhatsappInput.focus();
+                alert('Please enter a valid email address.');
+                emailInput.focus();
                 return false;
-            }
-        });
-        
-        // Real-time validation for WhatsApp
-        phoneWhatsappInput.addEventListener('input', function() {
-            validatePhoneInput(this);
-        });
-    }
-    
-    function validatePhoneInput(input) {
-        const phone = input.value.trim();
-        const helpText = input.parentElement.querySelector('p');
-        
-        if (phone && !phone.startsWith('+')) {
-            if (helpText) {
-                helpText.style.color = '#dc2626'; // red
-                helpText.textContent = '⚠️ Phone number must start with + (country code required)';
-            }
-        } else if (phone && phone.length < 8) {
-            if (helpText) {
-                helpText.style.color = '#dc2626'; // red
-                helpText.textContent = '⚠️ Please enter a complete phone number with country code';
-            }
-        } else if (phone) {
-            if (helpText) {
-                helpText.style.color = '#6b7280'; // gray
-                helpText.innerHTML = '<strong>Required:</strong> Include country code starting with + (e.g., +233 for Ghana, +1 for USA, +44 for UK)';
             }
         }
+        
+        // Validate phone if SMS or WhatsApp is selected
+        if (channels.includes('sms') || channels.includes('whatsapp')) {
+            const phone = phoneInput.value.trim();
+            if (!phone) {
+                e.preventDefault();
+                alert('Please enter your phone number.');
+                phoneInput.focus();
+                return false;
+            }
+            
+            if (!phone.startsWith('+')) {
+                e.preventDefault();
+                alert('Please include your country code starting with + (e.g., +233 for Ghana, +1 for USA).');
+                phoneInput.focus();
+                return false;
+            }
+            
+            if (phone.length < 8) {
+                e.preventDefault();
+                alert('Please enter a valid phone number with country code.');
+                phoneInput.focus();
+                return false;
+            }
+        }
+    });
+    
+    // Real-time phone validation
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            const phone = this.value.trim();
+            const helpText = this.parentElement.querySelector('p');
+            
+            if (phone && !phone.startsWith('+')) {
+                if (helpText) {
+                    helpText.style.color = '#dc2626';
+                    helpText.innerHTML = '<strong>⚠️ Required:</strong> Phone number must start with + (country code required)';
+                }
+            } else if (phone && phone.length < 8) {
+                if (helpText) {
+                    helpText.style.color = '#dc2626';
+                    helpText.innerHTML = '<strong>⚠️ Required:</strong> Please enter a complete phone number with country code';
+                }
+            } else if (phone) {
+                if (helpText) {
+                    helpText.style.color = '#6b7280';
+                    helpText.innerHTML = '<strong>Required:</strong> Include country code starting with + (e.g., +233 for Ghana, +1 for USA, +44 for UK)';
+                }
+            }
+        });
     }
 });
 </script>

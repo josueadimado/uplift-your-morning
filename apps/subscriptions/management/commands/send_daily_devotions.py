@@ -274,25 +274,83 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
         return message.strip()
     
     def _build_devotion_sms(self, devotion):
-        """Build SMS/WhatsApp message for a devotion."""
+        """Build SMS message for a devotion (short, max 150 chars total)."""
         site_url = getattr(settings, 'SITE_URL', 'https://upliftyourmorning.com')
         devotion_url = f"{site_url}/devotions/{devotion.id}/"
         
-        # Build a concise SMS message (SMS has character limits)
-        message_parts = [f"Daily Devotion: {devotion.title}"]
+        # Build a concise SMS message (max 150 characters total)
+        MAX_SMS_LENGTH = 150
         
+        # Reserve space for URL (approximately 40-45 chars)
+        url_length = len(devotion_url)
+        available_for_content = MAX_SMS_LENGTH - url_length - 5  # Reserve 5 for newline
+        
+        # Start with title (truncate if needed)
+        title_max = min(35, available_for_content - 20)  # Reserve 20 for scripture/body
+        title = devotion.title[:title_max] + "..." if len(devotion.title) > title_max else devotion.title
+        message = f"{title}"
+        
+        # Add scripture if there's space (short format)
+        remaining = available_for_content - len(message)
+        if remaining > 15 and devotion.scripture_reference:
+            # Use short scripture format (e.g., "Gen 50:4-5" instead of full reference)
+            scripture = devotion.scripture_reference[:15]
+            message += f"\n{scripture}"
+            remaining = available_for_content - len(message)
+        
+        # Add very short body excerpt if space allows
+        if remaining > 15 and devotion.body:
+            body_text = devotion.body[:remaining] + "..." if len(devotion.body) > remaining else devotion.body
+            message += f"\n{body_text}"
+        
+        # Add URL
+        message += f"\n{devotion_url}"
+        
+        # Final check: ensure total length is under 150
+        if len(message) > MAX_SMS_LENGTH:
+            # Truncate more aggressively - keep URL, truncate content
+            available = MAX_SMS_LENGTH - url_length - 10
+            # Rebuild with just title and URL
+            title_only = devotion.title[:available] + "..." if len(devotion.title) > available else devotion.title
+            message = f"{title_only}\n{devotion_url}"
+        
+        return message
+    
+    def _build_devotion_whatsapp(self, devotion):
+        """Build WhatsApp message for a devotion (short, max 300 chars total)."""
+        site_url = getattr(settings, 'SITE_URL', 'https://upliftyourmorning.com')
+        devotion_url = f"{site_url}/devotions/{devotion.id}/"
+        
+        # Build a short WhatsApp message (max 300 characters total)
+        MAX_WHATSAPP_LENGTH = 300
+        
+        # Start with title
+        title = devotion.title[:50] + "..." if len(devotion.title) > 50 else devotion.title
+        message = f"📖 {title}"
+        
+        # Add scripture if there's space
         if devotion.scripture_reference:
-            message_parts.append(f"Scripture: {devotion.scripture_reference}")
+            scripture = devotion.scripture_reference
+            remaining = MAX_WHATSAPP_LENGTH - len(message) - len(devotion_url) - 30  # Reserve space for URL and footer
+            if remaining > len(scripture) + 10:
+                message += f"\n📜 {scripture}"
         
-        if devotion.body:
-            # Truncate body to fit SMS (max ~150 chars for body)
-            body_text = devotion.body[:150] + "..." if len(devotion.body) > 150 else devotion.body
-            message_parts.append(f"\n{body_text}")
+        # Add body excerpt if space allows
+        remaining = MAX_WHATSAPP_LENGTH - len(message) - len(devotion_url) - 25  # Reserve for URL and footer
+        if remaining > 30 and devotion.body:
+            body_text = devotion.body[:remaining] + "..." if len(devotion.body) > remaining else devotion.body
+            message += f"\n\n{body_text}"
         
-        message_parts.append(f"\nRead more: {devotion_url}")
-        message_parts.append("\nUplift Your Morning")
+        # Add URL
+        message += f"\n\n📖 {devotion_url}"
         
-        return "\n".join(message_parts)
+        # Ensure total length is under 300
+        if len(message) > MAX_WHATSAPP_LENGTH:
+            # Truncate more aggressively
+            available = MAX_WHATSAPP_LENGTH - len(devotion_url) - 15
+            message = message[:available] + f"...\n\n📖 {devotion_url}"
+        
+        return message
     
     def _build_no_devotion_sms(self):
         """Build SMS message when no devotion is available."""
@@ -457,10 +515,19 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             sms_message = self._build_devotion_sms(devotion)
             if notification.custom_message:
                 sms_message += f"\n\n{notification.custom_message[:100]}..."
-            # WhatsApp gets the full email content (same as email)
-            whatsapp_message = self._build_devotion_email(devotion)
+            # WhatsApp gets short content (max 300 chars)
+            whatsapp_message = self._build_devotion_whatsapp(devotion)
             if notification.custom_message:
-                whatsapp_message += f"\n\n{notification.custom_message}"
+                # Add custom message but ensure total stays under 300 chars
+                remaining = 300 - len(whatsapp_message) - 5
+                if remaining > 20:
+                    custom_msg = notification.custom_message[:remaining] + "..." if len(notification.custom_message) > remaining else notification.custom_message
+                    whatsapp_message += f"\n\n{custom_msg}"
+                else:
+                    # Truncate whatsapp message to make room
+                    available = 300 - len(notification.custom_message[:50]) - 10
+                    whatsapp_message = whatsapp_message[:available] + "..."
+                    whatsapp_message += f"\n\n{notification.custom_message[:50]}"
         else:
             email_subject = notification.title
             email_message = self._build_no_devotion_email()
@@ -469,10 +536,13 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             sms_message = self._build_no_devotion_sms()
             if notification.custom_message:
                 sms_message += f"\n\n{notification.custom_message[:100]}..."
-            # WhatsApp gets the full email content (same as email)
-            whatsapp_message = self._build_no_devotion_email()
+            # WhatsApp gets short content
+            whatsapp_message = self._build_no_devotion_sms()  # Use SMS format for no devotion
             if notification.custom_message:
-                whatsapp_message += f"\n\n{notification.custom_message}"
+                remaining = 300 - len(whatsapp_message) - 5
+                if remaining > 20:
+                    custom_msg = notification.custom_message[:remaining] + "..." if len(notification.custom_message) > remaining else notification.custom_message
+                    whatsapp_message += f"\n\n{custom_msg}"
         
         # Get recipients
         email_subscribers = []

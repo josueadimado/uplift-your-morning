@@ -1157,10 +1157,17 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
             sms_preview = command._build_devotion_sms(devotion)
             if notification.custom_message:
                 sms_preview += f"\n\n{notification.custom_message[:100]}..."  # Truncate for SMS
-            # WhatsApp preview uses full email content (same as email)
-            whatsapp_preview = command._build_devotion_email(devotion)
+            # WhatsApp preview uses short content (max 300 chars)
+            whatsapp_preview = command._build_devotion_whatsapp(devotion)
             if notification.custom_message:
-                whatsapp_preview += f"\n\n{notification.custom_message}"
+                remaining = 300 - len(whatsapp_preview) - 5
+                if remaining > 20:
+                    custom_msg = notification.custom_message[:remaining] + "..." if len(notification.custom_message) > remaining else notification.custom_message
+                    whatsapp_preview += f"\n\n{custom_msg}"
+                else:
+                    available = 300 - len(notification.custom_message[:50]) - 10
+                    whatsapp_preview = whatsapp_preview[:available] + "..."
+                    whatsapp_preview += f"\n\n{notification.custom_message[:50]}"
             has_devotion = True
         else:
             email_subject = notification.title
@@ -1170,10 +1177,13 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
             sms_preview = command._build_no_devotion_sms()
             if notification.custom_message:
                 sms_preview += f"\n\n{notification.custom_message[:100]}..."
-            # WhatsApp preview uses full email content (same as email)
-            whatsapp_preview = command._build_no_devotion_email()
+            # WhatsApp preview uses short content (max 300 chars)
+            whatsapp_preview = command._build_no_devotion_sms()  # Use SMS format for no devotion
             if notification.custom_message:
-                whatsapp_preview += f"\n\n{notification.custom_message}"
+                remaining = 300 - len(whatsapp_preview) - 5
+                if remaining > 20:
+                    custom_msg = notification.custom_message[:remaining] + "..." if len(notification.custom_message) > remaining else notification.custom_message
+                    whatsapp_preview += f"\n\n{custom_msg}"
             has_devotion = False
         
         # Build HTML preview with image for email and WhatsApp
@@ -1329,10 +1339,19 @@ class NotificationSendNowView(StaffRequiredMixin, View):
         if notification.custom_message:
             sms_message += f"\n\n{notification.custom_message[:100]}..."
         
-        # WhatsApp gets the full email content (same as email)
-        whatsapp_message = command._build_devotion_email(devotion)
+        # WhatsApp gets short content (max 300 chars)
+        whatsapp_message = command._build_devotion_whatsapp(devotion)
         if notification.custom_message:
-            whatsapp_message += f"\n\n{notification.custom_message}"
+            # Add custom message but ensure total stays under 300 chars
+            remaining = 300 - len(whatsapp_message) - 5
+            if remaining > 20:
+                custom_msg = notification.custom_message[:remaining] + "..." if len(notification.custom_message) > remaining else notification.custom_message
+                whatsapp_message += f"\n\n{custom_msg}"
+            else:
+                # Truncate whatsapp message to make room
+                available = 300 - len(notification.custom_message[:50]) - 10
+                whatsapp_message = whatsapp_message[:available] + "..."
+                whatsapp_message += f"\n\n{notification.custom_message[:50]}"
         
         # Get recipients
         from apps.subscriptions.models import Subscriber
