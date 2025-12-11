@@ -573,7 +573,7 @@ class PrayerRequestExportCardsView(StaffRequiredMixin, View):
             from reportlab.lib.units import inch
             from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY, TA_RIGHT
         except ImportError:
             return HttpResponseBadRequest('PDF export requires reportlab. Please install it: pip install reportlab')
         
