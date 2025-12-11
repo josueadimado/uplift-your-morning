@@ -37,6 +37,10 @@ urlpatterns = [
     path('prayers/', admin_views.PrayerRequestListView.as_view(), name='prayers_list'),
     path('prayers/<int:pk>/mark-prayed/', admin_views.PrayerRequestMarkPrayedView.as_view(), name='prayers_mark_prayed'),
     path('prayers/<int:pk>/delete/', admin_views.PrayerRequestDeleteView.as_view(), name='prayers_delete'),
+    path('prayers/export/csv/', admin_views.PrayerRequestExportCSVView.as_view(), name='prayers_export_csv'),
+    path('prayers/export/excel/', admin_views.PrayerRequestExportExcelView.as_view(), name='prayers_export_excel'),
+    path('prayers/export/pdf/', admin_views.PrayerRequestExportPDFView.as_view(), name='prayers_export_pdf'),
+    path('prayers/export/cards/', admin_views.PrayerRequestExportCardsView.as_view(), name='prayers_export_cards'),
     
     # Donations
     path('donations/', admin_views.DonationListView.as_view(), name='donations_list'),

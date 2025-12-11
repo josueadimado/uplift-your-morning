@@ -11,6 +11,11 @@ from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import Sum, Q
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.template.loader import render_to_string
+import csv
+import io
+from datetime import datetime
 
 from apps.devotions.models import Devotion, DevotionSeries
 from django.http import JsonResponse
@@ -381,6 +386,297 @@ class PrayerRequestDeleteView(StaffRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Prayer request deleted successfully!')
         return super().delete(request, *args, **kwargs)
+
+
+class PrayerRequestExportCSVView(StaffRequiredMixin, View):
+    """Export prayer requests as CSV."""
+    def get(self, request, *args, **kwargs):
+        queryset = self._get_queryset()
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="prayer_requests_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Name', 'Email', 'Request', 'Is Public', 'Is Prayed For', 'Date Submitted'])
+        
+        for prayer in queryset:
+            writer.writerow([
+                prayer.name or 'Anonymous',
+                prayer.email or '',
+                prayer.request,
+                'Yes' if prayer.is_public else 'No',
+                'Yes' if prayer.is_prayed_for else 'No',
+                prayer.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+        
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = PrayerRequest.objects.all()
+        status = self.request.GET.get('status')
+        if status == 'open':
+            queryset = queryset.filter(is_prayed_for=False)
+        elif status == 'prayed':
+            queryset = queryset.filter(is_prayed_for=True)
+        return queryset.order_by('-created_at')
+
+
+class PrayerRequestExportExcelView(StaffRequiredMixin, View):
+    """Export prayer requests as Excel."""
+    def get(self, request, *args, **kwargs):
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment
+        except ImportError:
+            return HttpResponseBadRequest('Excel export requires openpyxl. Please install it: pip install openpyxl')
+        
+        queryset = self._get_queryset()
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Prayer Requests"
+        
+        # Header row
+        headers = ['Name', 'Email', 'Request', 'Is Public', 'Is Prayed For', 'Date Submitted']
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Data rows
+        for row_num, prayer in enumerate(queryset, 2):
+            ws.cell(row=row_num, column=1, value=prayer.name or 'Anonymous')
+            ws.cell(row=row_num, column=2, value=prayer.email or '')
+            ws.cell(row=row_num, column=3, value=prayer.request)
+            ws.cell(row=row_num, column=4, value='Yes' if prayer.is_public else 'No')
+            ws.cell(row=row_num, column=5, value='Yes' if prayer.is_prayed_for else 'No')
+            ws.cell(row=row_num, column=6, value=prayer.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+        
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 30
+        ws.column_dimensions['C'].width = 60
+        ws.column_dimensions['D'].width = 12
+        ws.column_dimensions['E'].width = 15
+        ws.column_dimensions['F'].width = 20
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="prayer_requests_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = PrayerRequest.objects.all()
+        status = self.request.GET.get('status')
+        if status == 'open':
+            queryset = queryset.filter(is_prayed_for=False)
+        elif status == 'prayed':
+            queryset = queryset.filter(is_prayed_for=True)
+        return queryset.order_by('-created_at')
+
+
+class PrayerRequestExportPDFView(StaffRequiredMixin, View):
+    """Export prayer requests as PDF (spreadsheet format)."""
+    def get(self, request, *args, **kwargs):
+        try:
+            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.lib import colors
+            from reportlab.lib.units import inch
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        except ImportError:
+            return HttpResponseBadRequest('PDF export requires reportlab. Please install it: pip install reportlab')
+        
+        queryset = self._get_queryset()
+        
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=20,
+            alignment=TA_CENTER
+        )
+        
+        story = []
+        story.append(Paragraph("Prayer Requests Export", title_style))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Prepare data
+        data = [['Name', 'Email', 'Request', 'Public', 'Prayed', 'Date']]
+        
+        for prayer in queryset:
+            data.append([
+                prayer.name or 'Anonymous',
+                prayer.email or '',
+                prayer.request[:100] + '...' if len(prayer.request) > 100 else prayer.request,
+                'Yes' if prayer.is_public else 'No',
+                'Yes' if prayer.is_prayed_for else 'No',
+                prayer.created_at.strftime('%Y-%m-%d')
+            ])
+        
+        # Create table
+        table = Table(data, colWidths=[1.2*inch, 1.8*inch, 3*inch, 0.6*inch, 0.6*inch, 1*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#366092')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+        ]))
+        
+        story.append(table)
+        doc.build(story)
+        
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="prayer_requests_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = PrayerRequest.objects.all()
+        status = self.request.GET.get('status')
+        if status == 'open':
+            queryset = queryset.filter(is_prayed_for=False)
+        elif status == 'prayed':
+            queryset = queryset.filter(is_prayed_for=True)
+        return queryset.order_by('-created_at')
+
+
+class PrayerRequestExportCardsView(StaffRequiredMixin, View):
+    """Export prayer requests as beautifully designed prayer cards (PDF)."""
+    def get(self, request, *args, **kwargs):
+        try:
+            from reportlab.lib.pagesizes import letter
+            from reportlab.lib import colors
+            from reportlab.lib.units import inch
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+        except ImportError:
+            return HttpResponseBadRequest('PDF export requires reportlab. Please install it: pip install reportlab')
+        
+        queryset = self._get_queryset()
+        
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        
+        styles = getSampleStyleSheet()
+        
+        # Custom styles for prayer cards
+        title_style = ParagraphStyle(
+            'CardTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=10,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        request_style = ParagraphStyle(
+            'RequestText',
+            parent=styles['Normal'],
+            fontSize=12,
+            textColor=colors.HexColor('#1f2937'),
+            spaceAfter=15,
+            alignment=TA_JUSTIFY,
+            leading=18,
+            leftIndent=20,
+            rightIndent=20
+        )
+        
+        name_style = ParagraphStyle(
+            'NameText',
+            parent=styles['Normal'],
+            fontSize=11,
+            textColor=colors.HexColor('#4b5563'),
+            alignment=TA_RIGHT,
+            spaceBefore=10
+        )
+        
+        date_style = ParagraphStyle(
+            'DateText',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=colors.HexColor('#6b7280'),
+            alignment=TA_CENTER,
+            spaceBefore=5
+        )
+        
+        story = []
+        
+        for idx, prayer in enumerate(queryset):
+            if idx > 0:
+                story.append(PageBreak())
+            
+            # Decorative border/header
+            story.append(Spacer(1, 0.3*inch))
+            story.append(Paragraph("PRAYER REQUEST", title_style))
+            story.append(Spacer(1, 0.2*inch))
+            
+            # Prayer request text
+            request_text = prayer.request.replace('\n', '<br/>')
+            story.append(Paragraph(f'<b>"{request_text}"</b>', request_style))
+            story.append(Spacer(1, 0.3*inch))
+            
+            # Name and status
+            name_text = f"— {prayer.name or 'Anonymous'}"
+            if prayer.is_prayed_for:
+                name_text += " ✓ (Prayed For)"
+            story.append(Paragraph(name_text, name_style))
+            
+            # Date
+            date_text = prayer.created_at.strftime('%B %d, %Y')
+            story.append(Paragraph(date_text, date_style))
+            
+            # Footer note
+            story.append(Spacer(1, 0.2*inch))
+            footer_style = ParagraphStyle(
+                'Footer',
+                parent=styles['Normal'],
+                fontSize=8,
+                textColor=colors.HexColor('#9ca3af'),
+                alignment=TA_CENTER
+            )
+            story.append(Paragraph("Uplift Your Morning - Prayer Request", footer_style))
+        
+        doc.build(story)
+        
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="prayer_cards_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = PrayerRequest.objects.all()
+        status = self.request.GET.get('status')
+        if status == 'open':
+            queryset = queryset.filter(is_prayed_for=False)
+        elif status == 'prayed':
+            queryset = queryset.filter(is_prayed_for=True)
+        return queryset.order_by('-created_at')
 
 
 # ==================== DONATIONS ====================
