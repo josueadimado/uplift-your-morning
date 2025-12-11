@@ -288,10 +288,14 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             phone = '+' + phone.lstrip(' +0')
         
         # Prepare request to FastR API
+        # Try different authentication methods based on API requirements
         headers = {
-            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json',
         }
+        
+        # Try API key in header first (Bearer token)
+        if api_key:
+            headers['Authorization'] = f'Bearer {api_key}'
         
         data = {
             'to': phone,
@@ -299,8 +303,17 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             'sender_id': sender_id,
         }
         
+        # Also try including API key in data if Bearer doesn't work
+        alt_data = {
+            'to': phone,
+            'message': message,
+            'sender_id': sender_id,
+            'api_key': api_key,
+        }
+        
         # Send SMS via FastR API
         try:
+            # First try with Bearer token
             response = requests.post(
                 f'{api_base_url}/sms/send',
                 json=data,
@@ -308,19 +321,59 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                 timeout=30
             )
             
-            if response.status_code == 201:
-                response_data = response.json()
-                if response_data.get('status') == 'success':
+            # If 401, try with API key in body
+            if response.status_code == 401:
+                headers_no_auth = {'Content-Type': 'application/json'}
+                response = requests.post(
+                    f'{api_base_url}/sms/send',
+                    json=alt_data,
+                    headers=headers_no_auth,
+                    timeout=30
+                )
+            
+            # Check response
+            if response.status_code in [200, 201]:
+                try:
+                    response_data = response.json()
+                    if response_data.get('status') == 'success' or response_data.get('success'):
+                        return True
+                    else:
+                        error_msg = response_data.get('message') or response_data.get('error', 'Unknown error')
+                        raise Exception(f"API returned error: {error_msg}")
+                except ValueError:
+                    # Response might not be JSON, but status code is OK
                     return True
-                else:
-                    error_msg = response_data.get('message', 'Unknown error')
-                    raise Exception(f"SMS API error: {error_msg}")
+            elif response.status_code == 401:
+                # Provide detailed error message for authentication failures
+                error_detail = ""
+                try:
+                    error_data = response.json() if response.content else {}
+                    error_detail = error_data.get('message') or error_data.get('error', '')
+                except:
+                    pass
+                
+                raise Exception(
+                    f"Authentication failed (HTTP 401). "
+                    f"Please verify your FASTR_API_KEY in .env file. "
+                    f"Make sure you're using the SECRET key (9fzban1DkdoJUbOfOrzvD-H-7BUc6QP96uf0gYSKUn8), "
+                    f"not the public key (DJbhctlognNbQuEhPMTB9A). "
+                    f"{'API message: ' + error_detail if error_detail else ''}"
+                )
+            elif response.status_code == 403:
+                raise Exception("Access forbidden. Please verify your API key has proper permissions")
             else:
-                error_data = response.json() if response.content else {}
-                error_msg = error_data.get('message', f'HTTP {response.status_code}')
-                raise Exception(f"SMS sending failed: {error_msg}")
+                try:
+                    error_data = response.json() if response.content else {}
+                    error_msg = error_data.get('message') or error_data.get('error', f'HTTP {response.status_code}')
+                except ValueError:
+                    error_msg = f'HTTP {response.status_code}'
+                raise Exception(f"API error: {error_msg}")
+        except requests.exceptions.Timeout:
+            raise Exception("Request timed out. Please try again later")
+        except requests.exceptions.ConnectionError:
+            raise Exception("Connection error. Please check your internet connection")
         except requests.exceptions.RequestException as e:
-            raise Exception(f"SMS sending failed (network error): {str(e)}")
+            raise Exception(f"Network error: {str(e)}")
     
     def _process_scheduled_notifications(self, dry_run=False):
         """Process scheduled notifications that are due to be sent."""
