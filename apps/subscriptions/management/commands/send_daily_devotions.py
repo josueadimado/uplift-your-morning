@@ -280,7 +280,7 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             # SMS not configured, skip silently
             if settings.DEBUG:
                 self.stdout.write(self.style.WARNING(f'SMS not configured. Would send SMS to {phone}'))
-            raise Exception("SMS API key not configured")
+            return
         
         # Format phone number (ensure it starts with +)
         phone = phone.strip()
@@ -288,14 +288,10 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             phone = '+' + phone.lstrip(' +0')
         
         # Prepare request to FastR API
-        # Try different authentication methods based on API requirements
         headers = {
+            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json',
         }
-        
-        # Try API key in header first (Bearer token)
-        if api_key:
-            headers['Authorization'] = f'Bearer {api_key}'
         
         data = {
             'to': phone,
@@ -303,18 +299,8 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             'sender_id': sender_id,
         }
         
-        # Also try including API key in data if Bearer doesn't work
-        # Some APIs require it in the body instead
-        alt_data = {
-            'to': phone,
-            'message': message,
-            'sender_id': sender_id,
-            'api_key': api_key,
-        }
-        
         # Send SMS via FastR API
         try:
-            # First try with Bearer token
             response = requests.post(
                 f'{api_base_url}/sms/send',
                 json=data,
@@ -322,45 +308,19 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                 timeout=30
             )
             
-            # If 401, try with API key in body
-            if response.status_code == 401:
-                headers_no_auth = {'Content-Type': 'application/json'}
-                response = requests.post(
-                    f'{api_base_url}/sms/send',
-                    json=alt_data,
-                    headers=headers_no_auth,
-                    timeout=30
-                )
-            
-            # Check response
-            if response.status_code in [200, 201]:
-                try:
-                    response_data = response.json()
-                    if response_data.get('status') == 'success' or response_data.get('success'):
-                        return True
-                    else:
-                        error_msg = response_data.get('message') or response_data.get('error', 'Unknown error')
-                        raise Exception(f"API returned error: {error_msg}")
-                except ValueError:
-                    # Response might not be JSON, but status code is OK
+            if response.status_code == 201:
+                response_data = response.json()
+                if response_data.get('status') == 'success':
                     return True
-            elif response.status_code == 401:
-                raise Exception("Authentication failed. Please check your FASTR_API_KEY in .env file")
-            elif response.status_code == 403:
-                raise Exception("Access forbidden. Please verify your API key has proper permissions")
+                else:
+                    error_msg = response_data.get('message', 'Unknown error')
+                    raise Exception(f"SMS API error: {error_msg}")
             else:
-                try:
-                    error_data = response.json() if response.content else {}
-                    error_msg = error_data.get('message') or error_data.get('error', f'HTTP {response.status_code}')
-                except ValueError:
-                    error_msg = f'HTTP {response.status_code}'
-                raise Exception(f"API error: {error_msg}")
-        except requests.exceptions.Timeout:
-            raise Exception("Request timed out. Please try again later")
-        except requests.exceptions.ConnectionError:
-            raise Exception("Connection error. Please check your internet connection")
+                error_data = response.json() if response.content else {}
+                error_msg = error_data.get('message', f'HTTP {response.status_code}')
+                raise Exception(f"SMS sending failed: {error_msg}")
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Network error: {str(e)}")
+            raise Exception(f"SMS sending failed (network error): {str(e)}")
     
     def _process_scheduled_notifications(self, dry_run=False):
         """Process scheduled notifications that are due to be sent."""
@@ -485,7 +445,6 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
         # Send SMS
         sms_sent = 0
         sms_failed = 0
-        sms_errors = {}
         if whatsapp_subscribers:
             for subscriber in whatsapp_subscribers:
                 try:
@@ -493,24 +452,7 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                     sms_sent += 1
                 except Exception as e:
                     sms_failed += 1
-                    error_msg = str(e)
-                    # Group errors by type
-                    if error_msg not in sms_errors:
-                        sms_errors[error_msg] = []
-                    sms_errors[error_msg].append(subscriber.phone)
-        
-        # Display grouped errors
-        if sms_errors:
-            for error_msg, phones in sms_errors.items():
-                if len(phones) > 3:
-                    self.stdout.write(self.style.ERROR(
-                        f'  ❌ SMS Error ({len(phones)} recipients): {error_msg}'
-                    ))
-                else:
-                    for phone in phones:
-                        self.stdout.write(self.style.ERROR(
-                            f'  ❌ Failed to send SMS to {phone}: {error_msg}'
-                        ))
+                    self.stdout.write(self.style.ERROR(f'  Failed to send SMS to {subscriber.phone}: {str(e)}'))
         
         # Update notification
         notification.email_sent_count = email_sent
@@ -522,4 +464,3 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
         self.stdout.write(self.style.SUCCESS(
             f'  ✓ Sent: {email_sent} email, {sms_sent} SMS | Failed: {email_failed} email, {sms_failed} SMS'
         ))
-
