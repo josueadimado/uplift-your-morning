@@ -169,25 +169,197 @@
 <!-- Statistics (if sent) -->
 {% if notification.status == 'sent' %}
 <div class="bg-white rounded-lg shadow p-6 mb-6 border" style="border-color: var(--border);">
-    <h3 class="text-lg font-semibold mb-4" style="color: var(--text);">Sending Statistics</h3>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div>
-            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Emails Sent</p>
-            <p class="text-2xl font-bold" style="color: #10b981;">{{ notification.email_sent_count }}</p>
-        </div>
-        <div>
-            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Emails Failed</p>
-            <p class="text-2xl font-bold" style="color: #ef4444;">{{ notification.email_failed_count }}</p>
-        </div>
-        <div>
-            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">SMS Sent</p>
-            <p class="text-2xl font-bold" style="color: #10b981;">{{ notification.sms_sent_count }}</p>
-        </div>
-        <div>
-            <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">SMS Failed</p>
-            <p class="text-2xl font-bold" style="color: #ef4444;">{{ notification.sms_failed_count }}</p>
+    <h3 class="text-lg font-semibold mb-4" style="color: var(--text);">📊 Sending Statistics</h3>
+    
+    <!-- Summary Card -->
+    <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 mb-6 border" style="border-color: #e5e7eb;">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Total Recipients</p>
+                <p class="text-2xl font-bold" style="color: #3b82f6;">{{ total_recipients|default:0 }}</p>
+            </div>
+            <div>
+                <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Successfully Sent</p>
+                <p class="text-2xl font-bold" style="color: #10b981;">{{ total_sent|default:0 }}</p>
+            </div>
+            <div>
+                <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Failed</p>
+                <p class="text-2xl font-bold" style="color: #ef4444;">{{ total_failed|default:0 }}</p>
+            </div>
+            <div>
+                <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Success Rate</p>
+                <p class="text-2xl font-bold" style="color: {% if success_rate >= 90 %}#10b981{% elif success_rate >= 70 %}#f59e0b{% else %}#ef4444{% endif %};">
+                    {{ success_rate|default:0|floatformat:1 }}%
+                </p>
+            </div>
         </div>
     </div>
+    
+    <!-- Channel Breakdown -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {% if notification.send_to_email %}
+        <div class="border rounded-lg p-4" style="border-color: #e5e7eb; background: #f9fafb;">
+            <div class="flex items-center mb-3">
+                <span class="text-2xl mr-2">📧</span>
+                <h4 class="font-semibold" style="color: var(--text);">Email</h4>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Sent:</span>
+                    <span class="font-bold text-lg" style="color: #10b981;">{{ notification.email_sent_count }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Failed:</span>
+                    <span class="font-bold text-lg" style="color: #ef4444;">{{ notification.email_failed_count }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Total:</span>
+                    <span class="font-semibold" style="color: var(--text);">{{ email_recipient_count }}</span>
+                </div>
+                {% if email_recipient_count > 0 %}
+                <div class="mt-2 pt-2 border-t" style="border-color: #e5e7eb;">
+                    <span class="text-xs" style="color: var(--text_secondary);">
+                        Success Rate: 
+                        <strong style="color: {% if email_rate >= 90 %}#10b981{% elif email_rate >= 70 %}#f59e0b{% else %}#ef4444{% endif %};">
+                            {{ email_rate|floatformat:1 }}%
+                        </strong>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if notification.send_to_sms %}
+        <div class="border rounded-lg p-4" style="border-color: #e5e7eb; background: #f9fafb;">
+            <div class="flex items-center mb-3">
+                <span class="text-2xl mr-2">📱</span>
+                <h4 class="font-semibold" style="color: var(--text);">SMS</h4>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Sent:</span>
+                    <span class="font-bold text-lg" style="color: #10b981;">{{ notification.sms_sent_count }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Failed:</span>
+                    <span class="font-bold text-lg" style="color: #ef4444;">{{ notification.sms_failed_count }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Total:</span>
+                    <span class="font-semibold" style="color: var(--text);">{{ sms_recipient_count|default:0 }}</span>
+                </div>
+                {% if sms_recipient_count > 0 %}
+                <div class="mt-2 pt-2 border-t" style="border-color: #e5e7eb;">
+                    <span class="text-xs" style="color: var(--text_secondary);">
+                        Success Rate: 
+                        <strong style="color: {% if sms_rate >= 90 %}#10b981{% elif sms_rate >= 70 %}#f59e0b{% else %}#ef4444{% endif %};">
+                            {{ sms_rate|floatformat:1 }}%
+                        </strong>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if notification.send_to_whatsapp %}
+        <div class="border rounded-lg p-4" style="border-color: #e5e7eb; background: #f9fafb;">
+            <div class="flex items-center mb-3">
+                <span class="text-2xl mr-2">💬</span>
+                <h4 class="font-semibold" style="color: var(--text);">WhatsApp</h4>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Sent:</span>
+                    <span class="font-bold text-lg" style="color: #10b981;">{{ notification.whatsapp_sent_count }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Failed:</span>
+                    <span class="font-bold text-lg" style="color: #ef4444;">{{ notification.whatsapp_failed_count }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm" style="color: var(--text_secondary);">Total:</span>
+                    <span class="font-semibold" style="color: var(--text);">{{ whatsapp_recipient_count }}</span>
+                </div>
+                {% if whatsapp_recipient_count > 0 %}
+                <div class="mt-2 pt-2 border-t" style="border-color: #e5e7eb;">
+                    <span class="text-xs" style="color: var(--text_secondary);">
+                        Success Rate: 
+                        <strong style="color: {% if whatsapp_rate >= 90 %}#10b981{% elif whatsapp_rate >= 70 %}#f59e0b{% else %}#ef4444{% endif %};">
+                            {{ whatsapp_rate|floatformat:1 }}%
+                        </strong>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Error Details (if any) -->
+    {% if error_details or notification.email_failed_count > 0 or notification.sms_failed_count > 0 or notification.whatsapp_failed_count > 0 %}
+    <div class="border-t pt-6 mt-6" style="border-color: var(--border);">
+        <h4 class="text-md font-semibold mb-4" style="color: var(--text);">❌ Error Details</h4>
+        
+        {% if error_details.email_errors %}
+        <div class="mb-4">
+            <h5 class="text-sm font-semibold mb-2" style="color: #ef4444;">📧 Email Errors:</h5>
+            {% for error_msg, emails in error_details.email_errors.items %}
+            <div class="bg-red-50 border-l-4 border-red-400 p-3 mb-2 rounded">
+                <p class="text-sm font-medium text-red-800 mb-1">{{ error_msg }}</p>
+                <p class="text-xs text-red-700">
+                    Affected: {{ emails|length }} recipient{% if emails|length != 1 %}s{% endif %}
+                    {% if emails|length <= 5 %}
+                        ({{ emails|join:", " }})
+                    {% else %}
+                        ({{ emails|slice:":5"|join:", " }} and {{ emails|length|add:"-5" }} more)
+                    {% endif %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if error_details.sms_errors %}
+        <div class="mb-4">
+            <h5 class="text-sm font-semibold mb-2" style="color: #ef4444;">📱 SMS Errors:</h5>
+            {% for error_msg, phones in error_details.sms_errors.items %}
+            <div class="bg-red-50 border-l-4 border-red-400 p-3 mb-2 rounded">
+                <p class="text-sm font-medium text-red-800 mb-1">{{ error_msg }}</p>
+                <p class="text-xs text-red-700">
+                    Affected: {{ phones|length }} recipient{% if phones|length != 1 %}s{% endif %}
+                    {% if phones|length <= 5 %}
+                        ({{ phones|join:", " }})
+                    {% else %}
+                        ({{ phones|slice:":5"|join:", " }} and {{ phones|length|add:"-5" }} more)
+                    {% endif %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if error_details.whatsapp_errors %}
+        <div class="mb-4">
+            <h5 class="text-sm font-semibold mb-2" style="color: #ef4444;">💬 WhatsApp Errors:</h5>
+            {% for error_msg, phones in error_details.whatsapp_errors.items %}
+            <div class="bg-red-50 border-l-4 border-red-400 p-3 mb-2 rounded">
+                <p class="text-sm font-medium text-red-800 mb-1">{{ error_msg }}</p>
+                <p class="text-xs text-red-700">
+                    Affected: {{ phones|length }} recipient{% if phones|length != 1 %}s{% endif %}
+                    {% if phones|length <= 5 %}
+                        ({{ phones|join:", " }})
+                    {% else %}
+                        ({{ phones|slice:":5"|join:", " }} and {{ phones|length|add:"-5" }} more)
+                    {% endif %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endif %}
 

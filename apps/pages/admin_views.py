@@ -1451,8 +1451,12 @@ class NotificationSendNowView(StaffRequiredMixin, View):
         if sms_subscribers:
             for subscriber in sms_subscribers:
                 try:
-                    command._send_sms(subscriber.phone, sms_message)
-                    sms_sent += 1
+                    result = command._send_sms(subscriber.phone, sms_message)
+                    # Only count as sent if _send_sms returned True (actually sent)
+                    # If False, SMS is not configured and we skip silently
+                    if result is True:
+                        sms_sent += 1
+                    # If result is False, SMS not configured - skip silently (don't count as sent or failed)
                 except Exception as e:
                     sms_failed += 1
                     error_msg = str(e)
@@ -1510,15 +1514,53 @@ class NotificationSendNowView(StaffRequiredMixin, View):
         notification.whatsapp_sent_count = whatsapp_sent
         notification.whatsapp_failed_count = whatsapp_failed
         notification.mark_as_sent()
-        notification.notes = (notification.notes or '') + f'\n[Manually sent on {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}]'
+        
+        # Store detailed error information in notes
+        error_summary = []
+        if email_errors:
+            error_summary.append(f"Email Errors: {len(email_errors)} error type(s) affecting {sum(len(emails) for emails in email_errors.values())} recipient(s)")
+        if sms_errors:
+            error_summary.append(f"SMS Errors: {len(sms_errors)} error type(s) affecting {sum(len(phones) for phones in sms_errors.values())} recipient(s)")
+        if whatsapp_errors:
+            error_summary.append(f"WhatsApp Errors: {len(whatsapp_errors)} error type(s) affecting {sum(len(phones) for phones in whatsapp_errors.values())} recipient(s)")
+        
+        notes_update = f'\n[Manually sent on {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}]'
+        if error_summary:
+            notes_update += '\n' + '\n'.join(error_summary)
+        notification.notes = (notification.notes or '') + notes_update
         notification.save()
         
-        messages.success(
-            request, 
-            f'Notification sent! Email: {email_sent} sent, {email_failed} failed. '
-            f'SMS: {sms_sent} sent, {sms_failed} failed. '
-            f'WhatsApp: {whatsapp_sent} sent, {whatsapp_failed} failed.'
-        )
+        # Calculate totals and success rates
+        total_recipients = len(email_subscribers) + len(sms_subscribers) + len(whatsapp_subscribers)
+        total_sent = email_sent + sms_sent + whatsapp_sent
+        total_failed = email_failed + sms_failed + whatsapp_failed
+        success_rate = (total_sent / total_recipients * 100) if total_recipients > 0 else 0
+        
+        # Create detailed success message
+        success_parts = [f'✅ Notification sent successfully!']
+        success_parts.append(f'\n📊 Summary: {total_sent} sent, {total_failed} failed out of {total_recipients} total recipients ({success_rate:.1f}% success rate)')
+        
+        if notification.send_to_email:
+            email_rate = (email_sent / len(email_subscribers) * 100) if email_subscribers else 0
+            success_parts.append(f'\n📧 Email: {email_sent} sent, {email_failed} failed ({email_rate:.1f}% success)')
+        
+        if notification.send_to_sms:
+            sms_rate = (sms_sent / len(sms_subscribers) * 100) if sms_subscribers else 0
+            success_parts.append(f'\n📱 SMS: {sms_sent} sent, {sms_failed} failed ({sms_rate:.1f}% success)')
+        
+        if notification.send_to_whatsapp:
+            whatsapp_rate = (whatsapp_sent / len(whatsapp_subscribers) * 100) if whatsapp_subscribers else 0
+            success_parts.append(f'\n💬 WhatsApp: {whatsapp_sent} sent, {whatsapp_failed} failed ({whatsapp_rate:.1f}% success)')
+        
+        messages.success(request, ''.join(success_parts))
+        
+        # Store error details in session for display on detail page
+        request.session[f'notification_{pk}_errors'] = {
+            'email_errors': {k: list(v) for k, v in email_errors.items()},
+            'sms_errors': {k: list(v) for k, v in sms_errors.items()},
+            'whatsapp_errors': {k: list(v) for k, v in whatsapp_errors.items()},
+        }
+        
         return redirect('manage:notifications_detail', pk=pk)
 
 

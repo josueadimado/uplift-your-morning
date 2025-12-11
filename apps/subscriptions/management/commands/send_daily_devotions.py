@@ -156,10 +156,14 @@ class Command(BaseCommand):
             
             for subscriber in sms_subscribers:
                 try:
-                    self._send_sms(subscriber.phone, sms_message)
-                    sms_sent_count += 1
-                    if sms_sent_count % 10 == 0:
-                        self.stdout.write(f'  Sent to {sms_sent_count} SMS subscribers...')
+                    result = self._send_sms(subscriber.phone, sms_message)
+                    # Only count as sent if _send_sms returned True (actually sent)
+                    # If False, SMS is not configured and we skip silently
+                    if result is True:
+                        sms_sent_count += 1
+                        if sms_sent_count % 10 == 0:
+                            self.stdout.write(f'  Sent to {sms_sent_count} SMS subscribers...')
+                    # If result is False, SMS not configured - skip silently (don't count as sent or failed)
                 except Exception as e:
                     sms_failed_count += 1
                     self.stdout.write(self.style.ERROR(
@@ -363,7 +367,14 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
         return message
     
     def _send_sms(self, phone, message):
-        """Send SMS via FastR API."""
+        """
+        Send SMS via FastR API.
+        
+        Returns:
+            True if SMS was sent successfully
+            False if SMS is not configured (skip silently)
+            Raises Exception if sending fails
+        """
         secret_key = config('FASTR_API_KEY', default='')
         public_key = config('FASTR_API_PUBLIC_KEY', default='DJbhctlognNbQuEhPMTB9A')
         api_base_url = config('FASTR_API_BASE_URL', default='https://prompt.pywe.org/api/client')
@@ -373,7 +384,7 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
             # SMS not configured, skip silently
             if settings.DEBUG:
                 self.stdout.write(self.style.WARNING(f'SMS not configured. Would send SMS to {phone}'))
-            return
+            return False
         
         # Format phone number (Ghana format: 233XXXXXXXXX - no + sign, just digits)
         phone = phone.strip()
@@ -643,8 +654,12 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
         if sms_subscribers:
             for subscriber in sms_subscribers:
                 try:
-                    self._send_sms(subscriber.phone, sms_message)
-                    sms_sent += 1
+                    result = self._send_sms(subscriber.phone, sms_message)
+                    # Only count as sent if _send_sms returned True (actually sent)
+                    # If False, SMS is not configured and we skip silently
+                    if result is True:
+                        sms_sent += 1
+                    # If result is False, SMS not configured - skip silently (don't count as sent or failed)
                 except Exception as e:
                     sms_failed += 1
                     error_msg = str(e)
@@ -703,10 +718,75 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
         notification.sms_failed_count = sms_failed
         notification.whatsapp_sent_count = whatsapp_sent
         notification.whatsapp_failed_count = whatsapp_failed
+        
+        # Store error summary in notes
+        error_summary = []
+        if email_errors:
+            total_email_errors = sum(len(emails) for emails in email_errors.values())
+            error_summary.append(f"Email Errors: {len(email_errors)} error type(s) affecting {total_email_errors} recipient(s)")
+        if sms_errors:
+            total_sms_errors = sum(len(phones) for phones in sms_errors.values())
+            error_summary.append(f"SMS Errors: {len(sms_errors)} error type(s) affecting {total_sms_errors} recipient(s)")
+        if whatsapp_errors:
+            total_whatsapp_errors = sum(len(phones) for phones in whatsapp_errors.values())
+            error_summary.append(f"WhatsApp Errors: {len(whatsapp_errors)} error type(s) affecting {total_whatsapp_errors} recipient(s)")
+        
+        if error_summary:
+            notification.notes = (notification.notes or '') + '\n' + '\n'.join(error_summary)
+        
         notification.mark_as_sent()
         notification.save()
         
-        self.stdout.write(self.style.SUCCESS(
-            f'  ✓ Sent: {email_sent} email, {sms_sent} SMS, {whatsapp_sent} WhatsApp | '
-            f'Failed: {email_failed} email, {sms_failed} SMS, {whatsapp_failed} WhatsApp'
-        ))
+        # Calculate and display detailed statistics
+        total_recipients = len(email_subscribers) + len(sms_subscribers) + len(whatsapp_subscribers)
+        total_sent = email_sent + sms_sent + whatsapp_sent
+        total_failed = email_failed + sms_failed + whatsapp_failed
+        success_rate = (total_sent / total_recipients * 100) if total_recipients > 0 else 0
+        
+        self.stdout.write('')
+        self.stdout.write(self.style.SUCCESS('  📊 Sending Statistics:'))
+        self.stdout.write(self.style.SUCCESS(f'     Total Recipients: {total_recipients}'))
+        self.stdout.write(self.style.SUCCESS(f'     Successfully Sent: {total_sent} ({success_rate:.1f}% success rate)'))
+        self.stdout.write(self.style.SUCCESS(f'     Failed: {total_failed}'))
+        self.stdout.write('')
+        
+        if notification.send_to_email:
+            email_rate = (email_sent / len(email_subscribers) * 100) if email_subscribers else 0
+            self.stdout.write(self.style.SUCCESS(f'     📧 Email: {email_sent} sent, {email_failed} failed ({email_rate:.1f}% success)'))
+        
+        if notification.send_to_sms:
+            sms_rate = (sms_sent / len(sms_subscribers) * 100) if sms_subscribers else 0
+            self.stdout.write(self.style.SUCCESS(f'     📱 SMS: {sms_sent} sent, {sms_failed} failed ({sms_rate:.1f}% success)'))
+        
+        if notification.send_to_whatsapp:
+            whatsapp_rate = (whatsapp_sent / len(whatsapp_subscribers) * 100) if whatsapp_subscribers else 0
+            self.stdout.write(self.style.SUCCESS(f'     💬 WhatsApp: {whatsapp_sent} sent, {whatsapp_failed} failed ({whatsapp_rate:.1f}% success)'))
+        
+        # Display error details if any
+        if email_errors or sms_errors or whatsapp_errors:
+            self.stdout.write('')
+            self.stdout.write(self.style.ERROR('  ❌ Error Details:'))
+            
+            if email_errors:
+                for error_msg, emails in email_errors.items():
+                    if len(emails) > 3:
+                        self.stdout.write(self.style.ERROR(f'     📧 Email Error ({len(emails)} recipients): {error_msg}'))
+                    else:
+                        for email in emails:
+                            self.stdout.write(self.style.ERROR(f'     📧 Email {email}: {error_msg}'))
+            
+            if sms_errors:
+                for error_msg, phones in sms_errors.items():
+                    if len(phones) > 3:
+                        self.stdout.write(self.style.ERROR(f'     📱 SMS Error ({len(phones)} recipients): {error_msg}'))
+                    else:
+                        for phone in phones:
+                            self.stdout.write(self.style.ERROR(f'     📱 SMS {phone}: {error_msg}'))
+            
+            if whatsapp_errors:
+                for error_msg, phones in whatsapp_errors.items():
+                    if len(phones) > 3:
+                        self.stdout.write(self.style.ERROR(f'     💬 WhatsApp Error ({len(phones)} recipients): {error_msg}'))
+                    else:
+                        for phone in phones:
+                            self.stdout.write(self.style.ERROR(f'     💬 WhatsApp {phone}: {error_msg}'))
