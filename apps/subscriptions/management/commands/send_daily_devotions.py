@@ -519,9 +519,22 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
         # Send emails
         email_sent = 0
         email_failed = 0
+        email_errors = {}
         if email_subscribers:
             from django.core.mail import send_mail
             from django.conf import settings
+            
+            # Check email configuration first
+            if settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
+                self.stdout.write(self.style.WARNING(
+                    '  ⚠️  Email backend is set to console. Emails will only print to console, not actually send.'
+                ))
+            
+            if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+                self.stdout.write(self.style.WARNING(
+                    '  ⚠️  Email credentials not configured. Please set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in .env'
+                ))
+            
             for subscriber in email_subscribers:
                 try:
                     send_mail(
@@ -534,7 +547,24 @@ To unsubscribe, visit: {site_url}/subscriptions/unsubscribe/
                     email_sent += 1
                 except Exception as e:
                     email_failed += 1
-                    self.stdout.write(self.style.ERROR(f'  Failed to send email to {subscriber.email}: {str(e)}'))
+                    error_msg = str(e)
+                    # Group errors by type
+                    if error_msg not in email_errors:
+                        email_errors[error_msg] = []
+                    email_errors[error_msg].append(subscriber.email)
+        
+        # Display grouped email errors
+        if email_errors:
+            for error_msg, emails in email_errors.items():
+                if len(emails) > 3:
+                    self.stdout.write(self.style.ERROR(
+                        f'  ❌ Email Error ({len(emails)} recipients): {error_msg}'
+                    ))
+                else:
+                    for email in emails:
+                        self.stdout.write(self.style.ERROR(
+                            f'  ❌ Failed to send email to {email}: {error_msg}'
+                        ))
         
         # Send SMS
         sms_sent = 0

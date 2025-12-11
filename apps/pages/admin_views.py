@@ -1306,8 +1306,24 @@ class NotificationSendNowView(StaffRequiredMixin, View):
         # Send emails
         email_sent = 0
         email_failed = 0
+        email_errors = {}
         if email_subscribers:
             from django.core.mail import send_mail
+            
+            # Check email configuration first
+            if settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
+                messages.warning(
+                    request,
+                    '⚠️ Email backend is set to console. Emails will only print to console, not actually send. '
+                    'Please configure EMAIL_BACKEND in .env file.'
+                )
+            
+            if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+                messages.warning(
+                    request,
+                    '⚠️ Email credentials not configured. Please set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in .env file.'
+                )
+            
             for subscriber in email_subscribers:
                 try:
                     send_mail(
@@ -1320,7 +1336,23 @@ class NotificationSendNowView(StaffRequiredMixin, View):
                     email_sent += 1
                 except Exception as e:
                     email_failed += 1
-                    messages.error(request, f'Failed to send email to {subscriber.email}: {str(e)}')
+                    error_msg = str(e)
+                    # Group errors by type
+                    if error_msg not in email_errors:
+                        email_errors[error_msg] = []
+                    email_errors[error_msg].append(subscriber.email)
+        
+        # Display grouped email errors
+        if email_errors:
+            for error_msg, emails in email_errors.items():
+                if len(emails) > 3:
+                    messages.error(
+                        request,
+                        f'❌ Email Error ({len(emails)} recipients): {error_msg}'
+                    )
+                else:
+                    for email in emails[:3]:  # Limit to 3 to avoid spam
+                        messages.error(request, f'❌ {email}: {error_msg}')
         
         # Send SMS - Fixed: Group errors by error message directly
         sms_sent = 0
