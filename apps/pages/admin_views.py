@@ -1176,10 +1176,43 @@ class NotificationScheduleDetailView(StaffRequiredMixin, DetailView):
                 whatsapp_preview += f"\n\n{notification.custom_message}"
             has_devotion = False
         
+        # Build HTML preview with image for email and WhatsApp
+        from django.conf import settings
+        site_url = getattr(settings, 'SITE_URL', 'https://upliftyourmorning.com')
+        email_html_preview = None
+        whatsapp_html_preview = None
+        
+        if devotion and devotion.image:
+            # Build HTML email preview with image
+            # Use request to get absolute URL
+            request = self.request
+            if request:
+                image_url = request.build_absolute_uri(devotion.image.url)
+            else:
+                image_url = f"{site_url}{devotion.image.url}"
+            
+            # Escape HTML in the title for safety, but preserve line breaks in content
+            from django.utils.html import escape
+            escaped_title = escape(devotion.title)
+            # Convert plain text preview to HTML, preserving line breaks
+            html_content = escape(email_preview).replace('\n', '<br>')
+            
+            email_html_preview = f"""
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1f2937;">
+    <div style="margin-bottom: 20px; text-align: center;">
+        <img src="{image_url}" alt="{escaped_title}" style="width: 100%; max-width: 600px; height: auto; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="white-space: pre-wrap; padding: 10px 0;">{html_content}</div>
+</div>
+"""
+            whatsapp_html_preview = email_html_preview  # Same for WhatsApp
+        
         context['email_subject'] = email_subject
         context['email_preview'] = email_preview
+        context['email_html_preview'] = email_html_preview  # HTML version with image
         context['sms_preview'] = sms_preview
         context['whatsapp_preview'] = whatsapp_preview  # Full email content for WhatsApp
+        context['whatsapp_html_preview'] = whatsapp_html_preview  # HTML version with image
         context['devotion'] = devotion
         context['has_devotion'] = has_devotion
         

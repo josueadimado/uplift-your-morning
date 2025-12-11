@@ -201,6 +201,11 @@ class Command(BaseCommand):
         # Build the devotion content
         content_parts = []
         
+        # Add image reference if available
+        if devotion.image:
+            image_url = f"{site_url}{devotion.image.url}"
+            content_parts.append(f"[Image: {image_url}]")
+        
         if devotion.scripture_reference:
             content_parts.append(f"Scripture: {devotion.scripture_reference}")
             if devotion.passage_text:

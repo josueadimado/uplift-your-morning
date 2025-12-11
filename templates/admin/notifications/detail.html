@@ -138,6 +138,9 @@
                     {% if notification.send_to_email %}
                     <span class="px-2 py-1 text-xs rounded" style="background: #3b82f6; color: white;">Email</span>
                     {% endif %}
+                    {% if notification.send_to_sms %}
+                    <span class="px-2 py-1 text-xs rounded" style="background: #f57c00; color: white;">SMS</span>
+                    {% endif %}
                     {% if notification.send_to_whatsapp %}
                     <span class="px-2 py-1 text-xs rounded" style="background: #10b981; color: white;">WhatsApp</span>
                     {% endif %}
@@ -262,9 +265,15 @@
             
             <!-- Email Body -->
             <div class="p-6 max-h-96 overflow-y-auto bg-white">
+                {% if email_html_preview %}
+                <div class="text-sm" style="color: #1f2937;">
+                    {{ email_html_preview|safe }}
+                </div>
+                {% else %}
                 <div class="text-sm whitespace-pre-wrap" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
 {{ email_preview }}
                 </div>
+                {% endif %}
             </div>
         </div>
         
@@ -299,9 +308,15 @@
                 <!-- Sample incoming message -->
                 <div class="mb-4 flex justify-start">
                     <div class="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
+                        {% if whatsapp_html_preview %}
+                        <div class="text-sm" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
+                            {{ whatsapp_html_preview|safe }}
+                        </div>
+                        {% else %}
                         <div class="text-sm whitespace-pre-wrap" style="color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
 {{ whatsapp_preview }}
                         </div>
+                        {% endif %}
                         <p class="text-xs mt-2" style="color: #9ca3af;">{{ notification.scheduled_time|time:"g:i A" }}</p>
                     </div>
                 </div>
