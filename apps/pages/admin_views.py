@@ -573,7 +573,7 @@ class PrayerRequestExportCardsView(StaffRequiredMixin, View):
             from reportlab.lib.units import inch
             from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY, TA_RIGHT
         except ImportError:
             return HttpResponseBadRequest('PDF export requires reportlab. Please install it: pip install reportlab')
         
@@ -627,6 +627,10 @@ class PrayerRequestExportCardsView(StaffRequiredMixin, View):
         
         story = []
         
+        # Check if queryset is empty
+        if not queryset.exists():
+            return HttpResponseBadRequest('No prayer requests found to export.')
+        
         for idx, prayer in enumerate(queryset):
             if idx > 0:
                 story.append(PageBreak())
@@ -636,13 +640,15 @@ class PrayerRequestExportCardsView(StaffRequiredMixin, View):
             story.append(Paragraph("PRAYER REQUEST", title_style))
             story.append(Spacer(1, 0.2*inch))
             
-            # Prayer request text
-            request_text = prayer.request.replace('\n', '<br/>')
+            # Prayer request text - escape HTML and convert newlines
+            import html
+            request_text = html.escape(prayer.request).replace('\n', '<br/>')
             story.append(Paragraph(f'<b>"{request_text}"</b>', request_style))
             story.append(Spacer(1, 0.3*inch))
             
-            # Name and status
-            name_text = f"— {prayer.name or 'Anonymous'}"
+            # Name and status - escape HTML
+            name = html.escape(prayer.name or 'Anonymous')
+            name_text = f"— {name}"
             if prayer.is_prayed_for:
                 name_text += " ✓ (Prayed For)"
             story.append(Paragraph(name_text, name_style))
