@@ -1884,11 +1884,46 @@ class CounselingBookingApproveView(StaffRequiredMixin, View):
         booking.save()
         
         # Send notifications (email and SMS)
-        try:
-            send_booking_approval_notifications(booking)
-            messages.success(request, f'Booking approved and notifications sent to {booking.email}')
-        except Exception as e:
-            messages.warning(request, f'Booking approved but notifications failed: {str(e)}')
+        notification_result = send_booking_approval_notifications(booking)
+        
+        # Build detailed success/error message
+        if notification_result['success']:
+            success_parts = ['Booking approved and notifications sent successfully!']
+            if notification_result['email_sent']:
+                success_parts.append(f'✅ Email sent to {booking.email}')
+            if notification_result['sms_sent']:
+                success_parts.append(f'✅ SMS sent to {booking.phone}')
+            if notification_result['admin_notification_sent']:
+                success_parts.append('✅ Admin team notified')
+            messages.success(request, ' | '.join(success_parts))
+        else:
+            # Some notifications failed - provide detailed error message
+            error_parts = ['Booking approved, but some notifications failed:']
+            
+            if notification_result['errors']['email']:
+                error_parts.append(f'❌ Email failed: {notification_result["errors"]["email"]}')
+            elif booking.email and not notification_result['email_sent']:
+                error_parts.append('❌ Email failed: Unknown error')
+            
+            if notification_result['errors']['sms']:
+                error_parts.append(f'❌ SMS failed: {notification_result["errors"]["sms"]}')
+            elif not notification_result['sms_sent']:
+                error_parts.append('❌ SMS failed: Unknown error')
+            
+            if notification_result['errors']['admin']:
+                error_parts.append(f'❌ Admin notification failed: {notification_result["errors"]["admin"]}')
+            elif not notification_result['admin_notification_sent']:
+                error_parts.append('❌ Admin notification failed: Unknown error')
+            
+            # Also show what succeeded
+            if notification_result['email_sent']:
+                error_parts.append(f'✅ Email sent to {booking.email}')
+            if notification_result['sms_sent']:
+                error_parts.append(f'✅ SMS sent to {booking.phone}')
+            if notification_result['admin_notification_sent']:
+                error_parts.append('✅ Admin team notified')
+            
+            messages.warning(request, ' | '.join(error_parts))
         
         # Create Google Calendar event
         try:

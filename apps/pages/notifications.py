@@ -88,24 +88,72 @@ def send_booking_approval_notifications(booking):
     """
     Send email and SMS notifications when a booking is approved.
     Also sends notification emails to admin team.
+    
+    Returns:
+        dict: {
+            'success': bool,
+            'email_sent': bool,
+            'sms_sent': bool,
+            'admin_notification_sent': bool,
+            'errors': {
+                'email': str or None,
+                'sms': str or None,
+                'admin': str or None
+            }
+        }
     """
     if not booking.approved_date or not booking.approved_time:
         raise ValueError("Booking must have approved_date and approved_time before sending notifications")
     
+    result = {
+        'success': True,
+        'email_sent': False,
+        'sms_sent': False,
+        'admin_notification_sent': False,
+        'errors': {
+            'email': None,
+            'sms': None,
+            'admin': None
+        }
+    }
+    
     # Send email notification to user (only if an email address was provided)
     if booking.email:
-        send_booking_approval_email(booking)
+        try:
+            send_booking_approval_email(booking)
+            result['email_sent'] = True
+        except Exception as e:
+            result['success'] = False
+            result['errors']['email'] = str(e)
+            if settings.DEBUG:
+                print(f"Email notification failed: {str(e)}")
     
     # Send SMS notification to user
-    send_booking_approval_sms(booking)
+    try:
+        send_booking_approval_sms(booking)
+        result['sms_sent'] = True
+    except Exception as e:
+        result['success'] = False
+        result['errors']['sms'] = str(e)
+        if settings.DEBUG:
+            print(f"SMS notification failed: {str(e)}")
     
     # Send notification emails to admin team
-    send_booking_approval_admin_notification(booking)
+    try:
+        send_booking_approval_admin_notification(booking)
+        result['admin_notification_sent'] = True
+    except Exception as e:
+        result['success'] = False
+        result['errors']['admin'] = str(e)
+        if settings.DEBUG:
+            print(f"Admin notification failed: {str(e)}")
     
-    # Mark as sent
-    booking.email_sent = bool(booking.email)
-    booking.sms_sent = True
+    # Mark as sent (only mark what actually succeeded)
+    booking.email_sent = result['email_sent']
+    booking.sms_sent = result['sms_sent']
     booking.save(update_fields=['email_sent', 'sms_sent'])
+    
+    return result
 
 
 def send_booking_approval_admin_notification(booking):
@@ -235,11 +283,17 @@ def send_booking_approval_sms(booking):
         # Zoom meeting link (shortened for SMS)
         zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
         
-        # Keep SMS concise (max ~160 chars for single SMS)
+        # Keep SMS concise (max ~160 chars for single SMS, but can be longer if API supports concatenation)
+        # Check message length
         message_body = (
             f"Session approved! {approved_date_str} at {approved_time_str}. "
             f"Join: {zoom_link}"
         )
+        
+        # Warn if message is very long (some carriers have limits)
+        if len(message_body) > 500:
+            if settings.DEBUG:
+                print(f"WARNING: SMS message is {len(message_body)} characters long, which may cause issues with some carriers")
         
         # Format phone number (Ghana format: 233XXXXXXXXX - no + sign, just digits)
         phone = booking.phone.strip()
@@ -282,10 +336,28 @@ def send_booking_approval_sms(booking):
                             print(f"SMS sent successfully. Message ID: {message_id}")
                         return message_id
                     else:
-                        error_msg = response_data.get('message') or response_data.get('error', 'Unknown error')
-                        raise Exception(f"API returned error: {error_msg}")
+                        # Get error message from API response
+                        error_msg = response_data.get('message') or response_data.get('error') or response_data.get('detail', 'Unknown error')
+                        # Log full response for debugging
+                        if settings.DEBUG:
+                            print(f"SMS API Response (status != 'sent'): {response_data}")
+                        # If the error message is the same as our message body, it's likely a parsing issue
+                        if error_msg == message_body or error_msg.strip() == message_body.strip():
+                            raise Exception(
+                                f"SMS API rejected the message. "
+                                f"Message length: {len(message_body)} characters. "
+                                f"API returned the message content as error, which suggests a parsing or format issue. "
+                                f"Full response: {response_data}"
+                            )
+                        else:
+                            raise Exception(
+                                f"SMS API error (HTTP 201 but status != 'sent'): {error_msg}. "
+                                f"Full response: {response_data}"
+                            )
                 except ValueError:
                     # Response might not be JSON, but status code is OK
+                    if settings.DEBUG:
+                        print(f"SMS response was not JSON but status code is 201. Response: {response.text[:200]}")
                     return True
             elif response.status_code == 401:
                 error_detail = ""
