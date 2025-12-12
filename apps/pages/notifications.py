@@ -280,20 +280,12 @@ def send_booking_approval_sms(booking):
         approved_date_str = booking.approved_date.strftime('%B %d, %Y')
         approved_time_str = booking.approved_time.strftime('%I:%M %p')
         
-        # Zoom meeting link (shortened for SMS)
-        zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
-        
-        # Keep SMS concise (max ~160 chars for single SMS, but can be longer if API supports concatenation)
-        # Check message length
+        # Keep SMS concise and short (no Zoom link - that's in email only)
+        # Format: "Session approved! [Date] at [Time]. Check email for Zoom link."
         message_body = (
             f"Session approved! {approved_date_str} at {approved_time_str}. "
-            f"Join: {zoom_link}"
+            f"Check email for Zoom link. Uplift Your Morning"
         )
-        
-        # Warn if message is very long (some carriers have limits)
-        if len(message_body) > 500:
-            if settings.DEBUG:
-                print(f"WARNING: SMS message is {len(message_body)} characters long, which may cause issues with some carriers")
         
         # Format phone number (Ghana format: 233XXXXXXXXX - no + sign, just digits)
         phone = booking.phone.strip()

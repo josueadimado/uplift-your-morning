@@ -1202,10 +1202,8 @@ Uplift Your Morning Team"""
             date_str = booking.approved_date.strftime('%B %d, %Y')
             time_str = booking.approved_time.strftime('%I:%M %p')
         
-        zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
-        
-        # Keep SMS concise (max ~160 chars for single SMS)
-        return f"Session approved! {date_str} at {time_str}. Join: {zoom_link}"
+        # Keep SMS concise and short (no Zoom link - that's in email only)
+        return f"Session approved! {date_str} at {time_str}. Check email for Zoom link. Uplift Your Morning"
 
 
 # ==================== SUBSCRIBERS ====================
