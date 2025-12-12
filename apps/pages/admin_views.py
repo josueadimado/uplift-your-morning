@@ -830,6 +830,184 @@ class TestimonyDeleteView(StaffRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
+class TestimonyExportCSVView(StaffRequiredMixin, View):
+    """Export testimonies as CSV."""
+    def get(self, request, *args, **kwargs):
+        queryset = self._get_queryset()
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="testimonies_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Name', 'Country', 'Testimony', 'Is Approved', 'Is Featured', 'Date Submitted'])
+        
+        for testimony in queryset:
+            writer.writerow([
+                testimony.name or 'Anonymous',
+                testimony.country or '',
+                testimony.testimony,
+                'Yes' if testimony.is_approved else 'No',
+                'Yes' if testimony.featured else 'No',
+                testimony.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+        
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = Testimony.objects.all()
+        status = self.request.GET.get('status')
+        if status == 'approved':
+            queryset = queryset.filter(is_approved=True)
+        elif status == 'pending':
+            queryset = queryset.filter(is_approved=False)
+        return queryset.order_by('-created_at')
+
+
+class TestimonyExportExcelView(StaffRequiredMixin, View):
+    """Export testimonies as Excel."""
+    def get(self, request, *args, **kwargs):
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment
+        except ImportError:
+            return HttpResponseBadRequest('Excel export requires openpyxl. Please install it: pip install openpyxl')
+        
+        queryset = self._get_queryset()
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Testimonies"
+        
+        # Header row
+        headers = ['Name', 'Country', 'Testimony', 'Is Approved', 'Is Featured', 'Date Submitted']
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Data rows
+        for row_num, testimony in enumerate(queryset, 2):
+            ws.cell(row=row_num, column=1, value=testimony.name or 'Anonymous')
+            ws.cell(row=row_num, column=2, value=testimony.country or '')
+            ws.cell(row=row_num, column=3, value=testimony.testimony)
+            ws.cell(row=row_num, column=4, value='Yes' if testimony.is_approved else 'No')
+            ws.cell(row=row_num, column=5, value='Yes' if testimony.featured else 'No')
+            ws.cell(row=row_num, column=6, value=testimony.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+        
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 20
+        ws.column_dimensions['C'].width = 60
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 15
+        ws.column_dimensions['F'].width = 20
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="testimonies_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = Testimony.objects.all()
+        status = self.request.GET.get('status')
+        if status == 'approved':
+            queryset = queryset.filter(is_approved=True)
+        elif status == 'pending':
+            queryset = queryset.filter(is_approved=False)
+        return queryset.order_by('-created_at')
+
+
+class TestimonyExportPDFView(StaffRequiredMixin, View):
+    """Export testimonies as PDF (spreadsheet format)."""
+    def get(self, request, *args, **kwargs):
+        try:
+            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.lib import colors
+            from reportlab.lib.units import inch
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+        except ImportError:
+            return HttpResponseBadRequest('PDF export requires reportlab. Please install it: pip install reportlab')
+        
+        queryset = self._get_queryset()
+        
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        story = []
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            textColor=colors.HexColor('#1f2937'),
+            spaceAfter=20,
+            alignment=TA_CENTER
+        )
+        
+        story.append(Paragraph("Testimonies Export", title_style))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Prepare data
+        data = [['Name', 'Country', 'Testimony', 'Approved', 'Featured', 'Date']]
+        
+        for testimony in queryset:
+            data.append([
+                testimony.name or 'Anonymous',
+                testimony.country or '',
+                testimony.testimony[:100] + '...' if len(testimony.testimony) > 100 else testimony.testimony,
+                'Yes' if testimony.is_approved else 'No',
+                'Yes' if testimony.featured else 'No',
+                testimony.created_at.strftime('%Y-%m-%d')
+            ])
+        
+        # Create table
+        table = Table(data, colWidths=[1.2*inch, 1*inch, 3.5*inch, 0.8*inch, 0.8*inch, 1*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#366092')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#1f2937')),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+        ]))
+        
+        story.append(table)
+        doc.build(story)
+        
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="testimonies_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = Testimony.objects.all()
+        status = self.request.GET.get('status')
+        if status == 'approved':
+            queryset = queryset.filter(is_approved=True)
+        elif status == 'pending':
+            queryset = queryset.filter(is_approved=False)
+        return queryset.order_by('-created_at')
+
+
 # ==================== 40 DAYS CONFIGURATION ====================
 
 class FortyDaysConfigListView(StaffRequiredMixin, ListView):

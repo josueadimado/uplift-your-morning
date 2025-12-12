@@ -51,6 +51,9 @@ urlpatterns = [
     path('testimonies/', admin_views.TestimonyListView.as_view(), name='testimonies_list'),
     path('testimonies/<int:pk>/approve/', admin_views.TestimonyApproveView.as_view(), name='testimonies_approve'),
     path('testimonies/<int:pk>/delete/', admin_views.TestimonyDeleteView.as_view(), name='testimonies_delete'),
+    path('testimonies/export/csv/', admin_views.TestimonyExportCSVView.as_view(), name='testimonies_export_csv'),
+    path('testimonies/export/excel/', admin_views.TestimonyExportExcelView.as_view(), name='testimonies_export_excel'),
+    path('testimonies/export/pdf/', admin_views.TestimonyExportPDFView.as_view(), name='testimonies_export_pdf'),
     
     # 40 Days Configuration
     path('fortydays/', admin_views.FortyDaysConfigListView.as_view(), name='fortydays_list'),
