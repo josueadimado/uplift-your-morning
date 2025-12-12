@@ -51,13 +51,23 @@
                 📄 PDF
             </a>
         </div>
-        <a href="{% url 'manage:prayers_export_cards' %}{% if request.GET.status %}?status={{ request.GET.status }}{% endif %}" 
-           class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
-           style="background: var(--primary); color: white;"
-           onmouseover="this.style.opacity='0.9'"
-           onmouseout="this.style.opacity='1'">
-            🙏 Prayer Cards PDF
-        </a>
+        <div class="flex gap-2 flex-wrap items-center">
+            <span class="text-sm" style="color: var(--text_secondary);">Prayer Cards:</span>
+            <a href="{% url 'manage:prayers_export_cards' %}{% if request.GET.status %}?status={{ request.GET.status }}{% endif %}" 
+               class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
+               style="background: var(--primary); color: white;"
+               onmouseover="this.style.opacity='0.9'"
+               onmouseout="this.style.opacity='1'">
+                🙏 All
+            </a>
+            <a href="{% url 'manage:prayers_export_cards' %}?status=open" 
+               class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
+               style="background: #fef3c7; color: #92400e; border: 1px solid #fbbf24;"
+               onmouseover="this.style.background='#fde68a'"
+               onmouseout="this.style.background='#fef3c7'">
+                🙏 Unprayed
+            </a>
+        </div>
     </div>
 </div>
 <div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
