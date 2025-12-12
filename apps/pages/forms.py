@@ -59,11 +59,10 @@ class CounselingBookingForm(forms.ModelForm):
                 'required': True
             }),
             'duration_minutes': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2.5 border rounded-lg',
-                'min': 30,
-                'max': 120,
-                'step': 15,
-                'value': 60
+                'class': 'w-full px-4 py-2.5 border rounded-lg bg-gray-100',
+                'value': 30,
+                'readonly': True,
+                'style': 'cursor: not-allowed;'
             }),
             'topic': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2.5 border rounded-lg',
@@ -85,9 +84,6 @@ class CounselingBookingForm(forms.ModelForm):
         return preferred_date
     
     def clean_duration_minutes(self):
-        """Ensure duration is between 30 and 120 minutes."""
-        duration = self.cleaned_data.get('duration_minutes')
-        if duration and (duration < 30 or duration > 120):
-            raise forms.ValidationError("Duration must be between 30 and 120 minutes.")
-        return duration
+        """Always set duration to 30 minutes (fixed for all sessions)."""
+        return 30
 

@@ -155,12 +155,12 @@
                         </div>
                         
                         <div class="sm:col-span-2">
-                            <label for="{{ form.duration_minutes.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Session Duration (minutes) *</label>
+                            <label for="{{ form.duration_minutes.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Session Duration *</label>
                             {{ form.duration_minutes }}
                             {% if form.duration_minutes.errors %}
                             <p class="text-sm text-red-600 mt-1">{{ form.duration_minutes.errors.0 }}</p>
                             {% endif %}
-                            <p class="text-xs mt-1" style="color: var(--text_light);">Typical sessions are 60 minutes. You can request 30, 45, 60, 90, or 120 minutes.</p>
+                            <p class="text-xs mt-1" style="color: var(--text_light);">All counseling sessions are 30 minutes in duration.</p>
                         </div>
                     </div>
                 </div>

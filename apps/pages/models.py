@@ -117,7 +117,7 @@ class CounselingBooking(TimeStampedModel):
     # Booking details
     preferred_date = models.DateField(help_text="Preferred date for counseling session")
     preferred_time = models.TimeField(help_text="Preferred time for counseling session")
-    duration_minutes = models.IntegerField(default=60, help_text="Session duration in minutes")
+    duration_minutes = models.IntegerField(default=30, help_text="Session duration in minutes (fixed at 30 minutes)")
     topic = models.CharField(
         max_length=200,
         blank=True,
