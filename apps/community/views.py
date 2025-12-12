@@ -71,7 +71,7 @@ class TestimonyCreateView(CreateView):
     """
     model = Testimony
     template_name = 'community/testimony_form.html'
-    fields = ['name', 'country', 'testimony']
+    fields = ['name', 'country', 'testimony', 'is_public']
     success_url = '/community/testimonies/'
 
     def get_context_data(self, **kwargs):
@@ -97,8 +97,16 @@ class TestimonyCreateView(CreateView):
             print(f"DEBUG: Exception in testimony notification: {str(e)}")
             import traceback
             traceback.print_exc()
-        messages.success(
-            self.request,
-            'Thank you for sharing your testimony! It will be reviewed and published soon.'
-        )
+        
+        # Customize success message based on public preference
+        if self.object.is_public:
+            messages.success(
+                self.request,
+                'Thank you for sharing your testimony! Your willingness to make it public will encourage others. It will be reviewed and published soon.'
+            )
+        else:
+            messages.success(
+                self.request,
+                'Thank you for sharing your testimony! It will be reviewed and kept private as requested.'
+            )
         return response

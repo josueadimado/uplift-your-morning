@@ -33,6 +33,10 @@ class Testimony(TimeStampedModel):
     testimony = models.TextField()
     is_approved = models.BooleanField(default=False)
     featured = models.BooleanField(default=False)
+    is_public = models.BooleanField(
+        default=True,
+        help_text="User's preference to make testimony public to encourage community members"
+    )
 
     def __str__(self):
         return self.testimony[:50]
