@@ -1145,6 +1145,67 @@ class CounselingBookingDetailView(StaffRequiredMixin, DetailView):
     model = CounselingBooking
     template_name = 'admin/counseling/detail.html'
     context_object_name = 'booking'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        booking = context['booking']
+        
+        # Build previews for email and SMS
+        # Use approved date/time if available, otherwise use preferred date/time for preview
+        if booking.approved_date and booking.approved_time:
+            context['email_preview'] = self._build_email_preview(booking)
+            context['sms_preview'] = self._build_sms_preview(booking)
+        elif booking.status == 'pending':
+            # For pending bookings, show preview using preferred date/time
+            context['email_preview'] = self._build_email_preview(booking, use_preferred=True)
+            context['sms_preview'] = self._build_sms_preview(booking, use_preferred=True)
+        
+        return context
+    
+    def _build_email_preview(self, booking, use_preferred=False):
+        """Build email preview text."""
+        if use_preferred or not (booking.approved_date and booking.approved_time):
+            date_str = booking.preferred_date.strftime('%B %d, %Y')
+            time_str = booking.preferred_time.strftime('%I:%M %p')
+        else:
+            date_str = booking.approved_date.strftime('%B %d, %Y')
+            time_str = booking.approved_time.strftime('%I:%M %p')
+        
+        zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
+        
+        return f"""Dear {booking.full_name},
+
+Your counseling session request has been approved!
+
+Session Details:
+- Date: {date_str}
+- Time: {time_str}
+- Duration: {booking.duration_minutes} minutes
+- Topic: {booking.topic or 'General Counseling'}
+
+Meeting Link:
+{zoom_link}
+
+Please join the meeting at the scheduled time using the link above. If you need to reschedule or have any questions, please contact us.
+
+We look forward to meeting with you.
+
+Blessings,
+Uplift Your Morning Team"""
+    
+    def _build_sms_preview(self, booking, use_preferred=False):
+        """Build SMS preview text."""
+        if use_preferred or not (booking.approved_date and booking.approved_time):
+            date_str = booking.preferred_date.strftime('%B %d, %Y')
+            time_str = booking.preferred_time.strftime('%I:%M %p')
+        else:
+            date_str = booking.approved_date.strftime('%B %d, %Y')
+            time_str = booking.approved_time.strftime('%I:%M %p')
+        
+        zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
+        
+        # Keep SMS concise (max ~160 chars for single SMS)
+        return f"Session approved! {date_str} at {time_str}. Join: {zoom_link}"
 
 
 # ==================== SUBSCRIBERS ====================

@@ -87,21 +87,81 @@ You can review and approve this booking in the admin dashboard.
 def send_booking_approval_notifications(booking):
     """
     Send email and SMS notifications when a booking is approved.
+    Also sends notification emails to admin team.
     """
     if not booking.approved_date or not booking.approved_time:
         raise ValueError("Booking must have approved_date and approved_time before sending notifications")
     
-    # Send email notification (only if an email address was provided)
+    # Send email notification to user (only if an email address was provided)
     if booking.email:
         send_booking_approval_email(booking)
     
-    # Send SMS notification
+    # Send SMS notification to user
     send_booking_approval_sms(booking)
+    
+    # Send notification emails to admin team
+    send_booking_approval_admin_notification(booking)
     
     # Mark as sent
     booking.email_sent = bool(booking.email)
     booking.sms_sent = True
     booking.save(update_fields=['email_sent', 'sms_sent'])
+
+
+def send_booking_approval_admin_notification(booking):
+    """Send notification email to admin team when a booking is approved."""
+    admin_emails = ['godswilltk@gmail.com', 'josueadimado@gmail.com']
+    
+    subject = f'Counseling Session Approved - {booking.full_name}'
+    
+    # Format date and time
+    approved_date_str = booking.approved_date.strftime('%B %d, %Y')
+    approved_time_str = booking.approved_time.strftime('%I:%M %p')
+    
+    # Zoom meeting link
+    zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
+    
+    message = f"""
+A counseling session has been approved:
+
+Client Information:
+- Name: {booking.full_name}
+- Email: {booking.email or 'No email provided'}
+- Phone: {booking.phone}
+- Country: {booking.country or 'Not specified'}
+
+Session Details:
+- Date: {approved_date_str}
+- Time: {approved_time_str}
+- Duration: {booking.duration_minutes} minutes
+- Topic: {booking.topic or 'General Counseling'}
+
+Meeting Link:
+{zoom_link}
+
+Please join the meeting at the scheduled time.
+
+---
+Uplift Your Morning Admin System
+"""
+    
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@upliftyourmorning.com',
+            admin_emails,
+            fail_silently=False,
+        )
+        if settings.DEBUG:
+            print(f"✓ Admin notification emails sent successfully to {', '.join(admin_emails)}")
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        error_msg = f"Failed to send admin notification emails: {str(e)}"
+        logger.error(error_msg)
+        if settings.DEBUG:
+            print(f"ERROR: {error_msg}")
 
 
 def send_booking_approval_email(booking):
@@ -111,6 +171,9 @@ def send_booking_approval_email(booking):
     # Format date and time
     approved_date_str = booking.approved_date.strftime('%B %d, %Y')
     approved_time_str = booking.approved_time.strftime('%I:%M %p')
+    
+    # Zoom meeting link
+    zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
     
     message = f"""
 Dear {booking.full_name},
@@ -123,7 +186,10 @@ Session Details:
 - Duration: {booking.duration_minutes} minutes
 - Topic: {booking.topic or 'General Counseling'}
 
-Please make sure to be available at the scheduled time. If you need to reschedule or have any questions, please contact us.
+Meeting Link:
+{zoom_link}
+
+Please join the meeting at the scheduled time using the link above. If you need to reschedule or have any questions, please contact us.
 
 We look forward to meeting with you.
 
@@ -166,11 +232,13 @@ def send_booking_approval_sms(booking):
         approved_date_str = booking.approved_date.strftime('%B %d, %Y')
         approved_time_str = booking.approved_time.strftime('%I:%M %p')
         
+        # Zoom meeting link (shortened for SMS)
+        zoom_link = 'https://us02web.zoom.us/j/6261738082?pwd=RWNTU3RsNEdGMWcxOGpxRWtNM00zdz09'
+        
+        # Keep SMS concise (max ~160 chars for single SMS)
         message_body = (
-            f"Your counseling session has been approved! "
-            f"Date: {approved_date_str} at {approved_time_str}. "
-            f"Duration: {booking.duration_minutes} minutes. "
-            f"Uplift Your Morning"
+            f"Session approved! {approved_date_str} at {approved_time_str}. "
+            f"Join: {zoom_link}"
         )
         
         # Format phone number (Ghana format: 233XXXXXXXXX - no + sign, just digits)

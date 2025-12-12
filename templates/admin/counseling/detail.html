@@ -127,6 +127,39 @@
             </div>
         </div>
 
+        <!-- Notification Previews -->
+        {% if booking.status == 'pending' or booking.status == 'approved' %}
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">📧 Notification Previews</h2>
+            <p class="text-sm mb-4" style="color: var(--text_secondary);">
+                This is what the client will receive when the booking is approved:
+            </p>
+            
+            {% if email_preview and booking.email %}
+            <div class="mb-4">
+                <h3 class="text-sm font-semibold mb-2" style="color: var(--text);">📧 Email Preview:</h3>
+                <div class="bg-gray-50 rounded-lg p-4 border" style="border-color: #e5e7eb;">
+                    <div class="text-xs whitespace-pre-wrap font-mono" style="color: #374151;">{{ email_preview }}</div>
+                </div>
+            </div>
+            {% elif not booking.email %}
+            <div class="mb-4">
+                <h3 class="text-sm font-semibold mb-2" style="color: var(--text);">📧 Email:</h3>
+                <p class="text-sm" style="color: var(--text_secondary);">No email address provided - email will not be sent</p>
+            </div>
+            {% endif %}
+            
+            {% if sms_preview %}
+            <div>
+                <h3 class="text-sm font-semibold mb-2" style="color: var(--text);">📱 SMS Preview:</h3>
+                <div class="bg-gray-50 rounded-lg p-4 border" style="border-color: #e5e7eb;">
+                    <div class="text-xs whitespace-pre-wrap font-mono" style="color: #374151;">{{ sms_preview }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <!-- Actions -->
         {% if booking.status == 'pending' %}
         <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
