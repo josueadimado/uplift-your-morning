@@ -44,6 +44,8 @@
                     <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ testimony.created_at|date:"M d, Y" }}</td>
                     <td class="px-6 py-4">{% if testimony.is_approved %}<span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">Approved</span>{% else %}<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">Pending</span>{% endif %}</td>
                     <td class="px-6 py-4">
+                        <a href="{% url 'manage:testimonies_detail' testimony.pk %}" class="text-sm font-semibold" style="color: var(--primary);">View</a>
+                        <span style="color: var(--border);">|</span>
                         {% if not testimony.is_approved %}
                         <form method="post" action="{% url 'manage:testimonies_approve' testimony.pk %}" class="inline">{% csrf_token %}
                             <button type="submit" class="text-sm font-semibold" style="color: var(--primary);">Approve</button>

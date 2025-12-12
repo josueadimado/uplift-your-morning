@@ -49,6 +49,7 @@ urlpatterns = [
     
     # Testimonies
     path('testimonies/', admin_views.TestimonyListView.as_view(), name='testimonies_list'),
+    path('testimonies/<int:pk>/', admin_views.TestimonyDetailView.as_view(), name='testimonies_detail'),
     path('testimonies/<int:pk>/approve/', admin_views.TestimonyApproveView.as_view(), name='testimonies_approve'),
     path('testimonies/<int:pk>/delete/', admin_views.TestimonyDeleteView.as_view(), name='testimonies_delete'),
     path('testimonies/export/csv/', admin_views.TestimonyExportCSVView.as_view(), name='testimonies_export_csv'),

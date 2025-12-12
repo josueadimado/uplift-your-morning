@@ -1,0 +1,110 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <a href="{% url 'manage:testimonies_list' %}" 
+       class="inline-flex items-center text-sm font-semibold mb-4"
+       style="color: var(--primary);">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Testimonies
+    </a>
+    <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">Testimony Details</h1>
+    <p class="text-base" style="color: var(--text_secondary);">{{ testimony.name|default:"Anonymous" }}</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Testimony Content -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Testimony</h2>
+            <div class="prose max-w-none">
+                <p class="text-base whitespace-pre-wrap leading-relaxed" style="color: var(--text);">{{ testimony.testimony }}</p>
+            </div>
+        </div>
+
+        <!-- Submitter Information -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Submitter Information</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Name</p>
+                    <p class="text-base" style="color: var(--text);">{{ testimony.name|default:"Anonymous" }}</p>
+                </div>
+                {% if testimony.country %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Country</p>
+                    <p class="text-base" style="color: var(--text);">{{ testimony.country }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Status Card -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Status</h2>
+            <div class="mb-4">
+                <span class="px-3 py-1 rounded text-sm font-semibold
+                    {% if testimony.is_approved %}bg-green-100 text-green-800
+                    {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                    {% if testimony.is_approved %}Approved{% else %}Pending Approval{% endif %}
+                </span>
+            </div>
+            {% if testimony.featured %}
+            <div class="mt-3">
+                <span class="px-3 py-1 rounded text-sm font-semibold bg-blue-100 text-blue-800">
+                    ⭐ Featured
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Actions</h2>
+            <div class="space-y-3">
+                {% if not testimony.is_approved %}
+                <form method="post" action="{% url 'manage:testimonies_approve' testimony.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="w-full px-4 py-2 rounded-lg font-semibold text-white"
+                            style="background: #10b981;"
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
+                        Approve Testimony
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'manage:testimonies_delete' testimony.pk %}" 
+                   class="block w-full px-4 py-2 rounded-lg font-semibold text-white text-center"
+                   style="background: #ef4444;"
+                   onmouseover="this.style.background='#dc2626'"
+                   onmouseout="this.style.background='#ef4444'">
+                    Delete Testimony
+                </a>
+            </div>
+        </div>
+
+        <!-- Timestamps -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Timestamps</h2>
+            <div class="space-y-2 text-sm">
+                <div>
+                    <p class="font-medium mb-1" style="color: var(--text_secondary);">Submitted</p>
+                    <p style="color: var(--text);">{{ testimony.created_at|date:"F d, Y g:i A" }}</p>
+                </div>
+                <div>
+                    <p class="font-medium mb-1" style="color: var(--text_secondary);">Last Updated</p>
+                    <p style="color: var(--text);">{{ testimony.updated_at|date:"F d, Y g:i A" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

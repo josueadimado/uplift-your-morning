@@ -812,6 +812,13 @@ class TestimonyListView(StaffRequiredMixin, ListView):
         return context
 
 
+class TestimonyDetailView(StaffRequiredMixin, DetailView):
+    """View details of a testimony."""
+    model = Testimony
+    template_name = 'admin/testimonies/detail.html'
+    context_object_name = 'testimony'
+
+
 class TestimonyApproveView(StaffRequiredMixin, View):
     """Approve a testimony."""
     def post(self, request, *args, **kwargs):
@@ -820,9 +827,10 @@ class TestimonyApproveView(StaffRequiredMixin, View):
             testimony.is_approved = True
             testimony.save()
             messages.success(request, 'Testimony approved!')
+            return redirect('manage:testimonies_detail', pk=testimony.pk)
         except Testimony.DoesNotExist:
             messages.error(request, 'Testimony not found.')
-        return redirect('manage:testimonies_list')
+            return redirect('manage:testimonies_list')
 
 
 class TestimonyDeleteView(StaffRequiredMixin, DeleteView):
