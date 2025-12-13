@@ -1,10 +1,10 @@
 {% extends 'admin/custom_base.html' %}
 {% block admin_content %}
-<div class="mb-6 flex items-center justify-between flex-wrap gap-4">
-    <h1 class="text-2xl font-bold" style="color: var(--text);">Prayer Requests</h1>
-    <div class="flex gap-2 flex-wrap">
-        <div class="flex gap-2 flex-wrap items-center">
-            <span class="text-sm" style="color: var(--text_secondary);">Export All:</span>
+<div class="mb-6">
+    <h1 class="text-2xl font-bold mb-4" style="color: var(--text);">Prayer Requests</h1>
+    <div class="flex flex-col sm:flex-row gap-4 flex-wrap">
+        <div class="flex flex-col sm:flex-row gap-2 flex-wrap items-start sm:items-center">
+            <span class="text-sm font-medium" style="color: var(--text_secondary);">Export All:</span>
             <a href="{% url 'manage:prayers_export_csv' %}{% if request.GET.status %}?status={{ request.GET.status }}{% endif %}" 
                class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
                style="background: var(--background_light); color: var(--text); border: 1px solid var(--border);"
@@ -27,8 +27,8 @@
                 📄 PDF
             </a>
         </div>
-        <div class="flex gap-2 flex-wrap items-center">
-            <span class="text-sm" style="color: var(--text_secondary);">Export Unprayed:</span>
+        <div class="flex flex-col sm:flex-row gap-2 flex-wrap items-start sm:items-center">
+            <span class="text-sm font-medium" style="color: var(--text_secondary);">Export Unprayed:</span>
             <a href="{% url 'manage:prayers_export_csv' %}?status=open" 
                class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
                style="background: #fef3c7; color: #92400e; border: 1px solid #fbbf24;"
@@ -51,8 +51,8 @@
                 📄 PDF
             </a>
         </div>
-        <div class="flex gap-2 flex-wrap items-center">
-            <span class="text-sm" style="color: var(--text_secondary);">Prayer Cards:</span>
+        <div class="flex flex-col sm:flex-row gap-2 flex-wrap items-start sm:items-center">
+            <span class="text-sm font-medium" style="color: var(--text_secondary);">Prayer Cards:</span>
             <a href="{% url 'manage:prayers_export_cards' %}{% if request.GET.status %}?status={{ request.GET.status }}{% endif %}" 
                class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
                style="background: var(--primary); color: white;"
@@ -74,27 +74,34 @@
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-gray-50" style="background: var(--background_light);">
-                <tr><th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Request</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th></tr>
+                <tr>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Request</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase hidden sm:table-cell" style="color: var(--text_secondary);">Name</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase hidden md:table-cell" style="color: var(--text_secondary);">Date</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th>
+                </tr>
             </thead>
             <tbody class="divide-y" style="border-color: var(--border);">
                 {% for prayer in prayers %}
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4"><div class="text-sm" style="color: var(--text);">{{ prayer.request|truncatechars:80 }}</div></td>
-                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ prayer.name|default:"Anonymous" }}</td>
-                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ prayer.created_at|date:"M d, Y" }}</td>
-                    <td class="px-6 py-4">{% if prayer.is_prayed_for %}<span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">Prayed</span>{% else %}<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">Open</span>{% endif %}</td>
-                    <td class="px-6 py-4">
-                        {% if not prayer.is_prayed_for %}
-                        <form method="post" action="{% url 'manage:prayers_mark_prayed' prayer.pk %}" class="inline">{% csrf_token %}
-                            <button type="submit" class="text-sm font-semibold" style="color: var(--primary);">Mark as Prayed</button>
-                        </form>
-                        <span style="color: var(--border);">|</span>
-                        {% endif %}
-                        <a href="{% url 'manage:prayers_delete' prayer.pk %}" class="text-sm font-semibold text-red-600">Delete</a>
+                    <td class="px-3 sm:px-6 py-4">
+                        <div class="text-sm" style="color: var(--text);">{{ prayer.request|truncatechars:80 }}</div>
+                        <div class="text-xs mt-1 sm:hidden" style="color: var(--text_secondary);">{{ prayer.name|default:"Anonymous" }} • {{ prayer.created_at|date:"M d, Y" }}</div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-4 text-sm hidden sm:table-cell" style="color: var(--text_secondary);">{{ prayer.name|default:"Anonymous" }}</td>
+                    <td class="px-3 sm:px-6 py-4 text-sm hidden md:table-cell" style="color: var(--text_secondary);">{{ prayer.created_at|date:"M d, Y" }}</td>
+                    <td class="px-3 sm:px-6 py-4">{% if prayer.is_prayed_for %}<span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">Prayed</span>{% else %}<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">Open</span>{% endif %}</td>
+                    <td class="px-3 sm:px-6 py-4">
+                        <div class="flex flex-col sm:flex-row gap-1 sm:gap-0">
+                            {% if not prayer.is_prayed_for %}
+                            <form method="post" action="{% url 'manage:prayers_mark_prayed' prayer.pk %}" class="inline">{% csrf_token %}
+                                <button type="submit" class="text-xs sm:text-sm font-semibold" style="color: var(--primary);">Mark as Prayed</button>
+                            </form>
+                            <span class="hidden sm:inline" style="color: var(--border);">|</span>
+                            {% endif %}
+                            <a href="{% url 'manage:prayers_delete' prayer.pk %}" class="text-xs sm:text-sm font-semibold text-red-600">Delete</a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}<tr><td colspan="5" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">No prayer requests found.</td></tr>

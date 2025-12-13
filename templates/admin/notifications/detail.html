@@ -2,14 +2,14 @@
 
 {% block admin_content %}
 <div class="mb-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">{{ notification.title }}</h1>
-            <p class="text-base" style="color: var(--text_secondary);">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex-1">
+            <h1 class="text-2xl sm:text-3xl font-bold mb-2" style="color: var(--text);">{{ notification.title }}</h1>
+            <p class="text-sm sm:text-base" style="color: var(--text_secondary);">
                 Scheduled for {{ notification.scheduled_date|date:"F d, Y" }} at {{ notification.scheduled_time|time:"g:i A" }}
             </p>
         </div>
-        <div class="flex gap-2 flex-wrap">
+        <div class="flex gap-2 flex-wrap w-full sm:w-auto">
             {% if notification.status != 'sent' %}
             <form method="post" action="{% url 'manage:notifications_send_now' notification.pk %}">
                 {% csrf_token %}
@@ -173,7 +173,7 @@
     
     <!-- Summary Card -->
     <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 mb-6 border" style="border-color: #e5e7eb;">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div>
                 <p class="text-xs font-medium mb-1" style="color: var(--text_secondary);">Total Recipients</p>
                 <p class="text-2xl font-bold" style="color: #3b82f6;">{{ total_recipients|default:0 }}</p>
@@ -405,7 +405,7 @@
 {% endif %}
 
 <!-- Message Previews -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     {% if notification.send_to_email %}
     <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
         <div class="flex items-center justify-between mb-4">
@@ -549,7 +549,7 @@
         Here's what a typical message looks like with sample devotion content:
     </p>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Sample Email -->
         <div>
             <h4 class="text-sm font-semibold mb-3" style="color: var(--text);">Sample Email:</h4>

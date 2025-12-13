@@ -1,7 +1,7 @@
 {% extends 'admin/custom_base.html' %}
 
 {% block admin_content %}
-<div class="mb-6 flex items-center justify-between">
+<div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <div>
         <h1 class="text-2xl font-bold" style="color: var(--text);">Devotions</h1>
         <p class="text-sm mt-1" style="color: var(--text_secondary);">
@@ -9,7 +9,7 @@
         </p>
     </div>
     <a href="{% url 'manage:devotions_create' %}" 
-       class="px-4 py-2 rounded-lg text-white font-semibold"
+       class="w-full sm:w-auto px-4 py-2 rounded-lg text-white font-semibold text-center"
        style="background: var(--primary);">
         + New Devotion
     </a>
@@ -66,38 +66,39 @@
         <table class="w-full">
             <thead class="bg-gray-50" style="background: var(--background_light);">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Title</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Publish Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Actions</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Title</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider hidden md:table-cell" style="color: var(--text_secondary);">Publish Date</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: var(--text_secondary);">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y" style="border-color: var(--border);">
                 {% for devotion in devotions %}
                 <tr class="hover:bg-gray-50" style="background: {% cycle 'white' 'var(--background_light)' %};">
-                    <td class="px-6 py-4">
+                    <td class="px-3 sm:px-6 py-4">
                         <div class="text-sm font-medium" style="color: var(--text);">{{ devotion.title|truncatechars:60 }}</div>
                         {% if devotion.publish_date %}
                         <div class="text-xs mt-1" style="color: var(--text_light);">{{ devotion.get_day_count }}</div>
+                        <div class="text-xs mt-1 md:hidden" style="color: var(--text_secondary);">{{ devotion.publish_date|date:"M d, Y" }}</div>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">
+                    <td class="px-3 sm:px-6 py-4 text-sm hidden md:table-cell" style="color: var(--text_secondary);">
                         {{ devotion.publish_date|date:"M d, Y" }}
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-3 sm:px-6 py-4">
                         {% if devotion.is_published %}
                         <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">Published</span>
                         {% else %}
                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">Draft</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center space-x-2">
+                    <td class="px-3 sm:px-6 py-4">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-0 sm:space-x-2">
                             <a href="{% url 'manage:devotions_edit' devotion.pk %}" 
-                               class="text-sm font-semibold" style="color: var(--primary);">Edit</a>
-                            <span style="color: var(--border);">|</span>
+                               class="text-xs sm:text-sm font-semibold" style="color: var(--primary);">Edit</a>
+                            <span class="hidden sm:inline" style="color: var(--border);">|</span>
                             <a href="{% url 'manage:devotions_delete' devotion.pk %}" 
-                               class="text-sm font-semibold text-red-600 hover:text-red-700">Delete</a>
+                               class="text-xs sm:text-sm font-semibold text-red-600 hover:text-red-700">Delete</a>
                         </div>
                     </td>
                 </tr>
