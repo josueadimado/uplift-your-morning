@@ -39,14 +39,15 @@
         <p class="font-semibold mb-2 text-base sm:text-lg" style="color: var(--primary);">{{ devotion.theme }}</p>
         {% endif %}
         
-        {% if devotion.topic %}
-        <h2 class="text-xl sm:text-2xl font-bold mb-3" style="color: var(--text);">{{ devotion.topic }}</h2>
-        {% endif %}
-        
         <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style="color: var(--text);">{{ devotion.title }}</h1>
         
         <div class="flex flex-wrap items-center gap-3 sm:gap-4 mb-4 sm:mb-6 font-medium text-sm sm:text-base" style="color: var(--text_secondary);">
             <span>{{ devotion.publish_date|date:"l, F d, Y" }}</span>
+            {% if devotion.publish_date %}
+            <span class="px-3 py-1 rounded-full font-semibold" style="background: var(--background_tint); color: var(--primary);">
+                {{ devotion.get_day_count }}
+            </span>
+            {% endif %}
             {% if devotion.series %}
             <span class="px-3 py-1 rounded-full" style="background: var(--background_tint);">
                 <a href="{% url 'devotions:series-detail' devotion.series.slug %}" class="hover:underline" style="color: var(--primary);">
@@ -206,7 +207,10 @@
                         {{ related.title }}
                     </a>
                 </h3>
-                <p class="text-gray-500 text-xs sm:text-sm">{{ related.publish_date|date:"M d, Y" }}</p>
+                <p class="text-gray-500 text-xs sm:text-sm mb-1">{{ related.publish_date|date:"M d, Y" }}</p>
+                {% if related.publish_date %}
+                <p class="text-xs font-semibold" style="color: var(--primary);">{{ related.get_day_count }}</p>
+                {% endif %}
             </div>
             {% endfor %}
         </div>

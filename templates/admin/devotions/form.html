@@ -41,8 +41,11 @@
                 {{ form.theme }}
             </div>
             <div>
-                <label for="{{ form.topic.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Topic</label>
-                {{ form.topic }}
+                <label class="block text-sm font-medium mb-2" style="color: var(--text);">Day Count</label>
+                <div id="day-count-display" class="px-4 py-2.5 rounded-lg border bg-gray-50" style="border-color: var(--border); color: var(--text_secondary); min-height: 42px; display: flex; align-items: center;">
+                    {% if day_count %}{{ day_count }}{% else %}Select a publish date{% endif %}
+                </div>
+                <p class="text-xs mt-1" style="color: var(--text_secondary);">Automatically calculated from publish date</p>
             </div>
         </div>
 
@@ -223,6 +226,45 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Day count calculation
+    const publishDateInput = document.getElementById('id_publish_date');
+    const dayCountDisplay = document.getElementById('day-count-display');
+    
+    function calculateDayCount(dateString) {
+        if (!dateString) {
+            dayCountDisplay.textContent = 'Select a publish date';
+            return;
+        }
+        
+        const date = new Date(dateString + 'T00:00:00');
+        if (isNaN(date.getTime())) {
+            dayCountDisplay.textContent = 'Invalid date';
+            return;
+        }
+        
+        // Calculate day of year
+        const startOfYear = new Date(date.getFullYear(), 0, 1);
+        const diffTime = date - startOfYear;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 because day 1 is Jan 1
+        const year = date.getFullYear();
+        
+        dayCountDisplay.textContent = `Day ${diffDays} of year ${year}`;
+    }
+    
+    // Update day count when date changes
+    if (publishDateInput) {
+        // Set initial value
+        if (publishDateInput.value) {
+            calculateDayCount(publishDateInput.value);
+        }
+        
+        // Update on change
+        publishDateInput.addEventListener('change', function() {
+            calculateDayCount(this.value);
+        });
+    }
+    
+    // Series modal functionality
     const modal = document.getElementById('series-modal');
     const openBtn = document.getElementById('create-series-btn');
     const closeBtn = document.getElementById('close-series-modal');

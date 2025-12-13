@@ -148,7 +148,12 @@
             {% endif %}
             <p class="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">{{ devotion.body|truncatewords:30 }}</p>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <span class="text-xs sm:text-sm text-gray-500">{{ devotion.publish_date|date:"M d, Y" }}</span>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs sm:text-sm text-gray-500">{{ devotion.publish_date|date:"M d, Y" }}</span>
+                        {% if devotion.publish_date %}
+                        <span class="text-xs font-semibold" style="color: var(--primary);">{{ devotion.get_day_count }}</span>
+                        {% endif %}
+                    </div>
                     <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                         <button type="button"
                                 onclick="shareLink('{% url 'devotions:detail' devotion.slug %}', '{{ devotion.title|escapejs }}')"

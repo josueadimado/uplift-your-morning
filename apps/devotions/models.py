@@ -76,3 +76,14 @@ class Devotion(TimeStampedModel):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+
+    def get_day_count(self):
+        """
+        Calculate the day of the year for the publish date.
+        Returns a string like "Day 303 of year 2025".
+        """
+        if not self.publish_date:
+            return ""
+        day_of_year = self.publish_date.timetuple().tm_yday
+        year = self.publish_date.year
+        return f"Day {day_of_year} of year {year}"

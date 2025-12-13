@@ -77,8 +77,8 @@
                 <tr class="hover:bg-gray-50" style="background: {% cycle 'white' 'var(--background_light)' %};">
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium" style="color: var(--text);">{{ devotion.title|truncatechars:60 }}</div>
-                        {% if devotion.topic %}
-                        <div class="text-xs mt-1" style="color: var(--text_light);">{{ devotion.topic|truncatechars:40 }}</div>
+                        {% if devotion.publish_date %}
+                        <div class="text-xs mt-1" style="color: var(--text_light);">{{ devotion.get_day_count }}</div>
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">

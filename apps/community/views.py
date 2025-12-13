@@ -51,15 +51,19 @@ class TestimonyListView(ListView):
 
     def get_queryset(self):
         """
-        Get only approved testimonies.
+        Get only approved and public testimonies (respect user preference).
         """
-        return Testimony.objects.filter(is_approved=True).order_by('-created_at')
+        return Testimony.objects.filter(
+            is_approved=True,
+            is_public=True
+        ).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Get featured testimonies separately
         context['featured_testimonies'] = Testimony.objects.filter(
             is_approved=True,
+            is_public=True,
             featured=True
         )[:5]
         return context

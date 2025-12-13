@@ -67,5 +67,8 @@ class TestimonyListAPIView(generics.ListAPIView):
     GET /api/community/testimonies/
     """
     serializer_class = TestimonyListSerializer
-    queryset = Testimony.objects.filter(is_approved=True).order_by('-created_at')
+    queryset = Testimony.objects.filter(
+        is_approved=True,
+        is_public=True
+    ).order_by('-created_at')
 

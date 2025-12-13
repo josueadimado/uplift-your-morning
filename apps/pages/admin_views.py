@@ -65,7 +65,7 @@ class DevotionListView(StaffRequiredMixin, ListView):
             queryset = queryset.filter(
                 Q(title__icontains=search) |
                 Q(body__icontains=search) |
-                Q(topic__icontains=search)
+                Q(scripture_reference__icontains=search)
             )
         return queryset.order_by('-publish_date', '-created_at')
 
@@ -82,7 +82,7 @@ class DevotionCreateView(StaffRequiredMixin, CreateView):
     model = Devotion
     template_name = 'admin/devotions/form.html'
     fields = [
-        'title', 'series', 'theme', 'topic', 'scripture_reference', 'passage_text',
+        'title', 'series', 'theme', 'scripture_reference', 'passage_text',
         'body', 'quote', 'reflection', 'prayer', 'action_point', 'publish_date',
         'is_published', 'image', 'audio_file', 'pdf_file', 'featured'
     ]
@@ -100,6 +100,20 @@ class DevotionCreateView(StaffRequiredMixin, CreateView):
         })
         return initial
 
+    def get_context_data(self, **kwargs):
+        """Add day count to context."""
+        context = super().get_context_data(**kwargs)
+        # Calculate day count for initial date (today)
+        from django.utils import timezone
+        publish_date = self.get_initial().get('publish_date', timezone.localdate())
+        if publish_date:
+            day_of_year = publish_date.timetuple().tm_yday
+            year = publish_date.year
+            context['day_count'] = f"Day {day_of_year} of year {year}"
+        else:
+            context['day_count'] = ""
+        return context
+
     def form_valid(self, form):
         messages.success(self.request, 'Devotion created successfully!')
         return super().form_valid(form)
@@ -110,11 +124,31 @@ class DevotionUpdateView(StaffRequiredMixin, UpdateView):
     model = Devotion
     template_name = 'admin/devotions/form.html'
     fields = [
-        'title', 'series', 'theme', 'topic', 'scripture_reference', 'passage_text',
+        'title', 'series', 'theme', 'scripture_reference', 'passage_text',
         'body', 'quote', 'reflection', 'prayer', 'action_point', 'publish_date',
         'is_published', 'image', 'audio_file', 'pdf_file', 'featured'
     ]
     success_url = reverse_lazy('manage:devotions_list')
+
+    def get_context_data(self, **kwargs):
+        """Add day count to context."""
+        context = super().get_context_data(**kwargs)
+        # Calculate day count from the devotion's publish date
+        if self.object and self.object.publish_date:
+            context['day_count'] = self.object.get_day_count()
+        else:
+            # If no date yet, calculate from form initial or today
+            publish_date = self.object.publish_date if self.object else None
+            if not publish_date:
+                from django.utils import timezone
+                publish_date = timezone.localdate()
+            if publish_date:
+                day_of_year = publish_date.timetuple().tm_yday
+                year = publish_date.year
+                context['day_count'] = f"Day {day_of_year} of year {year}"
+            else:
+                context['day_count'] = ""
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, 'Devotion updated successfully!')

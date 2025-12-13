@@ -42,8 +42,8 @@
                 {{ banner_devotion.theme }}
             </span>
             {% endif %}
-            {% if banner_devotion and banner_devotion.topic %}
-            <h2 class="text-xl md:text-2xl font-semibold mb-3 text-white/90" style="font-size: 20px;">{{ banner_devotion.topic }}</h2>
+            {% if banner_devotion and banner_devotion.publish_date %}
+            <h2 class="text-xl md:text-2xl font-semibold mb-3 text-white/90" style="font-size: 20px;">{{ banner_devotion.get_day_count }}</h2>
             {% endif %}
             {% if banner_devotion %}
             <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">{{ banner_devotion.title }}</h1>
@@ -127,6 +127,16 @@
             <!-- Main Content -->
             <div class="lg:col-span-2">
                 <article class="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100">
+                    <!-- Day Count and Date -->
+                    {% if devotion.publish_date %}
+                    <div class="mb-6 flex flex-wrap items-center gap-3">
+                        <span class="font-medium text-lg" style="color: var(--text_secondary);">{{ devotion.publish_date|date:"l, F d, Y" }}</span>
+                        <span class="px-4 py-2 rounded-full font-semibold text-lg" style="background: var(--background_tint); color: var(--primary);">
+                            {{ devotion.get_day_count }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
                     <!-- Scripture Reference -->
                     {% if devotion.scripture_reference %}
                     <div class="mb-8 p-6 rounded-xl relative overflow-hidden" style="background: linear-gradient(135deg, #f0f7f5 0%, #e8f5f1 100%); border-left: 4px solid var(--primary);">
