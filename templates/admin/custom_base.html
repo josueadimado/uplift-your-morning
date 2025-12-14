@@ -138,6 +138,14 @@
                             </svg>
                             <span>Resources</span>
                         </a>
+                        <a href="{% url 'manage:fortydays_notes_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'fortydays_notes' in request.resolver_match.url_name or 'fortydays_note_categories' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'fortydays_notes' in request.resolver_match.url_name or 'fortydays_note_categories' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span>40 Days Notes</span>
+                        </a>
                     </div>
 
                     <div class="pt-4">

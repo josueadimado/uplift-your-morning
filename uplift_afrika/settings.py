@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -153,16 +154,18 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# Only scan static files in development when needed (not during makemigrations)
-# This speeds up Django command execution
-if DEBUG:
+
+# Optimize static files scanning - only scan when actually needed
+# This significantly speeds up Django command execution (makemigrations, migrate, etc.)
+# Skip static files scanning for non-static commands to speed up startup
+SKIP_STATIC_SCAN = any(cmd in sys.argv for cmd in ['makemigrations', 'migrate', 'shell', 'dbshell', 'test', 'check'])
+if not SKIP_STATIC_SCAN:
     STATICFILES_DIRS = [
         BASE_DIR / 'static',
     ]
 else:
-    STATICFILES_DIRS = [
-        BASE_DIR / 'static',
-    ]
+    # Empty list to skip scanning during migrations and other non-static commands
+    STATICFILES_DIRS = []
 
 # WhiteNoise configuration for efficient static file serving
 # Disable in development for faster startup - only enable in production after collectstatic

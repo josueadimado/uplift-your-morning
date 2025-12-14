@@ -1,0 +1,18 @@
+{% extends 'admin/custom_base.html' %}
+{% block admin_content %}
+<div class="mb-6"><h1 class="text-2xl font-bold" style="color: var(--text);">{% if object %}Edit{% else %}Create{% endif %} 40 Days Note Category</h1></div>
+<form method="post" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    {% csrf_token %}
+    <div class="space-y-6">
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Name *</label>{{ form.name }}</div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Order</label>{{ form.order }}<p class="text-xs mt-1" style="color: var(--text_secondary);">Lower numbers appear first</p></div>
+        <div><label class="block text-sm font-medium mb-2" style="color: var(--text);">Description</label>{{ form.description }}</div>
+    </div>
+    <div class="mt-6 flex items-center space-x-4">
+        <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold" style="background: var(--primary);">Save</button>
+        <a href="{% url 'manage:fortydays_note_categories_list' %}" class="px-6 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">Cancel</a>
+    </div>
+</form>
+<style>input, textarea, select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; } input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); }</style>
+{% endblock %}
+

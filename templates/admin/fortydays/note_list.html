@@ -1,0 +1,126 @@
+{% extends 'admin/custom_base.html' %}
+{% block admin_content %}
+<div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-bold" style="color: var(--text);">40 Days 2025 Notes</h1>
+        <p class="text-sm mt-1" style="color: var(--text_secondary);">Manage evening session notes and insights</p>
+    </div>
+    <div class="flex items-center space-x-3">
+        <a href="{% url 'manage:fortydays_note_categories_list' %}" class="px-4 py-2 rounded-lg border font-semibold text-sm" style="border-color: var(--border); color: var(--primary);">Manage Categories</a>
+        <a href="{% url 'manage:fortydays_notes_create' %}" class="px-4 py-2 rounded-lg text-white font-semibold text-sm" style="background: var(--primary);">+ New Note</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border p-4" style="border-color: var(--border);">
+        <div class="text-sm" style="color: var(--text_secondary);">Total Notes</div>
+        <div class="text-2xl font-bold mt-1" style="color: var(--text);">{{ total }}</div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border p-4" style="border-color: var(--border);">
+        <div class="text-sm" style="color: var(--text_secondary);">Published</div>
+        <div class="text-2xl font-bold mt-1" style="color: var(--primary);">{{ published_count }}</div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border p-4" style="border-color: var(--border);">
+        <div class="text-sm" style="color: var(--text_secondary);">Unpublished</div>
+        <div class="text-2xl font-bold mt-1" style="color: var(--text_secondary);">{{ unpublished_count }}</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow-sm border p-4 mb-6" style="border-color: var(--border);">
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+        <input type="text" name="search" placeholder="Search notes..." 
+               value="{{ search_query }}" 
+               class="flex-1 px-4 py-2 border rounded-lg text-sm" style="border-color: var(--border);">
+        <select name="category" class="px-4 py-2 border rounded-lg text-sm w-full sm:w-auto" style="border-color: var(--border);">
+            <option value="">All Categories</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}" {% if current_category == category.id|stringformat:"s" %}selected{% endif %}>
+                {{ category.name }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="status" class="px-4 py-2 border rounded-lg text-sm w-full sm:w-auto" style="border-color: var(--border);">
+            <option value="">All Status</option>
+            <option value="published" {% if current_status == 'published' %}selected{% endif %}>Published</option>
+            <option value="unpublished" {% if current_status == 'unpublished' %}selected{% endif %}>Unpublished</option>
+        </select>
+        <button type="submit" class="px-4 py-2 rounded-lg text-white font-semibold text-sm" style="background: var(--primary);">Filter</button>
+    </form>
+</div>
+
+<!-- Notes Table -->
+<div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50" style="background: var(--background_light);">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Title</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Expert</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Session Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                {% for note in notes %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium" style="color: var(--text);">{{ note.title }}</div>
+                        <div class="flex flex-wrap items-center gap-2 mt-1">
+                            {% if note.is_featured %}
+                            <span class="text-xs px-2 py-0.5 rounded" style="background: var(--background_tint); color: var(--primary);">Featured</span>
+                            {% endif %}
+                            {% if note.session_date and note.get_day_count %}
+                            <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background: #dbeafe; color: #1e40af;">{{ note.get_day_count }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ note.category.name }}</td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ note.expert_name|default:"—" }}</td>
+                    <td class="px-6 py-4 text-sm" style="color: var(--text_secondary);">{{ note.session_date|date:"M d, Y"|default:"—" }}</td>
+                    <td class="px-6 py-4">
+                        {% if note.is_published %}
+                        <span class="text-xs px-2 py-1 rounded" style="background: #d1fae5; color: #065f46;">Published</span>
+                        {% else %}
+                        <span class="text-xs px-2 py-1 rounded" style="background: #fee2e2; color: #991b1b;">Unpublished</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'manage:fortydays_notes_edit' note.pk %}" class="text-sm font-semibold" style="color: var(--primary);">Edit</a>
+                            <span style="color: var(--border);">|</span>
+                            <a href="{% url 'manage:fortydays_notes_delete' note.pk %}" class="text-sm font-semibold text-red-600">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">No notes found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="mt-6 flex justify-center">
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg text-sm text-white font-semibold" style="background: var(--primary);">Previous</a>
+        {% endif %}
+        <span class="px-4 py-2 text-sm bg-gray-200 rounded-lg">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg text-sm text-white font-semibold" style="background: var(--primary);">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

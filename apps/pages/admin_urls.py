@@ -62,6 +62,18 @@ urlpatterns = [
     path('fortydays/<int:pk>/edit/', admin_views.FortyDaysConfigUpdateView.as_view(), name='fortydays_edit'),
     path('fortydays/<int:pk>/delete/', admin_views.FortyDaysConfigDeleteView.as_view(), name='fortydays_delete'),
     
+    # 40 Days Notes
+    path('fortydays/notes/', admin_views.FortyDaysNoteListView.as_view(), name='fortydays_notes_list'),
+    path('fortydays/notes/create/', admin_views.FortyDaysNoteCreateView.as_view(), name='fortydays_notes_create'),
+    path('fortydays/notes/<int:pk>/edit/', admin_views.FortyDaysNoteUpdateView.as_view(), name='fortydays_notes_edit'),
+    path('fortydays/notes/<int:pk>/delete/', admin_views.FortyDaysNoteDeleteView.as_view(), name='fortydays_notes_delete'),
+    
+    # 40 Days Note Categories
+    path('fortydays/note-categories/', admin_views.FortyDaysNoteCategoryListView.as_view(), name='fortydays_note_categories_list'),
+    path('fortydays/note-categories/create/', admin_views.FortyDaysNoteCategoryCreateView.as_view(), name='fortydays_note_categories_create'),
+    path('fortydays/note-categories/<int:pk>/edit/', admin_views.FortyDaysNoteCategoryUpdateView.as_view(), name='fortydays_note_categories_edit'),
+    path('fortydays/note-categories/<int:pk>/delete/', admin_views.FortyDaysNoteCategoryDeleteView.as_view(), name='fortydays_note_categories_delete'),
+    
     # Site Settings
     path('sitesettings/edit/', admin_views.SiteSettingsUpdateView.as_view(), name='sitesettings_edit'),
     

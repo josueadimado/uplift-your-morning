@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}40 Days 2025 Notes - Uplift Your Morning{% endblock %}
+
+{% block meta_description %}Key takeaways and insights from 40 Days 2025 evening sessions. Learn from expert speakers and deepen your understanding of prayer, planning, and planting.{% endblock %}
+
+{% block content %}
+
+<!-- Page Banner -->
+<section class="mb-8 sm:mb-10" style="background: linear-gradient(135deg, var(--background_tint) 0%, #ffffff 55%, #fef3c7 100%);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div class="text-center">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide mb-3 sm:mb-4"
+                  style="background: rgba(17,24,39,0.06); color: var(--text_secondary);">
+                40 Days 2025
+            </span>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 sm:mb-4" style="color: var(--accent);">
+                Evening Session Notes & Insights
+            </h1>
+            <p class="text-sm sm:text-base leading-relaxed max-w-2xl mx-auto" style="color: var(--text_secondary);">
+                Key takeaways and insights shared by experts during our evening sessions. 
+                Discover wisdom, strategies, and inspiration to support your journey.
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Featured Notes -->
+    {% if featured_notes %}
+    <div class="mb-8 sm:mb-10">
+        <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Featured Insights</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {% for note in featured_notes %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                {% if note.banner_image %}
+                <img src="{{ note.banner_image.url }}" alt="{{ note.title }}" class="w-full h-48 object-cover">
+                {% endif %}
+                <div class="p-4 sm:p-6">
+                    <span class="inline-block text-xs px-2 py-1 rounded mb-2"
+                          style="background: var(--background_tint); color: var(--primary);">
+                        {{ note.category.name }}
+                    </span>
+                    <h3 class="text-lg sm:text-xl font-semibold mb-2">
+                        <a href="{% url 'resources:fortydays_detail' note.slug %}"
+                           style="color: var(--primary);">
+                            {{ note.title }}
+                        </a>
+                    </h3>
+                    {% if note.expert_name %}
+                    <p class="text-sm text-gray-600 mb-2">By {{ note.expert_name }}</p>
+                    {% endif %}
+                    {% if note.session_date %}
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <p class="text-xs text-gray-500">{{ note.session_date|date:"F d, Y" }}</p>
+                        {% if note.get_day_count %}
+                        <span class="text-xs px-2 py-1 rounded font-semibold" style="background: var(--background_tint); color: var(--primary);">
+                            {{ note.get_day_count }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <p class="text-sm text-gray-700 mb-3">{{ note.content|truncatewords:20 }}</p>
+                    <a href="{% url 'resources:fortydays_detail' note.slug %}"
+                       class="text-sm font-semibold"
+                       style="color: var(--primary);">
+                        Read More →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+        <form method="get" class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <input type="text" name="search" placeholder="Search notes..." 
+                   value="{{ search_query }}" 
+                   class="flex-1 min-w-[200px] px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg">
+            <select name="category" class="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg w-full sm:w-auto">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.slug }}" {% if current_category == category.slug %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit"
+                    class="px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold text-white w-full sm:w-auto"
+                    style="background: var(--primary);"
+                    onmouseover="this.style.background='var(--primary_hover)'"
+                    onmouseout="this.style.background='var(--primary)'">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Notes Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {% for note in notes %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            {% if note.banner_image %}
+            <a href="{% url 'resources:fortydays_detail' note.slug %}">
+                <img src="{{ note.banner_image.url }}" alt="{{ note.title }}" class="w-full h-48 object-cover">
+            </a>
+            {% endif %}
+            <div class="p-4 sm:p-6">
+                <span class="inline-block text-xs px-2 py-1 rounded mb-2"
+                      style="background: var(--background_tint); color: var(--primary);">
+                    {{ note.category.name }}
+                </span>
+                <h3 class="text-lg sm:text-xl font-semibold mb-2">
+                    <a href="{% url 'resources:fortydays_detail' note.slug %}"
+                       style="color: var(--primary);">
+                        {{ note.title }}
+                    </a>
+                </h3>
+                {% if note.expert_name %}
+                <p class="text-sm text-gray-600 mb-2">By {{ note.expert_name }}</p>
+                {% endif %}
+                {% if note.session_date %}
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <p class="text-xs text-gray-500">{{ note.session_date|date:"F d, Y" }}</p>
+                    {% if note.get_day_count %}
+                    <span class="text-xs px-2 py-1 rounded font-semibold" style="background: var(--background_tint); color: var(--primary);">
+                        {{ note.get_day_count }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <p class="text-sm text-gray-700 mb-3">{{ note.content|truncatewords:20 }}</p>
+                <a href="{% url 'resources:fortydays_detail' note.slug %}"
+                   class="text-sm font-semibold"
+                   style="color: var(--primary);">
+                    Read More →
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-500 text-lg">No notes found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-6 sm:mt-8 flex justify-center">
+        <div class="flex flex-wrap justify-center gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+               class="px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-white font-semibold"
+               style="background: var(--primary);"
+               onmouseover="this.style.background='var(--primary_hover)'"
+               onmouseout="this.style.background='var(--primary)'">
+                Previous
+            </a>
+            {% endif %}
+            <span class="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-200 rounded-lg">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+               class="px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-white font-semibold"
+               style="background: var(--primary);"
+               onmouseover="this.style.background='var(--primary_hover)'"
+               onmouseout="this.style.background='var(--primary)'">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

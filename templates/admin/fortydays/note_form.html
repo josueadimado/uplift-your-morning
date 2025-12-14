@@ -1,0 +1,202 @@
+{% extends 'admin/custom_base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .flatpickr-calendar {
+        font-family: inherit;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 9999;
+    }
+    .flatpickr-day.selected {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+    }
+    .flatpickr-day.selected:hover {
+        background: var(--primary_hover) !important;
+    }
+    .flatpickr-day.today {
+        border-color: var(--primary) !important;
+    }
+    .flatpickr-day.today:hover {
+        background: rgba(7, 89, 68, 0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">{% if object %}Edit{% else %}Create{% endif %} 40 Days Note</h1>
+</div>
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    {% csrf_token %}
+    <div class="space-y-6">
+        <div>
+            <label class="block text-sm font-medium mb-2" style="color: var(--text);">Title *</label>
+            {{ form.title }}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium mb-2" style="color: var(--text);">Category *</label>
+                {{ form.category }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2" style="color: var(--text);">Session Date</label>
+                <input type="text" 
+                       id="{{ form.session_date.id_for_label }}" 
+                       name="{{ form.session_date.name }}" 
+                       value="{% if form.session_date.value %}{{ form.session_date.value }}{% endif %}"
+                       class="date-picker w-full px-3 py-2 border rounded-lg" 
+                       style="border-color: var(--border); color: var(--text); cursor: pointer;"
+                       placeholder="Select session date"
+                       autocomplete="off"
+                       data-lpignore="true"
+                       data-form-type="other">
+                {% if form.session_date.errors %}<p class="text-sm text-red-600 mt-1">{{ form.session_date.errors.0 }}</p>{% endif %}
+                <div id="day-count-display" class="mt-2 px-3 py-2 rounded-lg border hidden" style="background: var(--background_tint); border-color: var(--border);">
+                    <p class="text-sm font-semibold" style="color: var(--primary);">Day Count: <span id="day-count-value"></span></p>
+                    <p class="text-xs mt-1" style="color: var(--text_secondary);">Automatically calculated from session date using the active 40 Days configuration for that year</p>
+                </div>
+                {% if not object or not object.session_date %}
+                <p id="day-count-placeholder" class="text-xs mt-1" style="color: var(--text_secondary);">
+                    Day count will be calculated automatically when session date is set.<br>
+                    <span class="text-xs" style="color: var(--text_light);">Make sure you've created a 40 Days configuration for the year of the session date.</span>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-2" style="color: var(--text);">Banner Image *</label>
+            {{ form.banner_image }}
+            {% if object and object.banner_image %}
+            <div class="mt-2">
+                <img src="{{ object.banner_image.url }}" alt="Current banner" class="max-w-xs h-32 object-cover rounded-lg border" style="border-color: var(--border);">
+            </div>
+            {% endif %}
+            <p class="text-xs mt-1" style="color: var(--text_secondary);">Upload a banner picture for this note</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-2" style="color: var(--text);">Expert/Speaker Name</label>
+            {{ form.expert_name }}
+            <p class="text-xs mt-1" style="color: var(--text_secondary);">Name of the expert who shared this insight (optional)</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-2" style="color: var(--text);">Content/Notes *</label>
+            {{ form.content }}
+            <p class="text-xs mt-1" style="color: var(--text_secondary);">Key takeaways and insights from the session</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4">
+            <label class="flex items-center">
+                {{ form.is_published }}
+                <span class="ml-2 text-sm" style="color: var(--text);">Published</span>
+            </label>
+            <label class="flex items-center">
+                {{ form.is_featured }}
+                <span class="ml-2 text-sm" style="color: var(--text);">Featured</span>
+            </label>
+        </div>
+    </div>
+    <div class="mt-6 flex items-center space-x-4">
+        <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold" style="background: var(--primary);">Save</button>
+        <a href="{% url 'manage:fortydays_notes_list' %}" class="px-6 py-2 rounded-lg border" style="border-color: var(--border); color: var(--text_secondary);">Cancel</a>
+    </div>
+</form>
+<style>
+input, textarea, select { 
+    width: 100%; 
+    padding: 0.5rem 0.75rem; 
+    border: 1px solid var(--border); 
+    border-radius: 0.5rem; 
+} 
+input:focus, textarea:focus, select:focus { 
+    outline: none; 
+    border-color: var(--primary); 
+}
+textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+.date-picker { 
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E"); 
+    background-repeat: no-repeat; 
+    background-position: right 0.75rem center; 
+    padding-right: 2.5rem; 
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sessionDateInput = document.getElementById('{{ form.session_date.id_for_label }}');
+    const dayCountDisplay = document.getElementById('day-count-display');
+    const dayCountValue = document.getElementById('day-count-value');
+    const dayCountPlaceholder = document.getElementById('day-count-placeholder');
+    
+    function calculateDayCount(dateString) {
+        if (!dateString) {
+            if (dayCountDisplay) dayCountDisplay.classList.add('hidden');
+            if (dayCountPlaceholder) dayCountPlaceholder.style.display = 'block';
+            return;
+        }
+        
+        // Preview calculation (approximation for 2025)
+        // Note: Actual calculation uses the active FortyDaysConfig for the session date's year
+        const startDate = new Date('2025-11-10');
+        const sessionDate = new Date(dateString);
+        
+        // Calculate difference in days
+        const diffTime = sessionDate - startDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const dayNumber = diffDays + 1; // +1 because Day 1 is the start date itself
+        
+        // Preview: show day count (actual calculation happens server-side using active config)
+        if (dayNumber >= 1 && dayNumber <= 40) {
+            if (dayCountValue) dayCountValue.textContent = `Day ${dayNumber}`;
+            if (dayCountDisplay) dayCountDisplay.classList.remove('hidden');
+            if (dayCountPlaceholder) dayCountPlaceholder.style.display = 'none';
+        } else {
+            if (dayCountValue) dayCountValue.textContent = `Day ${dayNumber} (outside 40 Days period)`;
+            if (dayCountDisplay) dayCountDisplay.classList.remove('hidden');
+            if (dayCountPlaceholder) dayCountPlaceholder.style.display = 'none';
+        }
+    }
+    
+    if (sessionDateInput) {
+        // Check if flatpickr is available
+        if (typeof flatpickr === 'undefined') {
+            console.error('Flatpickr is not loaded');
+            return;
+        }
+        
+        // Initialize Flatpickr
+        const datePicker = flatpickr(sessionDateInput, {
+            dateFormat: "Y-m-d",
+            allowInput: false, // Disable manual input to prevent Chrome autocomplete
+            clickOpens: true,
+            disableMobile: false,
+            onChange: function(selectedDates, dateStr, instance) {
+                // Calculate day count when date is selected
+                calculateDayCount(dateStr);
+                // Ensure autocomplete is off after selection
+                sessionDateInput.setAttribute('autocomplete', 'off');
+            }
+        });
+        
+        // Make input readonly after flatpickr initialization to prevent manual typing
+        sessionDateInput.setAttribute('readonly', 'readonly');
+        
+        // Calculate on page load if date is already set
+        if (sessionDateInput.value) {
+            calculateDayCount(sessionDateInput.value);
+        }
+    } else {
+        console.error('Session date input not found. ID: {{ form.session_date.id_for_label }}');
+    }
+});
+</script>
+{% endblock %}
+

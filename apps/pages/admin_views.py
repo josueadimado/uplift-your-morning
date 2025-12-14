@@ -21,7 +21,7 @@ from apps.devotions.models import Devotion, DevotionSeries
 from django.http import JsonResponse
 import json
 from apps.events.models import Event
-from apps.resources.models import Resource, ResourceCategory
+from apps.resources.models import Resource, ResourceCategory, FortyDaysNote, FortyDaysNoteCategory
 from apps.community.models import PrayerRequest, Testimony
 from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking
 from apps.subscriptions.models import Subscriber, ScheduledNotification
@@ -368,6 +368,140 @@ class ResourceCategoryDeleteView(StaffRequiredMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Resource category deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+# ==================== 40 DAYS NOTES ====================
+
+class FortyDaysNoteCategoryListView(StaffRequiredMixin, ListView):
+    """List all 40 Days note categories."""
+    model = FortyDaysNoteCategory
+    template_name = 'admin/fortydays/note_category_list.html'
+    context_object_name = 'categories'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = FortyDaysNoteCategory.objects.count()
+        return context
+
+
+class FortyDaysNoteCategoryCreateView(StaffRequiredMixin, CreateView):
+    """Create a new 40 Days note category."""
+    model = FortyDaysNoteCategory
+    template_name = 'admin/fortydays/note_category_form.html'
+    fields = ['name', 'description', 'order']
+    success_url = reverse_lazy('manage:fortydays_note_categories_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, '40 Days note category created successfully!')
+        return super().form_valid(form)
+
+
+class FortyDaysNoteCategoryUpdateView(StaffRequiredMixin, UpdateView):
+    """Update a 40 Days note category."""
+    model = FortyDaysNoteCategory
+    template_name = 'admin/fortydays/note_category_form.html'
+    fields = ['name', 'description', 'order']
+    success_url = reverse_lazy('manage:fortydays_note_categories_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, '40 Days note category updated successfully!')
+        return super().form_valid(form)
+
+
+class FortyDaysNoteCategoryDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete a 40 Days note category."""
+    model = FortyDaysNoteCategory
+    template_name = 'admin/fortydays/note_category_delete.html'
+    success_url = reverse_lazy('manage:fortydays_note_categories_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, '40 Days note category deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+class FortyDaysNoteListView(StaffRequiredMixin, ListView):
+    """List all 40 Days notes."""
+    model = FortyDaysNote
+    template_name = 'admin/fortydays/note_list.html'
+    context_object_name = 'notes'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = FortyDaysNote.objects.all()
+        # Filter by category
+        category = self.request.GET.get('category')
+        if category:
+            queryset = queryset.filter(category_id=category)
+        # Filter by published status
+        status = self.request.GET.get('status')
+        if status == 'published':
+            queryset = queryset.filter(is_published=True)
+        elif status == 'unpublished':
+            queryset = queryset.filter(is_published=False)
+        # Search
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                title__icontains=search
+            ) | queryset.filter(
+                content__icontains=search
+            ) | queryset.filter(
+                expert_name__icontains=search
+            )
+        return queryset.order_by('-session_date', '-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = FortyDaysNoteCategory.objects.all()
+        context['total'] = FortyDaysNote.objects.count()
+        context['published_count'] = FortyDaysNote.objects.filter(is_published=True).count()
+        context['unpublished_count'] = FortyDaysNote.objects.filter(is_published=False).count()
+        context['current_category'] = self.request.GET.get('category')
+        context['current_status'] = self.request.GET.get('status')
+        context['search_query'] = self.request.GET.get('search', '')
+        return context
+
+
+class FortyDaysNoteCreateView(StaffRequiredMixin, CreateView):
+    """Create a new 40 Days note."""
+    model = FortyDaysNote
+    template_name = 'admin/fortydays/note_form.html'
+    fields = [
+        'title', 'category', 'banner_image', 'content', 'expert_name',
+        'session_date', 'is_published', 'is_featured'
+    ]
+    success_url = reverse_lazy('manage:fortydays_notes_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, '40 Days note created successfully!')
+        return super().form_valid(form)
+
+
+class FortyDaysNoteUpdateView(StaffRequiredMixin, UpdateView):
+    """Update a 40 Days note."""
+    model = FortyDaysNote
+    template_name = 'admin/fortydays/note_form.html'
+    fields = [
+        'title', 'category', 'banner_image', 'content', 'expert_name',
+        'session_date', 'is_published', 'is_featured'
+    ]
+    success_url = reverse_lazy('manage:fortydays_notes_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, '40 Days note updated successfully!')
+        return super().form_valid(form)
+
+
+class FortyDaysNoteDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete a 40 Days note."""
+    model = FortyDaysNote
+    template_name = 'admin/fortydays/note_delete.html'
+    success_url = reverse_lazy('manage:fortydays_notes_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, '40 Days note deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
 

@@ -448,6 +448,11 @@
                         <div class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-gray-100 dropdown-menu py-2">
                             <a href="{% url 'resources:list' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">All Resources</a>
                             <div class="border-t border-gray-100 my-1"></div>
+                            <a href="{% url 'resources:fortydays_list' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">
+                                <span class="font-semibold block">40 Days 2025 Notes</span>
+                                <p class="text-sm mt-1 font-medium" style="color: var(--text_light);">Evening session insights</p>
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
                             <a href="{% url 'resources:list' %}?type=pdf" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">PDF Downloads</a>
                             <a href="{% url 'resources:list' %}?type=audio" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Audio Teachings</a>
                             <a href="{% url 'resources:list' %}?type=video" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Videos</a>
@@ -535,6 +540,7 @@
                 <div class="px-4 py-2">
                     <div class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2" style="font-size: 18px;">Resources</div>
                     <a href="{% url 'resources:list' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">All Resources</a>
+                    <a href="{% url 'resources:fortydays_list' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">40 Days 2025 Notes</a>
                     <a href="{% url 'resources:list' %}?type=pdf" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">PDF Downloads</a>
                     <a href="{% url 'resources:list' %}?type=audio" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Audio Teachings</a>
                     <a href="{% url 'resources:list' %}?type=video" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Videos</a>
