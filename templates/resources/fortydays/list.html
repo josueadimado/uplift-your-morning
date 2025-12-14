@@ -152,7 +152,7 @@
     <div class="mt-6 sm:mt-8 flex justify-center">
         <div class="flex flex-wrap justify-center gap-2">
             {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+            <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
                class="px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-white font-semibold"
                style="background: var(--primary);"
                onmouseover="this.style.background='var(--primary_hover)'"
@@ -164,7 +164,7 @@
                 Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
             </span>
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+            <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
                class="px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-white font-semibold"
                style="background: var(--primary);"
                onmouseover="this.style.background='var(--primary_hover)'"
