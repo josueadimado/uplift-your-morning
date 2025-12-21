@@ -107,6 +107,7 @@ class PledgeForm(forms.ModelForm):
             'full_name', 'email', 'phone', 'country',
             'preferred_contact_method', 'contact_info',
             'amount', 'currency', 'other_currency',
+            'donation_frequency', 'custom_frequency',
             'non_monetary_description', 'additional_notes'
         ]
         widgets = {
@@ -152,6 +153,14 @@ class PledgeForm(forms.ModelForm):
                 'placeholder': 'Specify currency (e.g., CAD, AUD)',
                 'style': 'display: none;'
             }),
+            'donation_frequency': forms.Select(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg'
+            }),
+            'custom_frequency': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'e.g., Every 6 months, Bi-weekly, etc.',
+                'style': 'display: none;'
+            }),
             'non_monetary_description': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-2.5 border rounded-lg',
                 'rows': 4,
@@ -189,6 +198,14 @@ class PledgeForm(forms.ModelForm):
         if currency == Pledge.CURRENCY_OTHER and not other_currency:
             raise forms.ValidationError({
                 'other_currency': 'Please specify the currency name when selecting "Other Currency".'
+            })
+        
+        # If "Custom" frequency is selected, require the custom_frequency field
+        donation_frequency = cleaned_data.get('donation_frequency')
+        custom_frequency = cleaned_data.get('custom_frequency')
+        if donation_frequency == Pledge.FREQUENCY_CUSTOM and not custom_frequency:
+            raise forms.ValidationError({
+                'custom_frequency': 'Please specify your custom donation frequency.'
             })
         
         # Normalize phone number if provided

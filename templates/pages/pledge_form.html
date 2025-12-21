@@ -174,6 +174,24 @@
                                 {% endif %}
                                 <p class="text-xs mt-1" style="color: var(--text_light);">Please specify the currency code (e.g., CAD, AUD, JPY)</p>
                             </div>
+                            
+                            <div class="sm:col-span-2">
+                                <label for="{{ form.donation_frequency.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Donation Frequency (Optional)</label>
+                                {{ form.donation_frequency }}
+                                {% if form.donation_frequency.errors %}
+                                <p class="text-sm text-red-600 mt-1">{{ form.donation_frequency.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs mt-1" style="color: var(--text_light);">How often would you like to donate?</p>
+                            </div>
+                            
+                            <div class="sm:col-span-2" id="custom-frequency-wrapper" style="display: none;">
+                                <label for="{{ form.custom_frequency.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Specify Custom Frequency</label>
+                                {{ form.custom_frequency }}
+                                {% if form.custom_frequency.errors %}
+                                <p class="text-sm text-red-600 mt-1">{{ form.custom_frequency.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs mt-1" style="color: var(--text_light);">Please specify your custom donation frequency (e.g., Every 6 months, Bi-weekly, etc.)</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -388,6 +406,35 @@
             
             // Check on change
             currencySelect.addEventListener('change', toggleOtherCurrency);
+        }
+        
+        // Toggle for "Custom Frequency" field
+        const frequencySelect = document.getElementById('{{ form.donation_frequency.id_for_label }}');
+        const customFrequencyWrapper = document.getElementById('custom-frequency-wrapper');
+        const customFrequencyInput = document.getElementById('{{ form.custom_frequency.id_for_label }}');
+        
+        if (frequencySelect && customFrequencyWrapper) {
+            function toggleCustomFrequency() {
+                if (frequencySelect.value === 'custom') {
+                    customFrequencyWrapper.style.display = 'block';
+                    if (customFrequencyInput) {
+                        customFrequencyInput.setAttribute('required', 'required');
+                        customFrequencyInput.removeAttribute('disabled');
+                    }
+                } else {
+                    customFrequencyWrapper.style.display = 'none';
+                    if (customFrequencyInput) {
+                        customFrequencyInput.removeAttribute('required');
+                        customFrequencyInput.value = '';
+                    }
+                }
+            }
+            
+            // Check on page load
+            toggleCustomFrequency();
+            
+            // Check on change
+            frequencySelect.addEventListener('change', toggleCustomFrequency);
         }
     });
 </script>

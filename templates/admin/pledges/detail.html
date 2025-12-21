@@ -92,6 +92,17 @@
                         {{ pledge.get_currency_display_value }} {{ pledge.amount|floatformat:2 }}
                     </p>
                 </div>
+                {% if pledge.donation_frequency %}
+                <div>
+                    <p class="text-sm" style="color: var(--text_light);">Donation Frequency</p>
+                    <p class="text-lg font-semibold" style="color: var(--text);">
+                        {{ pledge.get_donation_frequency_display }}
+                        {% if pledge.donation_frequency == 'custom' and pledge.custom_frequency %}
+                        - {{ pledge.custom_frequency }}
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
                 {% else %}
                 <div class="sm:col-span-2">
                     <p class="text-sm" style="color: var(--text_light);">Pledge Description</p>

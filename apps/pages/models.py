@@ -300,6 +300,21 @@ class Pledge(TimeStampedModel):
         (CURRENCY_OTHER, 'Other Currency'),
     ]
     
+    # Donation frequency choices
+    FREQUENCY_ONETIME = 'one_time'
+    FREQUENCY_MONTHLY = 'monthly'
+    FREQUENCY_QUARTERLY = 'quarterly'
+    FREQUENCY_ANNUALLY = 'annually'
+    FREQUENCY_CUSTOM = 'custom'
+    
+    FREQUENCY_CHOICES = [
+        (FREQUENCY_ONETIME, 'One-time'),
+        (FREQUENCY_MONTHLY, 'Monthly'),
+        (FREQUENCY_QUARTERLY, 'Quarterly (Every 3 months)'),
+        (FREQUENCY_ANNUALLY, 'Annually (Once per year)'),
+        (FREQUENCY_CUSTOM, 'Custom (Specify below)'),
+    ]
+    
     # Contact information
     full_name = models.CharField(max_length=200, help_text="Full name of the person making the pledge")
     email = models.EmailField(help_text="Email address for contact")
@@ -365,6 +380,18 @@ class Pledge(TimeStampedModel):
         max_length=50,
         blank=True,
         help_text="Specify currency if 'Other' is selected"
+    )
+    donation_frequency = models.CharField(
+        max_length=20,
+        choices=FREQUENCY_CHOICES,
+        default=FREQUENCY_ONETIME,
+        blank=True,
+        help_text="How often would you like to donate?"
+    )
+    custom_frequency = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Specify custom donation frequency (e.g., 'Every 6 months', 'Bi-weekly', etc.)"
     )
     
     # Non-monetary pledge details (only required if pledge_type is non_monetary)
