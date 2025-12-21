@@ -103,10 +103,42 @@
                     </p>
                 </div>
                 {% endif %}
+                {% if pledge.redemption_date %}
+                <div>
+                    <p class="text-sm" style="color: var(--text_light);">Redemption Date</p>
+                    <p class="text-lg font-semibold" style="color: var(--text);">
+                        {{ pledge.redemption_date|date:"F d, Y" }}
+                    </p>
+                </div>
+                {% endif %}
+                {% if pledge.redemption_timeframe %}
+                <div>
+                    <p class="text-sm" style="color: var(--text_light);">Redemption Timeframe</p>
+                    <p class="text-lg font-semibold" style="color: var(--text);">
+                        {{ pledge.redemption_timeframe }}
+                    </p>
+                </div>
+                {% endif %}
                 {% else %}
                 <div class="sm:col-span-2">
                     <p class="text-sm" style="color: var(--text_light);">Pledge Description</p>
                     <p class="text-lg" style="color: var(--text);">{{ pledge.non_monetary_description|linebreaks }}</p>
+                </div>
+                {% endif %}
+                {% if pledge.redemption_date %}
+                <div>
+                    <p class="text-sm" style="color: var(--text_light);">Redemption Date</p>
+                    <p class="text-lg font-semibold" style="color: var(--text);">
+                        {{ pledge.redemption_date|date:"F d, Y" }}
+                    </p>
+                </div>
+                {% endif %}
+                {% if pledge.redemption_timeframe %}
+                <div>
+                    <p class="text-sm" style="color: var(--text_light);">Redemption Timeframe</p>
+                    <p class="text-lg font-semibold" style="color: var(--text);">
+                        {{ pledge.redemption_timeframe }}
+                    </p>
                 </div>
                 {% endif %}
                 <div>

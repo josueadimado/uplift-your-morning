@@ -400,6 +400,18 @@ class Pledge(TimeStampedModel):
         help_text="Describe what you're pledging (services, goods, time, skills, etc.) - required for non-monetary pledges"
     )
     
+    # Redemption/fulfillment date
+    redemption_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="When do you plan to redeem/fulfill this pledge? (optional)"
+    )
+    redemption_timeframe = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Alternative: Specify a timeframe for redemption (e.g., 'Within 3 months', 'Q2 2025', etc.)"
+    )
+    
     # Additional information
     additional_notes = models.TextField(
         blank=True,

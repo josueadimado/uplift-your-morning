@@ -108,6 +108,7 @@ class PledgeForm(forms.ModelForm):
             'preferred_contact_method', 'contact_info',
             'amount', 'currency', 'other_currency',
             'donation_frequency', 'custom_frequency',
+            'redemption_date', 'redemption_timeframe',
             'non_monetary_description', 'additional_notes'
         ]
         widgets = {

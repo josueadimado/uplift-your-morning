@@ -192,6 +192,31 @@
                                 {% endif %}
                                 <p class="text-xs mt-1" style="color: var(--text_light);">Please specify your custom donation frequency (e.g., Every 6 months, Bi-weekly, etc.)</p>
                             </div>
+                            
+                        </div>
+                    </div>
+                    
+                    <!-- Redemption/fulfillment date (for all pledge types) -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3" style="color: var(--text);">When do you plan to redeem/fulfill this pledge?</h3>
+                        <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                            <div>
+                                <label for="{{ form.redemption_date.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Redemption Date (Optional)</label>
+                                {{ form.redemption_date }}
+                                {% if form.redemption_date.errors %}
+                                <p class="text-sm text-red-600 mt-1">{{ form.redemption_date.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs mt-1" style="color: var(--text_light);">Select a specific date when you plan to fulfill this pledge</p>
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.redemption_timeframe.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Or specify a timeframe (Optional)</label>
+                                {{ form.redemption_timeframe }}
+                                {% if form.redemption_timeframe.errors %}
+                                <p class="text-sm text-red-600 mt-1">{{ form.redemption_timeframe.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs mt-1" style="color: var(--text_light);">Alternative: Specify a timeframe (e.g., 'Within 3 months', 'Q2 2025', 'By end of year', etc.)</p>
+                            </div>
                         </div>
                     </div>
                     

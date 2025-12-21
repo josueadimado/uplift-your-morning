@@ -1086,7 +1086,7 @@ class PledgeExportCSVView(StaffRequiredMixin, View):
         response['Content-Disposition'] = f'attachment; filename="pledges_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
         
         writer = csv.writer(response)
-        writer.writerow(['Name', 'Email', 'Phone', 'Country', 'Preferred Contact Method', 'Contact Info', 'Pledge Type', 'Amount', 'Currency', 'Donation Frequency', 'Custom Frequency', 'Non-Monetary Description', 'Status', 'Date Submitted', 'Completed Date', 'Additional Notes'])
+        writer.writerow(['Name', 'Email', 'Phone', 'Country', 'Preferred Contact Method', 'Contact Info', 'Pledge Type', 'Amount', 'Currency', 'Donation Frequency', 'Custom Frequency', 'Redemption Date', 'Redemption Timeframe', 'Non-Monetary Description', 'Status', 'Date Submitted', 'Completed Date', 'Additional Notes'])
         
         for pledge in queryset:
             frequency_display = pledge.get_donation_frequency_display() if pledge.donation_frequency else ''
@@ -1104,6 +1104,8 @@ class PledgeExportCSVView(StaffRequiredMixin, View):
                 pledge.get_currency_display_value() if pledge.pledge_type == Pledge.PLEDGE_TYPE_MONETARY else '',
                 frequency_display,
                 pledge.custom_frequency if pledge.donation_frequency == Pledge.FREQUENCY_CUSTOM else '',
+                pledge.redemption_date.strftime('%Y-%m-%d') if pledge.redemption_date else '',
+                pledge.redemption_timeframe or '',
                 pledge.non_monetary_description if pledge.pledge_type == Pledge.PLEDGE_TYPE_NON_MONETARY else '',
                 pledge.get_status_display(),
                 pledge.created_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -1146,7 +1148,7 @@ class PledgeExportExcelView(StaffRequiredMixin, View):
         ws.title = "Pledges"
         
         # Header row
-        headers = ['Name', 'Email', 'Phone', 'Country', 'Preferred Contact Method', 'Contact Info', 'Pledge Type', 'Amount', 'Currency', 'Donation Frequency', 'Custom Frequency', 'Non-Monetary Description', 'Status', 'Date Submitted', 'Completed Date', 'Additional Notes']
+        headers = ['Name', 'Email', 'Phone', 'Country', 'Preferred Contact Method', 'Contact Info', 'Pledge Type', 'Amount', 'Currency', 'Donation Frequency', 'Custom Frequency', 'Redemption Date', 'Redemption Timeframe', 'Non-Monetary Description', 'Status', 'Date Submitted', 'Completed Date', 'Additional Notes']
         header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
         header_font = Font(bold=True, color="FFFFFF")
         
@@ -1173,11 +1175,13 @@ class PledgeExportExcelView(StaffRequiredMixin, View):
             ws.cell(row=row_num, column=9, value=pledge.get_currency_display_value() if pledge.pledge_type == Pledge.PLEDGE_TYPE_MONETARY else '')
             ws.cell(row=row_num, column=10, value=frequency_display)
             ws.cell(row=row_num, column=11, value=pledge.custom_frequency if pledge.donation_frequency == Pledge.FREQUENCY_CUSTOM else '')
-            ws.cell(row=row_num, column=12, value=pledge.non_monetary_description if pledge.pledge_type == Pledge.PLEDGE_TYPE_NON_MONETARY else '')
-            ws.cell(row=row_num, column=13, value=pledge.get_status_display())
-            ws.cell(row=row_num, column=14, value=pledge.created_at.strftime('%Y-%m-%d %H:%M:%S'))
-            ws.cell(row=row_num, column=15, value=pledge.completed_date.strftime('%Y-%m-%d') if pledge.completed_date else '')
-            ws.cell(row=row_num, column=16, value=pledge.additional_notes or '')
+            ws.cell(row=row_num, column=12, value=pledge.redemption_date.strftime('%Y-%m-%d') if pledge.redemption_date else '')
+            ws.cell(row=row_num, column=13, value=pledge.redemption_timeframe or '')
+            ws.cell(row=row_num, column=14, value=pledge.non_monetary_description if pledge.pledge_type == Pledge.PLEDGE_TYPE_NON_MONETARY else '')
+            ws.cell(row=row_num, column=15, value=pledge.get_status_display())
+            ws.cell(row=row_num, column=16, value=pledge.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+            ws.cell(row=row_num, column=17, value=pledge.completed_date.strftime('%Y-%m-%d') if pledge.completed_date else '')
+            ws.cell(row=row_num, column=18, value=pledge.additional_notes or '')
         
         # Adjust column widths
         ws.column_dimensions['A'].width = 25
