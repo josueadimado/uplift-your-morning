@@ -123,9 +123,18 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-3 sm:px-6 py-4">
                         <div class="text-sm font-medium" style="color: var(--text);">{{ pledge.full_name }}</div>
+                        {% if pledge.pledge_type == 'monetary' %}
                         <div class="text-xs sm:hidden" style="color: var(--text_light);">
                             {{ pledge.get_currency_display_value }} {{ pledge.amount|floatformat:2 }}
                         </div>
+                        {% else %}
+                        <div class="text-xs sm:hidden" style="color: var(--text_light);">
+                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full mr-2">Non-Monetary</span>
+                            <span class="text-xs" style="color: var(--text_light);">
+                                {{ pledge.non_monetary_description|truncatewords:8 }}
+                            </span>
+                        </div>
+                        {% endif %}
                         <div class="text-xs" style="color: var(--text_light);">{{ pledge.email }}</div>
                         {% if pledge.phone %}
                         <div class="text-xs hidden sm:block" style="color: var(--text_light);">{{ pledge.phone }}</div>
@@ -135,9 +144,18 @@
                         </div>
                     </td>
                     <td class="px-3 sm:px-6 py-4 hidden sm:table-cell">
+                        {% if pledge.pledge_type == 'monetary' %}
                         <div class="text-sm font-semibold" style="color: var(--text);">
                             {{ pledge.get_currency_display_value }} {{ pledge.amount|floatformat:2 }}
                         </div>
+                        {% else %}
+                        <div class="text-sm font-semibold" style="color: var(--text);">
+                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full mr-2">Non-Monetary</span>
+                            <span class="text-xs" style="color: var(--text_light);">
+                                {{ pledge.non_monetary_description|truncatewords:8 }}
+                            </span>
+                        </div>
+                        {% endif %}
                     </td>
                     <td class="px-3 sm:px-6 py-4 text-sm hidden md:table-cell" style="color: var(--text_secondary);">
                         {% if pledge.country %}{{ pledge.get_country_name }}{% else %}—{% endif %}
