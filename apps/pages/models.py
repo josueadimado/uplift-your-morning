@@ -342,6 +342,7 @@ class Pledge(TimeStampedModel):
         max_length=20,
         choices=PLEDGE_TYPE_CHOICES,
         default=PLEDGE_TYPE_MONETARY,
+        blank=True,
         help_text="Type of pledge: monetary or non-monetary"
     )
     

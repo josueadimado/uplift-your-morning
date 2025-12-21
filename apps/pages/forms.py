@@ -171,7 +171,7 @@ class PledgeForm(forms.ModelForm):
     def clean_amount(self):
         """Ensure amount is positive if provided."""
         amount = self.cleaned_data.get('amount')
-        pledge_type = self.cleaned_data.get('pledge_type')
+        pledge_type = self.cleaned_data.get('pledge_type') or Pledge.PLEDGE_TYPE_MONETARY
         
         if pledge_type == Pledge.PLEDGE_TYPE_MONETARY:
             if not amount:
@@ -184,7 +184,7 @@ class PledgeForm(forms.ModelForm):
     def clean_non_monetary_description(self):
         """Ensure non-monetary description is provided for non-monetary pledges."""
         description = self.cleaned_data.get('non_monetary_description')
-        pledge_type = self.cleaned_data.get('pledge_type')
+        pledge_type = self.cleaned_data.get('pledge_type') or Pledge.PLEDGE_TYPE_MONETARY
         
         if pledge_type == Pledge.PLEDGE_TYPE_NON_MONETARY:
             if not description or not description.strip():
@@ -195,7 +195,7 @@ class PledgeForm(forms.ModelForm):
     def clean(self):
         """Validate fields based on pledge type."""
         cleaned_data = super().clean()
-        pledge_type = cleaned_data.get('pledge_type')
+        pledge_type = cleaned_data.get('pledge_type') or Pledge.PLEDGE_TYPE_MONETARY  # Default to monetary if not specified
         currency = cleaned_data.get('currency')
         other_currency = cleaned_data.get('other_currency')
         
