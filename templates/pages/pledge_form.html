@@ -411,14 +411,24 @@
         
         if (currencySelect && otherCurrencyWrapper) {
             function toggleOtherCurrency() {
-                if (currencySelect.value === 'OTHER') {
+                const selectedValue = currencySelect.value;
+                // The value should be 'OTHER' based on the model constant
+                // Also check for lowercase 'other' just in case
+                if (selectedValue === 'OTHER' || selectedValue === 'other') {
+                    // Show the wrapper - remove inline style and set to block
+                    otherCurrencyWrapper.removeAttribute('style');
                     otherCurrencyWrapper.style.display = 'block';
+                    otherCurrencyWrapper.style.visibility = 'visible';
+                    otherCurrencyWrapper.removeAttribute('hidden');
                     if (otherCurrencyInput) {
                         otherCurrencyInput.setAttribute('required', 'required');
                         otherCurrencyInput.removeAttribute('disabled');
+                        otherCurrencyInput.removeAttribute('readonly');
                     }
                 } else {
+                    // Hide the wrapper
                     otherCurrencyWrapper.style.display = 'none';
+                    otherCurrencyWrapper.setAttribute('hidden', 'true');
                     if (otherCurrencyInput) {
                         otherCurrencyInput.removeAttribute('required');
                         otherCurrencyInput.value = '';
@@ -426,11 +436,19 @@
                 }
             }
             
-            // Check on page load
-            toggleOtherCurrency();
+            // Check on page load - with a small delay to ensure DOM is ready
+            setTimeout(function() {
+                toggleOtherCurrency();
+            }, 100);
             
             // Check on change
-            currencySelect.addEventListener('change', toggleOtherCurrency);
+            currencySelect.addEventListener('change', function() {
+                toggleOtherCurrency();
+            });
+        } else {
+            console.error('Currency select or other currency wrapper not found');
+            if (!currencySelect) console.error('Currency select element not found');
+            if (!otherCurrencyWrapper) console.error('Other currency wrapper not found');
         }
         
         // Toggle for "Custom Frequency" field
