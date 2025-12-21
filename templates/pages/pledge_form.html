@@ -8,14 +8,29 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
 <style>
+    #phone-wrapper {
+        position: relative;
+        width: 100%;
+    }
     .iti {
         width: 100%;
+        display: block;
     }
     .iti__flag-container {
         z-index: 10;
     }
+    .iti input {
+        width: 100% !important;
+        padding-left: 52px !important;
+    }
+    .iti__selected-flag {
+        padding: 0 8px 0 12px;
+    }
     .intl-tel-input {
         width: 100%;
+    }
+    .iti__country-list {
+        z-index: 9999;
     }
 </style>
 {% endblock %}
@@ -83,7 +98,9 @@
                         
                         <div>
                             <label for="{{ form.phone.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Phone Number (Optional)</label>
-                            {{ form.phone }}
+                            <div id="phone-wrapper">
+                                {{ form.phone }}
+                            </div>
                             {% if form.phone.errors %}
                             <p class="text-sm text-red-600 mt-1">{{ form.phone.errors.0 }}</p>
                             {% endif %}
@@ -162,7 +179,7 @@
                     <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Monetary Pledge Details</h2>
                     <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <label for="{{ form.amount.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Pledge Amount *</label>
+                            <label for="{{ form.amount.id_for_label }}" id="amount-label" class="block text-sm font-semibold mb-2" style="color: var(--text);">Pledge Amount <span class="text-red-600">*</span></label>
                             {{ form.amount }}
                             {% if form.amount.errors %}
                             <p class="text-sm text-red-600 mt-1">{{ form.amount.errors.0 }}</p>
@@ -171,7 +188,7 @@
                         </div>
                         
                         <div>
-                            <label for="{{ form.currency.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Currency *</label>
+                            <label for="{{ form.currency.id_for_label }}" id="currency-label" class="block text-sm font-semibold mb-2" style="color: var(--text);">Currency <span class="text-red-600">*</span></label>
                             {{ form.currency }}
                             {% if form.currency.errors %}
                             <p class="text-sm text-red-600 mt-1">{{ form.currency.errors.0 }}</p>
@@ -192,9 +209,9 @@
                 <!-- Non-Monetary Pledge Details -->
                 <div class="border-t pt-6" id="non-monetary-pledge-section" style="display: none; border-color: var(--border);">
                     <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Non-Monetary Pledge Details</h2>
-                    <div>
-                        <label for="{{ form.non_monetary_description.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">What are you pledging? *</label>
-                        {{ form.non_monetary_description }}
+                        <div>
+                            <label for="{{ form.non_monetary_description.id_for_label }}" id="non-monetary-label" class="block text-sm font-semibold mb-2" style="color: var(--text);">What are you pledging? <span class="text-red-600">*</span></label>
+                            {{ form.non_monetary_description }}
                         {% if form.non_monetary_description.errors %}
                         <p class="text-sm text-red-600 mt-1">{{ form.non_monetary_description.errors.0 }}</p>
                         {% endif %}
@@ -261,31 +278,108 @@
 
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize international phone input
+    // Wait for both DOM and intlTelInput to be ready
+    function initPhoneInput() {
+        if (typeof window.intlTelInput === 'undefined') {
+            setTimeout(initPhoneInput, 100);
+            return;
+        }
+        
         const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
-        if (phoneInput) {
-            const iti = window.intlTelInput(phoneInput, {
-                initialCountry: "auto",
+        if (!phoneInput) {
+            return;
+        }
+        
+        // Ensure input has proper type and attributes
+        phoneInput.type = 'tel';
+        phoneInput.setAttribute('autocomplete', 'tel');
+        
+        // Remove intl-tel-input class from input (it will be added by the library)
+        phoneInput.classList.remove('intl-tel-input');
+        
+        let iti;
+        try {
+            iti = window.intlTelInput(phoneInput, {
+                initialCountry: "gh", // Start with Ghana as default
+                preferredCountries: ['gh', 'ng', 'us', 'gb', 'za', 'ke', 'tz'],
+                separateDialCode: true,
+                nationalMode: false,
+                autoPlaceholder: "polite",
+                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
+                // Try to auto-detect country, but fallback to Ghana
                 geoIpLookup: function(callback) {
                     fetch("https://ipapi.co/json/")
-                        .then(function(res) { return res.json(); })
-                        .then(function(data) { callback(data.country_code); })
-                        .catch(function() { callback("gh"); }); // Default to Ghana
+                        .then(function(res) { 
+                            if (!res.ok) throw new Error('Network error');
+                            return res.json(); 
+                        })
+                        .then(function(data) { 
+                            if (data && data.country_code) {
+                                callback(data.country_code.toLowerCase()); 
+                            } else {
+                                callback("gh");
+                            }
+                        })
+                        .catch(function() { 
+                            callback("gh"); // Default to Ghana
+                        });
                 },
-                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
-                preferredCountries: ['gh', 'ng', 'us', 'gb', 'za'],
-                separateDialCode: true,
-                hiddenInput: "full_phone",
             });
             
-            // Update hidden input on change
+            // Update phone number format on blur
             phoneInput.addEventListener('blur', function() {
-                if (iti.isValidNumber()) {
-                    phoneInput.value = iti.getNumber();
+                if (iti && phoneInput.value) {
+                    if (iti.isValidNumber()) {
+                        phoneInput.value = iti.getNumber();
+                    } else {
+                        // Try to get the number anyway (might be partial)
+                        try {
+                            const number = iti.getNumber();
+                            if (number) {
+                                phoneInput.value = number;
+                            }
+                        } catch (e) {
+                            // Keep original value
+                        }
+                    }
                 }
             });
+            
+            // Ensure phone number is formatted before form submission
+            const form = phoneInput.closest('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (phoneInput.value && iti) {
+                        try {
+                            if (iti.isValidNumber()) {
+                                phoneInput.value = iti.getNumber();
+                            } else {
+                                // Try to get number even if not fully valid
+                                const number = iti.getNumber();
+                                if (number && number.length > 0) {
+                                    phoneInput.value = number;
+                                }
+                            }
+                        } catch (err) {
+                            // If formatting fails, keep the value as is
+                            console.log('Phone formatting error:', err);
+                        }
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error initializing intl-tel-input:', error);
         }
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPhoneInput);
+    } else {
+        // DOM is already ready
+        initPhoneInput();
+    }
         // Pledge type toggle
         const pledgeTypeRadios = document.querySelectorAll('.pledge-type-radio');
         const monetarySection = document.getElementById('monetary-pledge-section');
@@ -297,30 +391,113 @@
         function togglePledgeSections() {
             const selectedType = document.querySelector('.pledge-type-radio:checked')?.value;
             
+            // Get label elements
+            const amountLabel = document.getElementById('amount-label');
+            const currencyLabel = document.getElementById('currency-label');
+            const otherCurrencyLabel = document.getElementById('other-currency-label');
+            const nonMonetaryLabel = document.getElementById('non-monetary-label');
+            
             if (selectedType === 'monetary') {
+                // Show monetary section, hide non-monetary
                 monetarySection.style.display = 'block';
                 nonMonetarySection.style.display = 'none';
-                if (amountInput) amountInput.setAttribute('required', 'required');
-                if (currencySelect) currencySelect.setAttribute('required', 'required');
+                
+                // Make monetary fields required
+                if (amountInput) {
+                    amountInput.setAttribute('required', 'required');
+                    amountInput.removeAttribute('disabled');
+                }
+                if (currencySelect) {
+                    currencySelect.setAttribute('required', 'required');
+                    currencySelect.removeAttribute('disabled');
+                }
+                
+                // Show asterisks for monetary fields
+                if (amountLabel) {
+                    const asterisk = amountLabel.querySelector('span.text-red-600');
+                    if (!asterisk) {
+                        amountLabel.innerHTML = amountLabel.textContent.replace('Pledge Amount', 'Pledge Amount <span class="text-red-600">*</span>');
+                    }
+                }
+                if (currencyLabel) {
+                    const asterisk = currencyLabel.querySelector('span.text-red-600');
+                    if (!asterisk) {
+                        currencyLabel.innerHTML = currencyLabel.textContent.replace('Currency', 'Currency <span class="text-red-600">*</span>');
+                    }
+                }
+                
+                // Clear and disable non-monetary field
                 if (nonMonetaryDesc) {
                     nonMonetaryDesc.removeAttribute('required');
                     nonMonetaryDesc.value = '';
+                    nonMonetaryDesc.setAttribute('disabled', 'disabled');
+                }
+                if (nonMonetaryLabel) {
+                    const asterisk = nonMonetaryLabel.querySelector('span.text-red-600');
+                    if (asterisk) {
+                        asterisk.remove();
+                    }
                 }
             } else {
+                // Show non-monetary section, hide monetary
                 monetarySection.style.display = 'none';
                 nonMonetarySection.style.display = 'block';
+                
+                // Remove required from monetary fields and clear values
                 if (amountInput) {
                     amountInput.removeAttribute('required');
                     amountInput.value = '';
+                    amountInput.setAttribute('disabled', 'disabled');
                 }
-                if (currencySelect) currencySelect.removeAttribute('required');
-                if (nonMonetaryDesc) nonMonetaryDesc.setAttribute('required', 'required');
+                if (currencySelect) {
+                    currencySelect.removeAttribute('required');
+                    currencySelect.value = '';
+                    currencySelect.setAttribute('disabled', 'disabled');
+                }
+                
+                // Hide asterisks for monetary fields
+                if (amountLabel) {
+                    const asterisk = amountLabel.querySelector('span.text-red-600');
+                    if (asterisk) {
+                        asterisk.remove();
+                    }
+                }
+                if (currencyLabel) {
+                    const asterisk = currencyLabel.querySelector('span.text-red-600');
+                    if (asterisk) {
+                        asterisk.remove();
+                    }
+                }
+                if (otherCurrencyLabel) {
+                    const asterisk = otherCurrencyLabel.querySelector('span.text-red-600');
+                    if (asterisk) {
+                        asterisk.remove();
+                    }
+                }
+                
+                // Make non-monetary field required
+                if (nonMonetaryDesc) {
+                    nonMonetaryDesc.setAttribute('required', 'required');
+                    nonMonetaryDesc.removeAttribute('disabled');
+                }
+                if (nonMonetaryLabel) {
+                    const asterisk = nonMonetaryLabel.querySelector('span.text-red-600');
+                    if (!asterisk) {
+                        nonMonetaryLabel.innerHTML = nonMonetaryLabel.textContent.replace('What are you pledging?', 'What are you pledging? <span class="text-red-600">*</span>');
+                    }
+                }
             }
         }
         
         // Toggle on pledge type change
         pledgeTypeRadios.forEach(radio => {
-            radio.addEventListener('change', togglePledgeSections);
+            radio.addEventListener('change', function() {
+                togglePledgeSections();
+                // Also update other currency field visibility
+                if (currencySelect && otherCurrencyWrapper) {
+                    toggleOtherCurrency();
+                }
+            });
         });
         
         // Initial state
@@ -331,17 +508,38 @@
         const otherCurrencyInput = document.getElementById('{{ form.other_currency.id_for_label }}');
         
         if (currencySelect && otherCurrencyWrapper) {
+            const otherCurrencyLabel = document.getElementById('other-currency-label');
+            
             function toggleOtherCurrency() {
-                if (currencySelect.value === 'OTHER') {
+                const selectedType = document.querySelector('.pledge-type-radio:checked')?.value;
+                
+                // Only show other currency if monetary is selected and "Other" currency is chosen
+                if (selectedType === 'monetary' && currencySelect.value === 'OTHER') {
                     otherCurrencyWrapper.style.display = 'block';
                     if (otherCurrencyInput) {
                         otherCurrencyInput.setAttribute('required', 'required');
+                        otherCurrencyInput.removeAttribute('disabled');
+                    }
+                    if (otherCurrencyLabel) {
+                        const asterisk = otherCurrencyLabel.querySelector('span.text-red-600');
+                        if (!asterisk) {
+                            otherCurrencyLabel.innerHTML = 'Specify Currency <span class="text-red-600">*</span>';
+                        }
                     }
                 } else {
                     otherCurrencyWrapper.style.display = 'none';
                     if (otherCurrencyInput) {
                         otherCurrencyInput.removeAttribute('required');
                         otherCurrencyInput.value = '';
+                        if (selectedType !== 'monetary') {
+                            otherCurrencyInput.setAttribute('disabled', 'disabled');
+                        }
+                    }
+                    if (otherCurrencyLabel && selectedType !== 'monetary') {
+                        const asterisk = otherCurrencyLabel.querySelector('span.text-red-600');
+                        if (asterisk) {
+                            asterisk.remove();
+                        }
                     }
                 }
             }

@@ -123,7 +123,7 @@ class PledgeForm(forms.ModelForm):
                 'autocomplete': 'email'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2.5 border rounded-lg intl-tel-input',
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
                 'placeholder': 'Phone number (optional)',
                 'required': False,
                 'autocomplete': 'tel',
@@ -209,6 +209,18 @@ class PledgeForm(forms.ModelForm):
                 raise forms.ValidationError({
                     'other_currency': 'Please specify the currency name when selecting "Other Currency".'
                 })
+        
+        # Normalize phone number if provided
+        phone = cleaned_data.get('phone')
+        if phone:
+            # Remove any extra whitespace
+            phone = phone.strip()
+            # Ensure it starts with + if it's a valid international number
+            if phone and not phone.startswith('+') and phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '').isdigit():
+                # If it's just digits without +, we'll let intl-tel-input handle it
+                # But we should keep it as is since the JS will format it
+                pass
+            cleaned_data['phone'] = phone
         
         return cleaned_data
 
