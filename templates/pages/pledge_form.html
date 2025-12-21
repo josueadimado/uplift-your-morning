@@ -154,6 +154,7 @@
                                 <input type="radio" name="{{ form.pledge_type.name }}" value="{{ choice.choice_value }}" 
                                        id="{{ choice.id_for_label }}" 
                                        class="mt-1 mr-3 pledge-type-radio"
+                                       required
                                        {% if forloop.first %}checked{% endif %}>
                                 <div>
                                     <div class="font-semibold" style="color: var(--text);">{{ choice.choice_label }}</div>
@@ -389,46 +390,57 @@
             initPhoneInput();
         }, 100);
         
-        // Pledge type toggle
+        // Pledge type toggle - comprehensive fix
         const pledgeTypeRadios = document.querySelectorAll('.pledge-type-radio');
         const monetarySection = document.getElementById('monetary-pledge-section');
         const nonMonetarySection = document.getElementById('non-monetary-pledge-section');
         const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
         const currencySelect = document.getElementById('{{ form.currency.id_for_label }}');
         const nonMonetaryDesc = document.getElementById('{{ form.non_monetary_description.id_for_label }}');
+        const otherCurrencyWrapper = document.getElementById('other-currency-wrapper');
+        
+        // Get label elements
+        const amountLabel = document.getElementById('amount-label');
+        const currencyLabel = document.getElementById('currency-label');
+        const otherCurrencyLabel = document.getElementById('other-currency-label');
+        const nonMonetaryLabel = document.getElementById('non-monetary-label');
         
         function togglePledgeSections() {
+            // Get the currently selected radio button
             const selectedRadio = document.querySelector('.pledge-type-radio:checked');
-            const selectedType = selectedRadio ? selectedRadio.value : 'monetary'; // Default to monetary if none selected
+            if (!selectedRadio) {
+                // If no radio is selected, select the first one (monetary)
+                if (pledgeTypeRadios.length > 0) {
+                    pledgeTypeRadios[0].checked = true;
+                    return togglePledgeSections(); // Recursively call with selected radio
+                }
+                return;
+            }
             
-            // Get label elements
-            const amountLabel = document.getElementById('amount-label');
-            const currencyLabel = document.getElementById('currency-label');
-            const otherCurrencyLabel = document.getElementById('other-currency-label');
-            const nonMonetaryLabel = document.getElementById('non-monetary-label');
+            const selectedType = selectedRadio.value;
             
             if (!monetarySection || !nonMonetarySection) {
+                console.error('Sections not found');
                 return;
             }
             
             if (selectedType === 'monetary') {
                 // Show monetary section, hide non-monetary
-                if (monetarySection) {
-                    monetarySection.style.display = 'block';
-                    monetarySection.style.visibility = 'visible';
-                }
-                if (nonMonetarySection) {
-                    nonMonetarySection.style.display = 'none';
-                }
+                monetarySection.style.display = 'block';
+                monetarySection.style.visibility = 'visible';
+                monetarySection.removeAttribute('hidden');
+                nonMonetarySection.style.display = 'none';
+                nonMonetarySection.setAttribute('hidden', 'true');
                 
-                // Make monetary fields required
+                // Make monetary fields required and enabled
                 if (amountInput) {
-                    amountInput.setAttribute('required', 'required');
                     amountInput.removeAttribute('disabled');
+                    amountInput.setAttribute('required', 'required');
+                    amountInput.removeAttribute('readonly');
                 }
                 if (currencySelect) {
-                    currencySelect.setAttribute('required', 'required');
                     currencySelect.removeAttribute('disabled');
+                    currencySelect.setAttribute('required', 'required');
                 }
                 
                 // Show asterisks for monetary fields
@@ -454,22 +466,19 @@
                     nonMonetaryDesc.setAttribute('disabled', 'disabled');
                 }
                 if (nonMonetaryLabel) {
-                    const asterisk = nonMonetaryLabel.querySelector('span.text-red-600');
-                    if (asterisk) {
-                        asterisk.remove();
-                    }
+                    let text = nonMonetaryLabel.textContent || nonMonetaryLabel.innerText;
+                    text = text.replace(/\s*\*\s*$/, '').trim();
+                    nonMonetaryLabel.innerHTML = text;
                 }
-            } else if (selectedType === 'non_monetary') {
-                // Show non-monetary section, hide monetary
-                if (monetarySection) {
-                    monetarySection.style.display = 'none';
-                }
-                if (nonMonetarySection) {
-                    nonMonetarySection.style.display = 'block';
-                    nonMonetarySection.style.visibility = 'visible';
-                }
+            } else {
+                // Non-monetary selected - show non-monetary section, hide monetary
+                monetarySection.style.display = 'none';
+                monetarySection.setAttribute('hidden', 'true');
+                nonMonetarySection.style.display = 'block';
+                nonMonetarySection.style.visibility = 'visible';
+                nonMonetarySection.removeAttribute('hidden');
                 
-                // Remove required from monetary fields and clear values
+                // Remove required from monetary fields and clear/disable them
                 if (amountInput) {
                     amountInput.removeAttribute('required');
                     amountInput.value = '';
@@ -480,8 +489,11 @@
                     currencySelect.value = '';
                     currencySelect.setAttribute('disabled', 'disabled');
                 }
+                if (otherCurrencyWrapper) {
+                    otherCurrencyWrapper.style.display = 'none';
+                }
                 
-                // Hide asterisks for monetary fields - use innerHTML to properly remove
+                // Hide asterisks for monetary fields
                 if (amountLabel) {
                     let text = amountLabel.textContent || amountLabel.innerText;
                     text = text.replace(/\s*\*\s*$/, '').trim();
@@ -498,10 +510,10 @@
                     otherCurrencyLabel.innerHTML = text;
                 }
                 
-                // Make non-monetary field required
+                // Make non-monetary field required and enabled
                 if (nonMonetaryDesc) {
-                    nonMonetaryDesc.setAttribute('required', 'required');
                     nonMonetaryDesc.removeAttribute('disabled');
+                    nonMonetaryDesc.setAttribute('required', 'required');
                 }
                 if (nonMonetaryLabel) {
                     let text = nonMonetaryLabel.textContent || nonMonetaryLabel.innerText;
@@ -513,7 +525,7 @@
             }
         }
         
-        // Toggle on pledge type change - use both 'change' and 'click' events for better compatibility
+        // Toggle on pledge type change - use change event (most reliable)
         pledgeTypeRadios.forEach(radio => {
             radio.addEventListener('change', function() {
                 togglePledgeSections();
@@ -522,24 +534,15 @@
                     toggleOtherCurrency();
                 }
             });
-            radio.addEventListener('click', function() {
-                // Also trigger on click to ensure immediate response
-                setTimeout(function() {
-                    togglePledgeSections();
-                    if (currencySelect && otherCurrencyWrapper) {
-                        toggleOtherCurrency();
-                    }
-                }, 10);
-            });
         });
         
-        // Set initial state - ensure it runs after a small delay to ensure DOM is ready
+        // Set initial state immediately and also after a delay to ensure DOM is ready
+        togglePledgeSections();
         setTimeout(function() {
             togglePledgeSections();
-        }, 50);
+        }, 100);
         
         // Show/hide other currency field based on currency selection
-        const otherCurrencyWrapper = document.getElementById('other-currency-wrapper');
         const otherCurrencyInput = document.getElementById('{{ form.other_currency.id_for_label }}');
         
         if (currencySelect && otherCurrencyWrapper) {
