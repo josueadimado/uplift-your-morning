@@ -414,6 +414,7 @@
         if (currencySelect && otherCurrencyWrapper) {
             function toggleOtherCurrency() {
                 const selectedValue = currencySelect.value;
+                console.log('Currency selected:', selectedValue); // Debug log
                 // The value should be 'OTHER' based on the model constant
                 // Also check for lowercase 'other' just in case
                 if (selectedValue === 'OTHER' || selectedValue === 'other') {
@@ -422,10 +423,16 @@
                     otherCurrencyWrapper.style.display = 'block';
                     otherCurrencyWrapper.style.visibility = 'visible';
                     otherCurrencyWrapper.removeAttribute('hidden');
+                    otherCurrencyWrapper.classList.remove('hidden');
+                    // Also ensure the input field is visible
                     if (otherCurrencyInput) {
-                        otherCurrencyInput.setAttribute('required', 'required');
+                        otherCurrencyInput.style.display = 'block';
+                        otherCurrencyInput.style.visibility = 'visible';
+                        otherCurrencyInput.removeAttribute('hidden');
                         otherCurrencyInput.removeAttribute('disabled');
                         otherCurrencyInput.removeAttribute('readonly');
+                        otherCurrencyInput.setAttribute('required', 'required');
+                        console.log('Other currency field shown'); // Debug log
                     }
                 } else {
                     // Hide the wrapper
@@ -434,6 +441,7 @@
                     if (otherCurrencyInput) {
                         otherCurrencyInput.removeAttribute('required');
                         otherCurrencyInput.value = '';
+                        console.log('Other currency field hidden'); // Debug log
                     }
                 }
             }

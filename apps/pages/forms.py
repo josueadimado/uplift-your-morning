@@ -151,8 +151,7 @@ class PledgeForm(forms.ModelForm):
             }),
             'other_currency': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2.5 border rounded-lg',
-                'placeholder': 'Specify currency (e.g., CAD, AUD)',
-                'style': 'display: none;'
+                'placeholder': 'Specify currency (e.g., CAD, AUD, JPY)'
             }),
             'donation_frequency': forms.Select(attrs={
                 'class': 'w-full px-4 py-2.5 border rounded-lg'
