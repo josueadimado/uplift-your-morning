@@ -10,7 +10,7 @@ import requests
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.template.loader import render_to_string
 import csv
@@ -23,7 +23,7 @@ import json
 from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory, FortyDaysNote, FortyDaysNoteCategory
 from apps.community.models import PrayerRequest, Testimony
-from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking
+from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking, Pledge
 from apps.subscriptions.models import Subscriber, ScheduledNotification
 
 
@@ -951,6 +951,264 @@ class DonationDetailView(StaffRequiredMixin, DetailView):
     model = Donation
     template_name = 'admin/donations/detail.html'
     context_object_name = 'donation'
+
+
+# ==================== PLEDGES ====================
+
+class PledgeListView(StaffRequiredMixin, ListView):
+    """List all pledges."""
+    model = Pledge
+    template_name = 'admin/pledges/list.html'
+    context_object_name = 'pledges'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Pledge.objects.all()
+        # Filter by status
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        # Search
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(full_name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone__icontains=search) |
+                Q(country__icontains=search)
+            )
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = Pledge.objects.all()
+        
+        # Basic counts
+        context['total'] = queryset.count()
+        context['pending_count'] = queryset.filter(status=Pledge.STATUS_PENDING).count()
+        context['confirmed_count'] = queryset.filter(status=Pledge.STATUS_CONFIRMED).count()
+        context['completed_count'] = queryset.filter(status=Pledge.STATUS_COMPLETED).count()
+        context['cancelled_count'] = queryset.filter(status=Pledge.STATUS_CANCELLED).count()
+        
+        # Analytics: Total pledge amounts by currency (only monetary pledges)
+        total_by_currency = {}
+        monetary_pledges = queryset.filter(pledge_type=Pledge.PLEDGE_TYPE_MONETARY)
+        for pledge in monetary_pledges:
+            if pledge.amount:
+                currency = pledge.get_currency_display_value()
+                if currency not in total_by_currency:
+                    total_by_currency[currency] = 0
+                total_by_currency[currency] += float(pledge.amount)
+        context['total_by_currency'] = total_by_currency
+        
+        # Count non-monetary pledges
+        context['monetary_count'] = monetary_pledges.count()
+        context['non_monetary_count'] = queryset.filter(pledge_type=Pledge.PLEDGE_TYPE_NON_MONETARY).count()
+        
+        # Analytics: Pledges by country (convert country codes to names)
+        country_stats_raw = queryset.exclude(country='').values('country').annotate(
+            count=Count('id'),
+            total_amount=Sum('amount')
+        ).order_by('-count')[:10]  # Top 10 countries
+        
+        # Convert country codes to names
+        from django_countries import countries as countries_dict
+        country_stats = []
+        for stat in country_stats_raw:
+            country_name = dict(countries_dict).get(stat['country'], stat['country'])
+            country_stats.append({
+                'country': country_name,
+                'count': stat['count'],
+                'total_amount': stat['total_amount'] or 0
+            })
+        context['country_stats'] = country_stats
+        
+        # Total pledge amount (all currencies combined - approximate)
+        context['total_pledge_amount'] = sum(total_by_currency.values())
+        
+        context['current_status'] = self.request.GET.get('status', '')
+        context['search_query'] = self.request.GET.get('search', '')
+        return context
+
+
+class PledgeDetailView(StaffRequiredMixin, DetailView):
+    """View pledge details."""
+    model = Pledge
+    template_name = 'admin/pledges/detail.html'
+    context_object_name = 'pledge'
+
+
+class PledgeUpdateStatusView(StaffRequiredMixin, View):
+    """Update the status of a pledge."""
+    def post(self, request, *args, **kwargs):
+        try:
+            pledge = Pledge.objects.get(pk=kwargs['pk'])
+            new_status = request.POST.get('status')
+            admin_notes = request.POST.get('admin_notes', '')
+            completed_date = request.POST.get('completed_date', '')
+            
+            if new_status in dict(Pledge.STATUS_CHOICES):
+                pledge.status = new_status
+                if admin_notes:
+                    pledge.admin_notes = admin_notes
+                if completed_date and new_status == Pledge.STATUS_COMPLETED:
+                    from datetime import datetime
+                    try:
+                        pledge.completed_date = datetime.strptime(completed_date, '%Y-%m-%d').date()
+                    except ValueError:
+                        pass
+                pledge.save()
+                messages.success(request, f'Pledge status updated to {pledge.get_status_display()}!')
+            else:
+                messages.error(request, 'Invalid status selected.')
+        except Pledge.DoesNotExist:
+            messages.error(request, 'Pledge not found.')
+        return redirect('manage:pledges_detail', pk=kwargs['pk'])
+
+
+class PledgeDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete a pledge."""
+    model = Pledge
+    template_name = 'admin/pledges/delete.html'
+    success_url = reverse_lazy('manage:pledges_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Pledge deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+class PledgeExportCSVView(StaffRequiredMixin, View):
+    """Export pledges as CSV."""
+    def get(self, request, *args, **kwargs):
+        queryset = self._get_queryset()
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="pledges_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Name', 'Email', 'Phone', 'Country', 'Preferred Contact Method', 'Contact Info', 'Pledge Type', 'Amount', 'Currency', 'Non-Monetary Description', 'Status', 'Date Submitted', 'Completed Date', 'Additional Notes'])
+        
+        for pledge in queryset:
+            writer.writerow([
+                pledge.full_name,
+                pledge.email,
+                pledge.phone or '',
+                pledge.get_country_name() or '',
+                pledge.get_preferred_contact_method_display(),
+                pledge.contact_info or '',
+                pledge.get_pledge_type_display(),
+                pledge.amount if pledge.pledge_type == Pledge.PLEDGE_TYPE_MONETARY else '',
+                pledge.get_currency_display_value() if pledge.pledge_type == Pledge.PLEDGE_TYPE_MONETARY else '',
+                pledge.non_monetary_description if pledge.pledge_type == Pledge.PLEDGE_TYPE_NON_MONETARY else '',
+                pledge.get_status_display(),
+                pledge.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                pledge.completed_date.strftime('%Y-%m-%d') if pledge.completed_date else '',
+                pledge.additional_notes or ''
+            ])
+        
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = Pledge.objects.all()
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(full_name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone__icontains=search) |
+                Q(country__icontains=search)
+            )
+        return queryset.order_by('-created_at')
+
+
+class PledgeExportExcelView(StaffRequiredMixin, View):
+    """Export pledges as Excel."""
+    def get(self, request, *args, **kwargs):
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment
+        except ImportError:
+            return HttpResponseBadRequest('Excel export requires openpyxl. Please install it: pip install openpyxl')
+        
+        queryset = self._get_queryset()
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Pledges"
+        
+        # Header row
+        headers = ['Name', 'Email', 'Phone', 'Country', 'Preferred Contact Method', 'Contact Info', 'Pledge Type', 'Amount', 'Currency', 'Non-Monetary Description', 'Status', 'Date Submitted', 'Completed Date', 'Additional Notes']
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Data rows
+        for row_num, pledge in enumerate(queryset, 2):
+            ws.cell(row=row_num, column=1, value=pledge.full_name)
+            ws.cell(row=row_num, column=2, value=pledge.email)
+            ws.cell(row=row_num, column=3, value=pledge.phone or '')
+            ws.cell(row=row_num, column=4, value=pledge.get_country_name() or '')
+            ws.cell(row=row_num, column=5, value=pledge.get_preferred_contact_method_display())
+            ws.cell(row=row_num, column=6, value=pledge.contact_info or '')
+            ws.cell(row=row_num, column=7, value=pledge.get_pledge_type_display())
+            ws.cell(row=row_num, column=8, value=float(pledge.amount) if pledge.pledge_type == Pledge.PLEDGE_TYPE_MONETARY and pledge.amount else '')
+            ws.cell(row=row_num, column=9, value=pledge.get_currency_display_value() if pledge.pledge_type == Pledge.PLEDGE_TYPE_MONETARY else '')
+            ws.cell(row=row_num, column=10, value=pledge.non_monetary_description if pledge.pledge_type == Pledge.PLEDGE_TYPE_NON_MONETARY else '')
+            ws.cell(row=row_num, column=11, value=pledge.get_status_display())
+            ws.cell(row=row_num, column=12, value=pledge.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+            ws.cell(row=row_num, column=13, value=pledge.completed_date.strftime('%Y-%m-%d') if pledge.completed_date else '')
+            ws.cell(row=row_num, column=14, value=pledge.additional_notes or '')
+        
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 30
+        ws.column_dimensions['C'].width = 20
+        ws.column_dimensions['D'].width = 20
+        ws.column_dimensions['E'].width = 20
+        ws.column_dimensions['F'].width = 30
+        ws.column_dimensions['G'].width = 15
+        ws.column_dimensions['H'].width = 15
+        ws.column_dimensions['I'].width = 15
+        ws.column_dimensions['J'].width = 40
+        ws.column_dimensions['K'].width = 15
+        ws.column_dimensions['L'].width = 20
+        ws.column_dimensions['M'].width = 18
+        ws.column_dimensions['N'].width = 50
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="pledges_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+    
+    def _get_queryset(self):
+        """Get filtered queryset based on request parameters."""
+        queryset = Pledge.objects.all()
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(full_name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone__icontains=search) |
+                Q(country__icontains=search)
+            )
+        return queryset.order_by('-created_at')
 
 
 # ==================== TESTIMONIES ====================
