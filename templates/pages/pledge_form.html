@@ -196,7 +196,7 @@
                         </div>
                         
                         <div class="sm:col-span-2" id="other-currency-wrapper" style="display: none;">
-                            <label for="{{ form.other_currency.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Specify Currency *</label>
+                            <label for="{{ form.other_currency.id_for_label }}" id="other-currency-label" class="block text-sm font-semibold mb-2" style="color: var(--text);">Specify Currency <span class="text-red-600">*</span></label>
                             {{ form.other_currency }}
                             {% if form.other_currency.errors %}
                             <p class="text-sm text-red-600 mt-1">{{ form.other_currency.errors.0 }}</p>
@@ -279,6 +279,7 @@
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
 <script>
     // Wait for both DOM and intlTelInput to be ready
+    let phoneInputInitialized = false;
     function initPhoneInput() {
         if (typeof window.intlTelInput === 'undefined') {
             setTimeout(initPhoneInput, 100);
@@ -287,6 +288,11 @@
         
         const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
         if (!phoneInput) {
+            return;
+        }
+        
+        // Check if already initialized
+        if (phoneInputInitialized || phoneInput.closest('.iti')) {
             return;
         }
         
@@ -371,15 +377,18 @@
         } catch (error) {
             console.error('Error initializing intl-tel-input:', error);
         }
+        
+        // Mark as initialized
+        phoneInputInitialized = true;
     }
     
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPhoneInput);
-    } else {
-        // DOM is already ready
-        initPhoneInput();
-    }
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize phone input - wait a bit to ensure library is loaded
+        setTimeout(function() {
+            initPhoneInput();
+        }, 100);
+        
         // Pledge type toggle
         const pledgeTypeRadios = document.querySelectorAll('.pledge-type-radio');
         const monetarySection = document.getElementById('monetary-pledge-section');
@@ -414,15 +423,17 @@
                 
                 // Show asterisks for monetary fields
                 if (amountLabel) {
-                    const asterisk = amountLabel.querySelector('span.text-red-600');
-                    if (!asterisk) {
-                        amountLabel.innerHTML = amountLabel.textContent.replace('Pledge Amount', 'Pledge Amount <span class="text-red-600">*</span>');
+                    let text = amountLabel.textContent || amountLabel.innerText;
+                    text = text.replace(/\s*\*\s*$/, '').trim();
+                    if (!text.includes('*')) {
+                        amountLabel.innerHTML = text + ' <span class="text-red-600">*</span>';
                     }
                 }
                 if (currencyLabel) {
-                    const asterisk = currencyLabel.querySelector('span.text-red-600');
-                    if (!asterisk) {
-                        currencyLabel.innerHTML = currencyLabel.textContent.replace('Currency', 'Currency <span class="text-red-600">*</span>');
+                    let text = currencyLabel.textContent || currencyLabel.innerText;
+                    text = text.replace(/\s*\*\s*$/, '').trim();
+                    if (!text.includes('*')) {
+                        currencyLabel.innerHTML = text + ' <span class="text-red-600">*</span>';
                     }
                 }
                 
@@ -455,24 +466,21 @@
                     currencySelect.setAttribute('disabled', 'disabled');
                 }
                 
-                // Hide asterisks for monetary fields
+                // Hide asterisks for monetary fields - use innerHTML to properly remove
                 if (amountLabel) {
-                    const asterisk = amountLabel.querySelector('span.text-red-600');
-                    if (asterisk) {
-                        asterisk.remove();
-                    }
+                    let text = amountLabel.textContent || amountLabel.innerText;
+                    text = text.replace(/\s*\*\s*$/, '').trim();
+                    amountLabel.innerHTML = text;
                 }
                 if (currencyLabel) {
-                    const asterisk = currencyLabel.querySelector('span.text-red-600');
-                    if (asterisk) {
-                        asterisk.remove();
-                    }
+                    let text = currencyLabel.textContent || currencyLabel.innerText;
+                    text = text.replace(/\s*\*\s*$/, '').trim();
+                    currencyLabel.innerHTML = text;
                 }
                 if (otherCurrencyLabel) {
-                    const asterisk = otherCurrencyLabel.querySelector('span.text-red-600');
-                    if (asterisk) {
-                        asterisk.remove();
-                    }
+                    let text = otherCurrencyLabel.textContent || otherCurrencyLabel.innerText;
+                    text = text.replace(/\s*\*\s*$/, '').trim();
+                    otherCurrencyLabel.innerHTML = text;
                 }
                 
                 // Make non-monetary field required
@@ -481,9 +489,10 @@
                     nonMonetaryDesc.removeAttribute('disabled');
                 }
                 if (nonMonetaryLabel) {
-                    const asterisk = nonMonetaryLabel.querySelector('span.text-red-600');
-                    if (!asterisk) {
-                        nonMonetaryLabel.innerHTML = nonMonetaryLabel.textContent.replace('What are you pledging?', 'What are you pledging? <span class="text-red-600">*</span>');
+                    let text = nonMonetaryLabel.textContent || nonMonetaryLabel.innerText;
+                    text = text.replace(/\s*\*\s*$/, '').trim();
+                    if (!text.includes('*')) {
+                        nonMonetaryLabel.innerHTML = text + ' <span class="text-red-600">*</span>';
                     }
                 }
             }
@@ -521,9 +530,10 @@
                         otherCurrencyInput.removeAttribute('disabled');
                     }
                     if (otherCurrencyLabel) {
-                        const asterisk = otherCurrencyLabel.querySelector('span.text-red-600');
-                        if (!asterisk) {
-                            otherCurrencyLabel.innerHTML = 'Specify Currency <span class="text-red-600">*</span>';
+                        let text = otherCurrencyLabel.textContent || otherCurrencyLabel.innerText;
+                        text = text.replace(/\s*\*\s*$/, '').trim();
+                        if (!text.includes('*')) {
+                            otherCurrencyLabel.innerHTML = text + ' <span class="text-red-600">*</span>';
                         }
                     }
                 } else {
@@ -536,10 +546,9 @@
                         }
                     }
                     if (otherCurrencyLabel && selectedType !== 'monetary') {
-                        const asterisk = otherCurrencyLabel.querySelector('span.text-red-600');
-                        if (asterisk) {
-                            asterisk.remove();
-                        }
+                        let text = otherCurrencyLabel.textContent || otherCurrencyLabel.innerText;
+                        text = text.replace(/\s*\*\s*$/, '').trim();
+                        otherCurrencyLabel.innerHTML = text;
                     }
                 }
             }
