@@ -167,7 +167,7 @@
                             </div>
                             
                             <div class="sm:col-span-2" id="other-currency-wrapper" style="display: none;">
-                                <label for="{{ form.other_currency.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Specify Currency</label>
+                                <label for="{{ form.other_currency.id_for_label }}" id="other-currency-label" class="block text-sm font-semibold mb-2" style="color: var(--text);">Specify Currency</label>
                                 {{ form.other_currency }}
                                 {% if form.other_currency.errors %}
                                 <p class="text-sm text-red-600 mt-1">{{ form.other_currency.errors.0 }}</p>
