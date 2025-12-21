@@ -6,7 +6,7 @@ Also sends admin notifications when new bookings are submitted.
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
-from .models import CounselingBooking
+from .models import CounselingBooking, Pledge
 import requests
 from decouple import config
 
@@ -443,4 +443,78 @@ def create_google_calendar_event(booking):
     # service.events().insert(calendarId='primary', body=event).execute()
     
     return None
+
+
+def send_pledge_submission_notification(pledge):
+    """
+    Send email notification to admin when a new pledge is submitted.
+    """
+    subject = 'New Pledge Commitment - Uplift Your Morning'
+    
+    # Build the email message
+    email = pledge.email or 'No email provided'
+    phone = pledge.phone or 'No phone provided'
+    country = pledge.country or 'Not specified'
+    additional_notes = pledge.additional_notes or 'No additional notes'
+    
+    # Build pledge details based on type
+    if pledge.pledge_type == Pledge.PLEDGE_TYPE_MONETARY:
+        currency_display = pledge.get_currency_display_value()
+        pledge_details = f"Amount: {currency_display} {pledge.amount:,.2f}"
+    else:
+        pledge_details = f"Non-Monetary Pledge: {pledge.non_monetary_description}"
+    
+    country_display = pledge.get_country_name() or country
+    
+    message = f"""
+A new pledge commitment has been submitted on Uplift Your Morning.
+
+Contact Information:
+- Name: {pledge.full_name}
+- Email: {email}
+- Phone: {phone}
+- Country: {country_display}
+- Preferred Contact Method: {pledge.get_preferred_contact_method_display()}
+{f"- Additional Contact Info: {pledge.contact_info}" if pledge.contact_info else ""}
+
+Pledge Details:
+- Type: {pledge.get_pledge_type_display()}
+- {pledge_details}
+- Status: {pledge.get_status_display()}
+
+Additional Notes:
+{additional_notes}
+
+Submitted: {pledge.created_at.strftime('%B %d, %Y at %I:%M %p')}
+
+---
+You can review and manage this pledge in the admin dashboard.
+"""
+    
+    try:
+        result = send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@upliftyourmorning.com',
+            [ADMIN_NOTIFICATION_EMAIL],
+            fail_silently=False,
+        )
+        # Log success in development
+        if settings.DEBUG:
+            print(f"✓ Pledge submission notification email sent successfully to {ADMIN_NOTIFICATION_EMAIL}")
+    except Exception as e:
+        # Log the error for debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        error_msg = f"Failed to send pledge submission notification email: {str(e)}"
+        logger.error(error_msg)
+        
+        # In development, also print to console
+        if settings.DEBUG:
+            print(f"ERROR: {error_msg}")
+            print(f"Email notification would be sent to {ADMIN_NOTIFICATION_EMAIL}:")
+            print(message)
+            print(f"Email backend: {settings.EMAIL_BACKEND}")
+            print(f"Email host: {getattr(settings, 'EMAIL_HOST', 'Not set')}")
+            print(f"Email user: {getattr(settings, 'EMAIL_HOST_USER', 'Not set')}")
 

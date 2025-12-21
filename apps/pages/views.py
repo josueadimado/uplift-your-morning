@@ -568,3 +568,43 @@ class CounselingBookingView(TemplateView):
             context = self.get_context_data(**kwargs)
             context['form'] = form
             return self.render_to_response(context)
+
+
+class PledgeFormView(TemplateView):
+    """
+    View for users to submit pledge commitments.
+    """
+    template_name = 'pages/pledge_form.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from .forms import PledgeForm
+        context['form'] = PledgeForm()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        from .forms import PledgeForm
+        from .models import Pledge
+        
+        form = PledgeForm(request.POST)
+        if form.is_valid():
+            pledge = form.save(commit=False)
+            pledge.status = Pledge.STATUS_PENDING
+            pledge.save()
+            # Send email notification to admin
+            from .notifications import send_pledge_submission_notification
+            try:
+                send_pledge_submission_notification(pledge)
+            except Exception:
+                # Don't break the submission if notification fails
+                pass
+            messages.success(
+                request,
+                'Thank you for your pledge commitment! Your information has been received and we will be in touch soon.'
+            )
+            return redirect('pages:pledge_form')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+            context = self.get_context_data(**kwargs)
+            context['form'] = form
+            return self.render_to_response(context)

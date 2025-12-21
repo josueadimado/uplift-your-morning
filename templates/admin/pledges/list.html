@@ -1,0 +1,200 @@
+{% extends 'admin/custom_base.html' %}
+{% block admin_content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">Pledges</h1>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'manage:pledges_export_csv' %}{% if current_status %}?status={{ current_status|urlencode }}{% endif %}{% if search_query %}{% if current_status %}&{% else %}?{% endif %}search={{ search_query|urlencode }}{% endif %}" 
+           class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-green-600 hover:bg-green-700">
+            Export CSV
+        </a>
+        <a href="{% url 'manage:pledges_export_excel' %}{% if current_status %}?status={{ current_status|urlencode }}{% endif %}{% if search_query %}{% if current_status %}&{% else %}?{% endif %}search={{ search_query|urlencode }}{% endif %}" 
+           class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-blue-600 hover:bg-blue-700">
+            Export Excel
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Total</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--text);">{{ total }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Monetary</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--primary);">{{ monetary_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Non-Monetary</p>
+        <p class="text-2xl font-bold mt-1" style="color: #9333ea;">{{ non_monetary_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Pending</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--text_secondary);">{{ pending_count }}</p>
+    </div>
+</div>
+
+<!-- Analytics Section -->
+{% if country_stats or total_by_currency %}
+<div class="bg-white rounded-lg shadow-sm border mb-6 p-4 sm:p-6" style="border-color: var(--border);">
+    <h2 class="text-lg font-semibold mb-4" style="color: var(--text);">Analytics</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Total by Currency -->
+        {% if total_by_currency %}
+        <div>
+            <h3 class="text-sm font-semibold mb-3" style="color: var(--text_secondary);">Total Pledges by Currency</h3>
+            <div class="space-y-2">
+                {% for currency, amount in total_by_currency.items %}
+                <div class="flex justify-between items-center py-2 border-b" style="border-color: var(--border);">
+                    <span class="text-sm font-medium" style="color: var(--text);">{{ currency }}</span>
+                    <span class="text-sm font-semibold" style="color: var(--primary);">{{ amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+                <div class="flex justify-between items-center py-2 pt-3 border-t-2 font-semibold" style="border-color: var(--border);">
+                    <span class="text-base" style="color: var(--text);">Total (All Currencies)</span>
+                    <span class="text-base" style="color: var(--primary);">{{ total_pledge_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Top Countries -->
+        {% if country_stats %}
+        <div>
+            <h3 class="text-sm font-semibold mb-3" style="color: var(--text_secondary);">Top Countries by Pledge Count</h3>
+            <div class="space-y-2">
+                {% for stat in country_stats %}
+                <div class="flex justify-between items-center py-2 border-b" style="border-color: var(--border);">
+                    <div>
+                        <span class="text-sm font-medium" style="color: var(--text);">{{ stat.country|default:"Unknown" }}</span>
+                        <span class="text-xs ml-2" style="color: var(--text_light);">({{ stat.count }} pledge{{ stat.count|pluralize }})</span>
+                    </div>
+                    <span class="text-sm font-semibold" style="color: var(--primary);">{{ stat.total_amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow-sm border mb-6 p-4" style="border-color: var(--border);">
+    <form method="get" class="flex flex-col sm:flex-row flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by name, email, phone, or country..." 
+                   class="w-full px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+        </div>
+        <div class="min-w-[150px]">
+            <select name="status" class="w-full px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="confirmed" {% if current_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="px-4 py-2 rounded-lg text-white font-semibold whitespace-nowrap" style="background: var(--primary);">Filter</button>
+            {% if search_query or current_status %}
+            <a href="{% url 'manage:pledges_list' %}" class="px-4 py-2 rounded-lg border font-semibold whitespace-nowrap" style="border-color: var(--border); color: var(--text);">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Pledges Table -->
+<div class="bg-white rounded-lg shadow-sm border" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50" style="background: var(--background_light);">
+                <tr>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Pledger</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase hidden sm:table-cell" style="color: var(--text_secondary);">Amount</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase hidden md:table-cell" style="color: var(--text_secondary);">Country</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase hidden lg:table-cell" style="color: var(--text_secondary);">Date</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                {% for pledge in pledges %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 sm:px-6 py-4">
+                        <div class="text-sm font-medium" style="color: var(--text);">{{ pledge.full_name }}</div>
+                        <div class="text-xs sm:hidden" style="color: var(--text_light);">
+                            {{ pledge.get_currency_display_value }} {{ pledge.amount|floatformat:2 }}
+                        </div>
+                        <div class="text-xs" style="color: var(--text_light);">{{ pledge.email }}</div>
+                        {% if pledge.phone %}
+                        <div class="text-xs hidden sm:block" style="color: var(--text_light);">{{ pledge.phone }}</div>
+                        {% endif %}
+                        <div class="text-xs sm:hidden" style="color: var(--text_light);">
+                            {% if pledge.country %}{{ pledge.get_country_name }}{% else %}—{% endif %} • {{ pledge.created_at|date:"M d, Y" }}
+                        </div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-4 hidden sm:table-cell">
+                        <div class="text-sm font-semibold" style="color: var(--text);">
+                            {{ pledge.get_currency_display_value }} {{ pledge.amount|floatformat:2 }}
+                        </div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-4 text-sm hidden md:table-cell" style="color: var(--text_secondary);">
+                        {% if pledge.country %}{{ pledge.get_country_name }}{% else %}—{% endif %}
+                    </td>
+                    <td class="px-3 sm:px-6 py-4 text-sm hidden lg:table-cell" style="color: var(--text_secondary);">
+                        {{ pledge.created_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-3 sm:px-6 py-4">
+                        {% if pledge.status == 'completed' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">
+                            {{ pledge.get_status_display }}
+                        </span>
+                        {% elif pledge.status == 'confirmed' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {{ pledge.get_status_display }}
+                        </span>
+                        {% elif pledge.status == 'cancelled' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            {{ pledge.get_status_display }}
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">
+                            {{ pledge.get_status_display }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 sm:px-6 py-4">
+                        <a href="{% url 'manage:pledges_detail' pledge.pk %}" class="text-sm font-semibold" style="color: var(--primary);">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">
+                        No pledges found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="mt-6 flex justify-center">
+    <div class="flex flex-wrap justify-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
+           class="px-3 sm:px-4 py-2 rounded-lg text-sm text-white font-semibold" style="background: var(--primary);">Previous</a>
+        {% endif %}
+        <span class="px-3 sm:px-4 py-2 text-sm bg-gray-200 rounded-lg">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
+           class="px-3 sm:px-4 py-2 rounded-lg text-sm text-white font-semibold" style="background: var(--primary);">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

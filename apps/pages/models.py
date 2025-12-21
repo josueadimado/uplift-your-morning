@@ -3,6 +3,7 @@ Models for static pages like Home, About, Contact, etc.
 """
 from django.db import models
 from apps.core.models import TimeStampedModel
+from django_countries import countries
 
 
 class ContactMessage(TimeStampedModel):
@@ -252,3 +253,181 @@ class PageView(TimeStampedModel):
             models.Index(fields=['-created_at']),
             models.Index(fields=['path']),
         ]
+
+
+class Pledge(TimeStampedModel):
+    """
+    Model for collecting pledge commitments from supporters.
+    Supports both monetary and non-monetary pledges (services, goods, time, etc.).
+    """
+    STATUS_PENDING = 'pending'
+    STATUS_CONFIRMED = 'confirmed'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CANCELLED = 'cancelled'
+    
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_CONFIRMED, 'Confirmed'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+    
+    # Pledge type choices
+    PLEDGE_TYPE_MONETARY = 'monetary'
+    PLEDGE_TYPE_NON_MONETARY = 'non_monetary'
+    
+    PLEDGE_TYPE_CHOICES = [
+        (PLEDGE_TYPE_MONETARY, 'Monetary (Money)'),
+        (PLEDGE_TYPE_NON_MONETARY, 'Non-Monetary (Services, Goods, Time, etc.)'),
+    ]
+    
+    # Common currency choices
+    CURRENCY_GHS = 'GHS'
+    CURRENCY_USD = 'USD'
+    CURRENCY_GBP = 'GBP'
+    CURRENCY_EUR = 'EUR'
+    CURRENCY_NGN = 'NGN'
+    CURRENCY_ZAR = 'ZAR'
+    CURRENCY_OTHER = 'OTHER'
+    
+    CURRENCY_CHOICES = [
+        (CURRENCY_GHS, 'GHS - Ghana Cedis'),
+        (CURRENCY_USD, 'USD - US Dollars'),
+        (CURRENCY_GBP, 'GBP - British Pounds'),
+        (CURRENCY_EUR, 'EUR - Euros'),
+        (CURRENCY_NGN, 'NGN - Nigerian Naira'),
+        (CURRENCY_ZAR, 'ZAR - South African Rand'),
+        (CURRENCY_OTHER, 'Other Currency'),
+    ]
+    
+    # Contact information
+    full_name = models.CharField(max_length=200, help_text="Full name of the person making the pledge")
+    email = models.EmailField(help_text="Email address for contact")
+    phone = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Phone number (optional, in international format e.g., +233 20 123 4567)"
+    )
+    country = models.CharField(
+        max_length=2,
+        blank=True,
+        help_text="Country of residence (optional, ISO 3166-1 alpha-2 code)"
+    )
+    
+    # Contact preferences
+    CONTACT_EMAIL = 'email'
+    CONTACT_PHONE = 'phone'
+    CONTACT_WHATSAPP = 'whatsapp'
+    
+    CONTACT_METHOD_CHOICES = [
+        (CONTACT_EMAIL, 'Email'),
+        (CONTACT_PHONE, 'Phone Call'),
+        (CONTACT_WHATSAPP, 'WhatsApp'),
+    ]
+    
+    preferred_contact_method = models.CharField(
+        max_length=20,
+        choices=CONTACT_METHOD_CHOICES,
+        default=CONTACT_EMAIL,
+        help_text="Preferred method of contact"
+    )
+    contact_info = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Additional contact information (e.g., WhatsApp number if different from phone, preferred time to call, etc.)"
+    )
+    
+    # Pledge type
+    pledge_type = models.CharField(
+        max_length=20,
+        choices=PLEDGE_TYPE_CHOICES,
+        default=PLEDGE_TYPE_MONETARY,
+        help_text="Type of pledge: monetary or non-monetary"
+    )
+    
+    # Monetary pledge details (only required if pledge_type is monetary)
+    amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Amount pledged (required for monetary pledges)"
+    )
+    currency = models.CharField(
+        max_length=10,
+        choices=CURRENCY_CHOICES,
+        default=CURRENCY_GHS,
+        blank=True,
+        help_text="Currency of the pledge amount (required for monetary pledges)"
+    )
+    other_currency = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Specify currency if 'Other' is selected"
+    )
+    
+    # Non-monetary pledge details (only required if pledge_type is non_monetary)
+    non_monetary_description = models.TextField(
+        blank=True,
+        help_text="Describe what you're pledging (services, goods, time, skills, etc.) - required for non-monetary pledges"
+    )
+    
+    # Additional information
+    additional_notes = models.TextField(
+        blank=True,
+        help_text="Any additional information or notes from the pledger"
+    )
+    
+    # Status tracking
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        help_text="Current status of the pledge"
+    )
+    admin_notes = models.TextField(
+        blank=True,
+        help_text="Internal admin notes about this pledge"
+    )
+    
+    # Completion tracking
+    completed_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when the pledge was fulfilled/completed"
+    )
+    
+    def __str__(self):
+        if self.pledge_type == self.PLEDGE_TYPE_MONETARY:
+            currency_display = self.other_currency if self.currency == self.CURRENCY_OTHER else self.get_currency_display()
+            amount_str = f"{currency_display} {self.amount}" if self.amount else "Amount TBD"
+            return f"{self.full_name} - {amount_str} ({self.status})"
+        else:
+            desc = self.non_monetary_description[:50] + "..." if len(self.non_monetary_description) > 50 else self.non_monetary_description
+            return f"{self.full_name} - {desc or 'Non-monetary pledge'} ({self.status})"
+    
+    def get_currency_display_value(self):
+        """Return the currency code or name for display."""
+        if self.currency == self.CURRENCY_OTHER:
+            return self.other_currency or 'Other'
+        return dict(self.CURRENCY_CHOICES).get(self.currency, self.currency)
+    
+    def get_pledge_summary(self):
+        """Get a summary of the pledge for display."""
+        if self.pledge_type == self.PLEDGE_TYPE_MONETARY:
+            if self.amount:
+                return f"{self.get_currency_display_value()} {self.amount:,.2f}"
+            return "Amount to be determined"
+        else:
+            return self.non_monetary_description or "Non-monetary pledge"
+    
+    def get_country_name(self):
+        """Get the country name from the country code."""
+        if self.country:
+            return dict(countries).get(self.country, self.country)
+        return None
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Pledge"
+        verbose_name_plural = "Pledges"

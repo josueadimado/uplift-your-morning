@@ -14,5 +14,6 @@ urlpatterns = [
     path('donate/checkout/', views.DonationCheckoutView.as_view(), name='donate-checkout'),
     path('donate/thanks/', views.DonationThanksView.as_view(), name='donate-thanks'),
     path('counseling/', views.CounselingBookingView.as_view(), name='counseling_booking'),
+    path('pledge/', views.PledgeFormView.as_view(), name='pledge_form'),
 ]
 

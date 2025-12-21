@@ -2,9 +2,10 @@
 Forms for pages app.
 """
 from django import forms
-from .models import CounselingBooking
+from .models import CounselingBooking, Pledge
 from django.utils import timezone
 from datetime import date, time
+from django_countries import countries
 
 
 class CounselingBookingForm(forms.ModelForm):
@@ -86,4 +87,128 @@ class CounselingBookingForm(forms.ModelForm):
     def clean_duration_minutes(self):
         """Always set duration to 30 minutes (fixed for all sessions)."""
         return 30
+
+
+class PledgeForm(forms.ModelForm):
+    """Form for submitting pledge commitments (monetary or non-monetary)."""
+    
+    country = forms.ChoiceField(
+        choices=[('', 'Select your country...')] + list(countries),
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'w-full px-4 py-2.5 border rounded-lg',
+            'autocomplete': 'country'
+        })
+    )
+    
+    class Meta:
+        model = Pledge
+        fields = [
+            'full_name', 'email', 'phone', 'country',
+            'preferred_contact_method', 'contact_info',
+            'pledge_type', 'amount', 'currency', 'other_currency',
+            'non_monetary_description', 'additional_notes'
+        ]
+        widgets = {
+            'full_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'Your full name',
+                'required': True,
+                'autocomplete': 'name'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'your.email@example.com',
+                'required': True,
+                'autocomplete': 'email'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg intl-tel-input',
+                'placeholder': 'Phone number (optional)',
+                'required': False,
+                'autocomplete': 'tel',
+                'type': 'tel'
+            }),
+            'preferred_contact_method': forms.Select(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'required': True
+            }),
+            'contact_info': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 3,
+                'placeholder': 'Additional contact information (e.g., WhatsApp number if different, preferred time to call, etc.)'
+            }),
+            'pledge_type': forms.RadioSelect(attrs={
+                'class': 'pledge-type-radio'
+            }),
+            'amount': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0.01'
+            }),
+            'currency': forms.Select(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg'
+            }),
+            'other_currency': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'Specify currency (e.g., CAD, AUD)',
+                'style': 'display: none;'
+            }),
+            'non_monetary_description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 4,
+                'placeholder': 'Describe what you\'re pledging (e.g., "I will provide 10 hours of graphic design services" or "I will donate 50 books")',
+                'style': 'display: none;'
+            }),
+            'additional_notes': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 4,
+                'placeholder': 'Any additional information or notes (optional)'
+            }),
+        }
+    
+    def clean_amount(self):
+        """Ensure amount is positive if provided."""
+        amount = self.cleaned_data.get('amount')
+        pledge_type = self.cleaned_data.get('pledge_type')
+        
+        if pledge_type == Pledge.PLEDGE_TYPE_MONETARY:
+            if not amount:
+                raise forms.ValidationError("Amount is required for monetary pledges.")
+            if amount <= 0:
+                raise forms.ValidationError("Pledge amount must be greater than zero.")
+        
+        return amount
+    
+    def clean_non_monetary_description(self):
+        """Ensure non-monetary description is provided for non-monetary pledges."""
+        description = self.cleaned_data.get('non_monetary_description')
+        pledge_type = self.cleaned_data.get('pledge_type')
+        
+        if pledge_type == Pledge.PLEDGE_TYPE_NON_MONETARY:
+            if not description or not description.strip():
+                raise forms.ValidationError("Please describe what you're pledging (services, goods, time, etc.).")
+        
+        return description
+    
+    def clean(self):
+        """Validate fields based on pledge type."""
+        cleaned_data = super().clean()
+        pledge_type = cleaned_data.get('pledge_type')
+        currency = cleaned_data.get('currency')
+        other_currency = cleaned_data.get('other_currency')
+        
+        # Validate currency for monetary pledges
+        if pledge_type == Pledge.PLEDGE_TYPE_MONETARY:
+            if not currency:
+                raise forms.ValidationError({
+                    'currency': 'Currency is required for monetary pledges.'
+                })
+            if currency == Pledge.CURRENCY_OTHER and not other_currency:
+                raise forms.ValidationError({
+                    'other_currency': 'Please specify the currency name when selecting "Other Currency".'
+                })
+        
+        return cleaned_data
 

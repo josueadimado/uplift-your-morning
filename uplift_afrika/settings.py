@@ -158,21 +158,34 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Optimize static files scanning - only scan when actually needed
 # This significantly speeds up Django command execution (makemigrations, migrate, etc.)
 # Skip static files scanning for non-static commands to speed up startup
-SKIP_STATIC_SCAN = any(cmd in sys.argv for cmd in ['makemigrations', 'migrate', 'shell', 'dbshell', 'test', 'check'])
+SKIP_STATIC_SCAN = any(cmd in sys.argv for cmd in ['makemigrations', 'migrate', 'shell', 'dbshell', 'test', 'check', 'collectstatic'])
+
+# For runserver, we need static files but can optimize the scanning
+# Check if we're running runserver and optimize accordingly
+IS_RUNSERVER = 'runserver' in sys.argv
+
 if not SKIP_STATIC_SCAN:
+    # Always include static directory
     STATICFILES_DIRS = [
         BASE_DIR / 'static',
     ]
+    
+    # In development with runserver, use a faster static files storage
+    # This avoids slow file scanning on every request
+    if DEBUG and IS_RUNSERVER:
+        # Use simple storage in development to avoid slow manifest generation
+        STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
     # Empty list to skip scanning during migrations and other non-static commands
     STATICFILES_DIRS = []
 
 # WhiteNoise configuration for efficient static file serving
 # Disable in development for faster startup - only enable in production after collectstatic
+# Don't set STATICFILES_STORAGE in DEBUG mode to avoid slow startup
 if not DEBUG:
     # Only use in production after running collectstatic
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# In DEBUG mode, don't set STATICFILES_STORAGE to avoid slow startup
+# In DEBUG mode, Django will use default storage (faster for development)
 
 # Media files (user uploads)
 MEDIA_URL = 'media/'

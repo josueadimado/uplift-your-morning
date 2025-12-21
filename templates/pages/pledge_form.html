@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Make a Pledge - Uplift Your Morning{% endblock %}
+
+{% block meta_description %}Make a pledge commitment to support Uplift Your Morning. Your generosity helps us continue our mission.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
+<style>
+    .iti {
+        width: 100%;
+    }
+    .iti__flag-container {
+        z-index: 10;
+    }
+    .intl-tel-input {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-12 sm:py-16 md:py-20" style="background: #FFFFFF;">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-8 sm:mb-12">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4" style="color: var(--text);">Make a Pledge</h1>
+            <p class="text-lg sm:text-xl leading-relaxed font-medium" style="color: var(--text_secondary);">
+                Your commitment to support our mission makes a difference. Fill out the form below to make your pledge, and we'll be in touch soon.
+            </p>
+        </div>
+
+        <!-- Information Box -->
+        <div class="mb-6 sm:mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 mt-0.5 mr-3 flex-shrink-0" style="color: #3b82f6;" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <h3 class="font-semibold mb-2" style="color: #1e40af;">About Pledges</h3>
+                    <p class="text-sm" style="color: #1e3a8a;">
+                        A pledge is a commitment to donate a specific amount. Once you submit your pledge, our team will contact you to discuss the details and arrange for the fulfillment of your commitment.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pledge Form -->
+        <div class="bg-white rounded-2xl shadow-lg border p-6 sm:p-8 md:p-10" style="border-color: var(--border);">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <ul class="list-disc list-inside text-sm text-red-800">
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Contact Information Section -->
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Contact Information</h2>
+                    <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Full Name *</label>
+                            {{ form.full_name }}
+                            {% if form.full_name.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.full_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Email Address *</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Phone Number (Optional)</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.phone.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">
+                                Select your country and enter your phone number.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.country.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Country (Optional)</label>
+                            {{ form.country }}
+                            {% if form.country.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.country.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.preferred_contact_method.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Preferred Contact Method *</label>
+                            {{ form.preferred_contact_method }}
+                            {% if form.preferred_contact_method.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.preferred_contact_method.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">
+                                How would you prefer us to contact you?
+                            </p>
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.contact_info.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Additional Contact Information (Optional)</label>
+                            {{ form.contact_info }}
+                            {% if form.contact_info.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.contact_info.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">
+                                Provide additional details (e.g., WhatsApp number if different from phone, preferred time to call, etc.)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pledge Type Selection -->
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Pledge Type</h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-3" style="color: var(--text);">What would you like to pledge? *</label>
+                        <div class="space-y-3">
+                            {% for choice in form.pledge_type %}
+                            <label class="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" 
+                                   style="border-color: var(--border);"
+                                   for="{{ choice.id_for_label }}">
+                                <input type="radio" name="{{ form.pledge_type.name }}" value="{{ choice.choice_value }}" 
+                                       id="{{ choice.id_for_label }}" 
+                                       class="mt-1 mr-3 pledge-type-radio"
+                                       {% if forloop.first %}checked{% endif %}>
+                                <div>
+                                    <div class="font-semibold" style="color: var(--text);">{{ choice.choice_label }}</div>
+                                    <div class="text-sm mt-1" style="color: var(--text_light);">
+                                        {% if choice.choice_value == 'monetary' %}
+                                        I want to pledge a monetary amount
+                                        {% else %}
+                                        I want to pledge services, goods, time, or other non-monetary contributions
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% if form.pledge_type.errors %}
+                        <p class="text-sm text-red-600 mt-2">{{ form.pledge_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Monetary Pledge Details -->
+                <div class="border-t pt-6" id="monetary-pledge-section" style="border-color: var(--border);">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Monetary Pledge Details</h2>
+                    <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label for="{{ form.amount.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Pledge Amount *</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.amount.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">Enter the amount you wish to pledge</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.currency.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Currency *</label>
+                            {{ form.currency }}
+                            {% if form.currency.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.currency.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="sm:col-span-2" id="other-currency-wrapper" style="display: none;">
+                            <label for="{{ form.other_currency.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Specify Currency *</label>
+                            {{ form.other_currency }}
+                            {% if form.other_currency.errors %}
+                            <p class="text-sm text-red-600 mt-1">{{ form.other_currency.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs mt-1" style="color: var(--text_light);">Please specify the currency code (e.g., CAD, AUD, JPY)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Non-Monetary Pledge Details -->
+                <div class="border-t pt-6" id="non-monetary-pledge-section" style="display: none; border-color: var(--border);">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Non-Monetary Pledge Details</h2>
+                    <div>
+                        <label for="{{ form.non_monetary_description.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">What are you pledging? *</label>
+                        {{ form.non_monetary_description }}
+                        {% if form.non_monetary_description.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.non_monetary_description.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs mt-1" style="color: var(--text_light);">
+                            Describe what you're pledging. Examples: "I will provide 10 hours of graphic design services", 
+                            "I will donate 50 books", "I will volunteer 5 hours per week for 3 months", etc.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Additional Information Section -->
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Additional Information</h2>
+                    <div>
+                        <label for="{{ form.additional_notes.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Additional Notes (Optional)</label>
+                        {{ form.additional_notes }}
+                        {% if form.additional_notes.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.additional_notes.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs mt-1" style="color: var(--text_light);">Any additional information you'd like to share with us</p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <button type="submit" 
+                            class="w-full px-6 py-3.5 rounded-lg font-semibold text-white transition-all shadow-sm hover:shadow-md"
+                            style="background: var(--primary); font-size: 16px;"
+                            onmouseover="this.style.background='var(--primary_hover)'"
+                            onmouseout="this.style.background='var(--primary)'">
+                        Submit Pledge
+                    </button>
+                    <p class="text-xs text-center mt-3" style="color: var(--text_light);">
+                        Your pledge will be reviewed and we'll contact you soon to discuss the details.
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- What Happens Next Box -->
+        <div class="mt-8 sm:mt-10 bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
+            <h3 class="font-semibold mb-2" style="color: var(--text);">What happens next?</h3>
+            <ul class="space-y-2 text-sm" style="color: var(--text_secondary);">
+                <li class="flex items-start">
+                    <span class="mr-2">1.</span>
+                    <span>Submit your pledge commitment with your contact information and amount.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">2.</span>
+                    <span>Our team will review your pledge and contact you via email or phone.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">3.</span>
+                    <span>We'll discuss the details and arrange for the fulfillment of your pledge.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">4.</span>
+                    <span>Your support helps us continue our mission and reach more people.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize international phone input
+        const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+        if (phoneInput) {
+            const iti = window.intlTelInput(phoneInput, {
+                initialCountry: "auto",
+                geoIpLookup: function(callback) {
+                    fetch("https://ipapi.co/json/")
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) { callback(data.country_code); })
+                        .catch(function() { callback("gh"); }); // Default to Ghana
+                },
+                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
+                preferredCountries: ['gh', 'ng', 'us', 'gb', 'za'],
+                separateDialCode: true,
+                hiddenInput: "full_phone",
+            });
+            
+            // Update hidden input on change
+            phoneInput.addEventListener('blur', function() {
+                if (iti.isValidNumber()) {
+                    phoneInput.value = iti.getNumber();
+                }
+            });
+        }
+        // Pledge type toggle
+        const pledgeTypeRadios = document.querySelectorAll('.pledge-type-radio');
+        const monetarySection = document.getElementById('monetary-pledge-section');
+        const nonMonetarySection = document.getElementById('non-monetary-pledge-section');
+        const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+        const currencySelect = document.getElementById('{{ form.currency.id_for_label }}');
+        const nonMonetaryDesc = document.getElementById('{{ form.non_monetary_description.id_for_label }}');
+        
+        function togglePledgeSections() {
+            const selectedType = document.querySelector('.pledge-type-radio:checked')?.value;
+            
+            if (selectedType === 'monetary') {
+                monetarySection.style.display = 'block';
+                nonMonetarySection.style.display = 'none';
+                if (amountInput) amountInput.setAttribute('required', 'required');
+                if (currencySelect) currencySelect.setAttribute('required', 'required');
+                if (nonMonetaryDesc) {
+                    nonMonetaryDesc.removeAttribute('required');
+                    nonMonetaryDesc.value = '';
+                }
+            } else {
+                monetarySection.style.display = 'none';
+                nonMonetarySection.style.display = 'block';
+                if (amountInput) {
+                    amountInput.removeAttribute('required');
+                    amountInput.value = '';
+                }
+                if (currencySelect) currencySelect.removeAttribute('required');
+                if (nonMonetaryDesc) nonMonetaryDesc.setAttribute('required', 'required');
+            }
+        }
+        
+        // Toggle on pledge type change
+        pledgeTypeRadios.forEach(radio => {
+            radio.addEventListener('change', togglePledgeSections);
+        });
+        
+        // Initial state
+        togglePledgeSections();
+        
+        // Show/hide other currency field based on currency selection
+        const otherCurrencyWrapper = document.getElementById('other-currency-wrapper');
+        const otherCurrencyInput = document.getElementById('{{ form.other_currency.id_for_label }}');
+        
+        if (currencySelect && otherCurrencyWrapper) {
+            function toggleOtherCurrency() {
+                if (currencySelect.value === 'OTHER') {
+                    otherCurrencyWrapper.style.display = 'block';
+                    if (otherCurrencyInput) {
+                        otherCurrencyInput.setAttribute('required', 'required');
+                    }
+                } else {
+                    otherCurrencyWrapper.style.display = 'none';
+                    if (otherCurrencyInput) {
+                        otherCurrencyInput.removeAttribute('required');
+                        otherCurrencyInput.value = '';
+                    }
+                }
+            }
+            
+            // Check on page load
+            toggleOtherCurrency();
+            
+            // Check on change
+            currencySelect.addEventListener('change', toggleOtherCurrency);
+        }
+    });
+</script>
+{% endblock %}
+
