@@ -168,6 +168,15 @@ class PledgeForm(forms.ModelForm):
                 'placeholder': 'Describe what you\'re pledging (e.g., "I will provide 10 hours of graphic design services" or "I will donate 50 books")',
                 'style': 'display: none;'
             }),
+            'redemption_date': forms.DateInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg flatpickr',
+                'placeholder': 'Select a date',
+                'type': 'text'  # Use text type for Flatpickr
+            }),
+            'redemption_timeframe': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'e.g., Within 3 months, Q2 2025, By end of year'
+            }),
             'additional_notes': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-2.5 border rounded-lg',
                 'rows': 4,

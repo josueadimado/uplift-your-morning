@@ -7,6 +7,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     #phone-wrapper {
         position: relative;
@@ -292,6 +293,7 @@
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     // Wait for both DOM and intlTelInput to be ready
     let phoneInputInitialized = false;
@@ -478,6 +480,17 @@
             
             // Check on change
             frequencySelect.addEventListener('change', toggleCustomFrequency);
+        }
+        
+        // Initialize Flatpickr for redemption_date
+        const redemptionDateInput = document.getElementById('{{ form.redemption_date.id_for_label }}');
+        if (redemptionDateInput) {
+            flatpickr(redemptionDateInput, {
+                dateFormat: "Y-m-d",
+                allowInput: true,
+                altInput: true,
+                altFormat: "F j, Y",
+            });
         }
     });
 </script>
