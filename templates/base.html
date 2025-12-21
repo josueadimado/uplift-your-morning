@@ -505,6 +505,13 @@
                            onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
                             Give
                         </a>
+                        <a href="{% url 'pages:pledge_form' %}" 
+                           class="px-5 py-2 rounded-md font-semibold transition-all border hover:text-white hover:border-[var(--primary)]"
+                           style="border-color: var(--primary); color: var(--primary); font-size: 15px;"
+                           onmouseover="this.style.background='var(--primary)'; this.style.color='white'" 
+                           onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
+                            Pledge
+                        </a>
                         <a href="{% url 'subscriptions:subscribe' %}" 
                            class="px-5 py-2 rounded-md font-semibold text-white transition-colors shadow-sm hover:shadow-md"
                            style="background: var(--primary);"
@@ -583,6 +590,13 @@
                        onmouseover="this.style.background='var(--primary)'; this.style.color='white'" 
                        onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
                         Give
+                    </a>
+                    <a href="{% url 'pages:pledge_form' %}" 
+                       class="block px-4 py-3 border-2 rounded-md text-center font-semibold hover:text-white transition-colors"
+                       style="border-color: var(--primary); color: var(--primary); font-size: 16px;"
+                       onmouseover="this.style.background='var(--primary)'; this.style.color='white'" 
+                       onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
+                        Make a Pledge
                     </a>
                     <a href="{% url 'subscriptions:subscribe' %}" 
                        class="block px-4 py-3 rounded-md text-center font-semibold text-white transition-colors shadow-sm"
@@ -824,6 +838,7 @@
                         <h5 class="font-bold uppercase tracking-wide mb-4 sm:mb-6" style="color: var(--footer_text); font-size: 13px;">Get Involved</h5>
                         <ul class="space-y-2 sm:space-y-3">
                             <li><a href="{% url 'pages:donate' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Give / Donate</a></li>
+                            <li><a href="{% url 'pages:pledge_form' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Make a Pledge</a></li>
                             <li><a href="{% url 'community:testimonies' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Share a Testimony</a></li>
                             <li><a href="{% url 'community:prayer-request' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Send a Prayer Request</a></li>
                             <li><a href="{% url 'subscriptions:subscribe' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Email & WhatsApp Subscription</a></li>
