@@ -398,7 +398,8 @@
         const nonMonetaryDesc = document.getElementById('{{ form.non_monetary_description.id_for_label }}');
         
         function togglePledgeSections() {
-            const selectedType = document.querySelector('.pledge-type-radio:checked')?.value;
+            const selectedRadio = document.querySelector('.pledge-type-radio:checked');
+            const selectedType = selectedRadio ? selectedRadio.value : 'monetary'; // Default to monetary if none selected
             
             // Get label elements
             const amountLabel = document.getElementById('amount-label');
@@ -406,10 +407,19 @@
             const otherCurrencyLabel = document.getElementById('other-currency-label');
             const nonMonetaryLabel = document.getElementById('non-monetary-label');
             
+            if (!monetarySection || !nonMonetarySection) {
+                return;
+            }
+            
             if (selectedType === 'monetary') {
                 // Show monetary section, hide non-monetary
-                monetarySection.style.display = 'block';
-                nonMonetarySection.style.display = 'none';
+                if (monetarySection) {
+                    monetarySection.style.display = 'block';
+                    monetarySection.style.visibility = 'visible';
+                }
+                if (nonMonetarySection) {
+                    nonMonetarySection.style.display = 'none';
+                }
                 
                 // Make monetary fields required
                 if (amountInput) {
@@ -449,10 +459,15 @@
                         asterisk.remove();
                     }
                 }
-            } else {
+            } else if (selectedType === 'non_monetary') {
                 // Show non-monetary section, hide monetary
-                monetarySection.style.display = 'none';
-                nonMonetarySection.style.display = 'block';
+                if (monetarySection) {
+                    monetarySection.style.display = 'none';
+                }
+                if (nonMonetarySection) {
+                    nonMonetarySection.style.display = 'block';
+                    nonMonetarySection.style.visibility = 'visible';
+                }
                 
                 // Remove required from monetary fields and clear values
                 if (amountInput) {
@@ -498,7 +513,7 @@
             }
         }
         
-        // Toggle on pledge type change
+        // Toggle on pledge type change - use both 'change' and 'click' events for better compatibility
         pledgeTypeRadios.forEach(radio => {
             radio.addEventListener('change', function() {
                 togglePledgeSections();
@@ -507,10 +522,21 @@
                     toggleOtherCurrency();
                 }
             });
+            radio.addEventListener('click', function() {
+                // Also trigger on click to ensure immediate response
+                setTimeout(function() {
+                    togglePledgeSections();
+                    if (currencySelect && otherCurrencyWrapper) {
+                        toggleOtherCurrency();
+                    }
+                }, 10);
+            });
         });
         
-        // Initial state
-        togglePledgeSections();
+        // Set initial state - ensure it runs after a small delay to ensure DOM is ready
+        setTimeout(function() {
+            togglePledgeSections();
+        }, 50);
         
         // Show/hide other currency field based on currency selection
         const otherCurrencyWrapper = document.getElementById('other-currency-wrapper');
