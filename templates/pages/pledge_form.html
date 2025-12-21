@@ -141,39 +141,6 @@
                     </div>
                 </div>
 
-                <!-- Pledge Type Selection -->
-                <div class="border-t pt-6" style="border-color: var(--border);">
-                    <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Pledge Type</h2>
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold mb-3" style="color: var(--text);">What would you like to pledge? (Optional)</label>
-                        <div class="space-y-3">
-                            {% for choice in form.pledge_type %}
-                            <label class="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" 
-                                   style="border-color: var(--border);"
-                                   for="{{ choice.id_for_label }}">
-                                <input type="radio" name="{{ form.pledge_type.name }}" value="{{ choice.choice_value }}" 
-                                       id="{{ choice.id_for_label }}" 
-                                       class="mt-1 mr-3"
-                                       {% if forloop.first %}checked{% endif %}>
-                                <div>
-                                    <div class="font-semibold" style="color: var(--text);">{{ choice.choice_label }}</div>
-                                    <div class="text-sm mt-1" style="color: var(--text_light);">
-                                        {% if choice.choice_value == 'monetary' %}
-                                        I want to pledge a monetary amount
-                                        {% else %}
-                                        I want to pledge services, goods, time, or other non-monetary contributions
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </label>
-                            {% endfor %}
-                        </div>
-                        {% if form.pledge_type.errors %}
-                        <p class="text-sm text-red-600 mt-2">{{ form.pledge_type.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
                 <!-- Pledge Details -->
                 <div class="border-t pt-6" style="border-color: var(--border);">
                     <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--text);">Pledge Details</h2>

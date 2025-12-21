@@ -589,6 +589,14 @@ class PledgeFormView(TemplateView):
         form = PledgeForm(request.POST)
         if form.is_valid():
             pledge = form.save(commit=False)
+            # Set default pledge type based on what fields are filled
+            if not pledge.pledge_type:
+                if pledge.amount:
+                    pledge.pledge_type = Pledge.PLEDGE_TYPE_MONETARY
+                elif pledge.non_monetary_description:
+                    pledge.pledge_type = Pledge.PLEDGE_TYPE_NON_MONETARY
+                else:
+                    pledge.pledge_type = Pledge.PLEDGE_TYPE_MONETARY  # Default
             pledge.status = Pledge.STATUS_PENDING
             pledge.save()
             # Send email notification to admin
