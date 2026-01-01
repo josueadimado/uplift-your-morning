@@ -480,36 +480,52 @@ class Pledge(TimeStampedModel):
             self.usd_amount = None
             return None
         
+        # Get currency code
+        if self.currency == self.CURRENCY_OTHER:
+            if not self.other_currency:
+                self.usd_amount = None
+                return None
+            currency_code = self.other_currency.strip().upper()
+        else:
+            currency_code = self.currency
+        
         # If already in USD, no conversion needed
-        currency_code = self.other_currency.upper() if self.currency == self.CURRENCY_OTHER else self.currency
         if currency_code == 'USD':
             self.usd_amount = self.amount
             return self.usd_amount
         
+        # Try forex-python first
         try:
             from forex_python.converter import CurrencyRates
             c = CurrencyRates()
             # Get exchange rate and convert
             rate = c.get_rate(currency_code, 'USD')
-            self.usd_amount = self.amount * rate
-            return self.usd_amount
+            if rate:
+                self.usd_amount = self.amount * rate
+                return self.usd_amount
         except Exception as e:
-            # If conversion fails, try using a fallback API
-            try:
-                import requests
-                # Use exchangerate-api.com (free, no API key needed)
-                response = requests.get(f'https://api.exchangerate-api.com/v4/latest/{currency_code}', timeout=5)
-                if response.status_code == 200:
-                    data = response.json()
-                    rate = data['rates'].get('USD', 1)
+            # If forex-python fails, try fallback API
+            pass
+        
+        # Fallback to exchangerate-api.com
+        try:
+            import requests
+            response = requests.get(f'https://api.exchangerate-api.com/v4/latest/{currency_code}', timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rates' in data and 'USD' in data['rates']:
+                    rate = data['rates']['USD']
                     self.usd_amount = self.amount * rate
                     return self.usd_amount
-            except Exception:
-                pass
-            
-            # If all else fails, return None (conversion failed)
-            self.usd_amount = None
-            return None
+        except Exception as e:
+            # Log error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Currency conversion failed for {currency_code}: {str(e)}")
+        
+        # If all else fails, return None (conversion failed)
+        self.usd_amount = None
+        return None
     
     def save(self, *args, **kwargs):
         """Override save to automatically convert to USD."""

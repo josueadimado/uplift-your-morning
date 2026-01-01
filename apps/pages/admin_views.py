@@ -1345,10 +1345,12 @@ class PledgeRemoveDuplicatesView(StaffRequiredMixin, View):
 class PledgeConvertToUSDView(StaffRequiredMixin, View):
     """Convert all existing pledges to USD (update usd_amount field)."""
     def post(self, request, *args, **kwargs):
-        from django.contrib import messages
+        import logging
+        logger = logging.getLogger(__name__)
         
         updated_count = 0
         failed_count = 0
+        failed_details = []
         
         monetary_pledges = Pledge.objects.filter(
             pledge_type=Pledge.PLEDGE_TYPE_MONETARY,
@@ -1357,17 +1359,40 @@ class PledgeConvertToUSDView(StaffRequiredMixin, View):
         
         for pledge in monetary_pledges:
             try:
-                pledge.convert_to_usd()
-                pledge.save(update_fields=['usd_amount'])
-                updated_count += 1
+                # Get currency code for logging
+                if pledge.currency == Pledge.CURRENCY_OTHER:
+                    currency_code = pledge.other_currency or 'UNKNOWN'
+                else:
+                    currency_code = pledge.currency
+                
+                # Convert to USD
+                result = pledge.convert_to_usd()
+                
+                if result is not None:
+                    pledge.save(update_fields=['usd_amount'])
+                    updated_count += 1
+                    logger.info(f"Converted pledge {pledge.id}: {pledge.amount} {currency_code} = ${result} USD")
+                else:
+                    failed_count += 1
+                    failed_details.append(f"Pledge {pledge.id} ({currency_code}): Conversion returned None")
+                    logger.warning(f"Conversion failed for pledge {pledge.id} ({currency_code}): {pledge.amount}")
             except Exception as e:
                 failed_count += 1
-                print(f"Failed to convert pledge {pledge.id}: {e}")
+                error_msg = f"Pledge {pledge.id}: {str(e)}"
+                failed_details.append(error_msg)
+                logger.error(f"Failed to convert pledge {pledge.id}: {e}", exc_info=True)
         
-        messages.success(
-            request,
-            f'Successfully converted {updated_count} pledge(s) to USD. {failed_count} failed.'
-        )
+        if failed_count > 0:
+            messages.warning(
+                request,
+                f'Converted {updated_count} pledge(s) to USD. {failed_count} failed. Check server logs for details.'
+            )
+        else:
+            messages.success(
+                request,
+                f'Successfully converted {updated_count} pledge(s) to USD.'
+            )
+        
         return redirect('manage:pledges_list')
 
 
