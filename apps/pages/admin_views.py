@@ -1363,7 +1363,9 @@ class PledgeConvertToUSDView(StaffRequiredMixin, View):
                 if pledge.currency == Pledge.CURRENCY_OTHER:
                     currency_code = pledge.other_currency or 'UNKNOWN'
                 else:
-                    currency_code = pledge.currency
+                    currency_code = pledge.currency or 'UNKNOWN'
+                
+                logger.info(f"Processing pledge {pledge.id}: amount={pledge.amount}, currency={currency_code}, pledge_type={pledge.pledge_type}")
                 
                 # Convert to USD
                 result = pledge.convert_to_usd()
@@ -1371,16 +1373,17 @@ class PledgeConvertToUSDView(StaffRequiredMixin, View):
                 if result is not None:
                     pledge.save(update_fields=['usd_amount'])
                     updated_count += 1
-                    logger.info(f"Converted pledge {pledge.id}: {pledge.amount} {currency_code} = ${result} USD")
+                    logger.info(f"✓ Converted pledge {pledge.id}: {pledge.amount} {currency_code} = ${result} USD")
                 else:
                     failed_count += 1
-                    failed_details.append(f"Pledge {pledge.id} ({currency_code}): Conversion returned None")
-                    logger.warning(f"Conversion failed for pledge {pledge.id} ({currency_code}): {pledge.amount}")
+                    error_detail = f"Pledge {pledge.id} ({currency_code}): Conversion returned None"
+                    failed_details.append(error_detail)
+                    logger.warning(f"✗ Conversion failed for pledge {pledge.id}: {error_detail}")
             except Exception as e:
                 failed_count += 1
                 error_msg = f"Pledge {pledge.id}: {str(e)}"
                 failed_details.append(error_msg)
-                logger.error(f"Failed to convert pledge {pledge.id}: {e}", exc_info=True)
+                logger.error(f"✗ Exception converting pledge {pledge.id}: {e}", exc_info=True)
         
         if failed_count > 0:
             messages.warning(

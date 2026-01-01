@@ -476,37 +476,60 @@ class Pledge(TimeStampedModel):
     
     def convert_to_usd(self):
         """Convert the pledge amount to USD using exchange rates."""
-        if not self.amount or self.pledge_type != self.PLEDGE_TYPE_MONETARY:
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Check if this is a monetary pledge with an amount
+        if not self.amount:
+            logger.debug(f"Pledge {self.id}: No amount, skipping conversion")
+            self.usd_amount = None
+            return None
+        
+        if self.pledge_type != self.PLEDGE_TYPE_MONETARY:
+            logger.debug(f"Pledge {self.id}: Not monetary pledge, skipping conversion")
             self.usd_amount = None
             return None
         
         # Get currency code
         if self.currency == self.CURRENCY_OTHER:
             if not self.other_currency:
+                logger.warning(f"Pledge {self.id}: OTHER currency selected but other_currency is empty")
                 self.usd_amount = None
                 return None
             currency_code = self.other_currency.strip().upper()
         else:
+            if not self.currency:
+                logger.warning(f"Pledge {self.id}: No currency specified")
+                self.usd_amount = None
+                return None
             currency_code = self.currency
         
         # If already in USD, no conversion needed
         if currency_code == 'USD':
             self.usd_amount = self.amount
+            logger.info(f"Pledge {self.id}: Already in USD, no conversion needed")
             return self.usd_amount
         
         # Use exchangerate-api.com as primary method (more reliable, free, no API key)
         try:
             import requests
-            response = requests.get(f'https://api.exchangerate-api.com/v4/latest/{currency_code}', timeout=10)
+            url = f'https://api.exchangerate-api.com/v4/latest/{currency_code}'
+            logger.debug(f"Pledge {self.id}: Attempting conversion from {currency_code} to USD via {url}")
+            response = requests.get(url, timeout=10)
+            
             if response.status_code == 200:
                 data = response.json()
                 if 'rates' in data and 'USD' in data['rates']:
                     rate = float(data['rates']['USD'])
                     self.usd_amount = self.amount * rate
+                    logger.info(f"Pledge {self.id}: Successfully converted {self.amount} {currency_code} = ${self.usd_amount} USD (rate: {rate})")
                     return self.usd_amount
+                else:
+                    logger.warning(f"Pledge {self.id}: USD rate not found in API response for {currency_code}")
+            else:
+                logger.warning(f"Pledge {self.id}: API returned status {response.status_code} for {currency_code}")
         except Exception as e:
-            # If exchangerate-api fails, try forex-python as fallback
-            pass
+            logger.error(f"Pledge {self.id}: exchangerate-api.com failed for {currency_code}: {str(e)}")
         
         # Fallback to forex-python (may not always be available)
         try:
@@ -515,14 +538,13 @@ class Pledge(TimeStampedModel):
             rate = c.get_rate(currency_code, 'USD')
             if rate:
                 self.usd_amount = self.amount * rate
+                logger.info(f"Pledge {self.id}: Successfully converted via forex-python: {self.amount} {currency_code} = ${self.usd_amount} USD")
                 return self.usd_amount
-        except Exception:
-            # forex-python not available or failed
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"Currency conversion failed for {currency_code}: Both APIs failed")
+        except Exception as e:
+            logger.warning(f"Pledge {self.id}: forex-python failed for {currency_code}: {str(e)}")
         
         # If all else fails, return None (conversion failed)
+        logger.error(f"Pledge {self.id}: All conversion methods failed for {currency_code}")
         self.usd_amount = None
         return None
     
