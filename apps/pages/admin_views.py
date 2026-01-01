@@ -1414,9 +1414,9 @@ class PledgeConvertToUSDView(StaffRequiredMixin, View):
                 result = pledge.convert_to_usd()
                 
                 if result is not None:
-                    pledge.save(update_fields=['usd_amount'])
+                    pledge.save(update_fields=['usd_amount', 'conversion_rate', 'conversion_date', 'conversion_source'])
                     updated_count += 1
-                    logger.info(f"✓ Converted pledge {pledge.id}: {pledge.amount} {currency_code} = ${result} USD")
+                    logger.info(f"✓ Converted pledge {pledge.id}: {pledge.amount} {currency_code} = ${result} USD (rate: {pledge.conversion_rate}, source: {pledge.conversion_source})")
                 else:
                     failed_count += 1
                     error_detail = f"Pledge {pledge.id} ({currency_code}): Conversion returned None"

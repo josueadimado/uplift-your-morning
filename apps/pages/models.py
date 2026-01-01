@@ -388,6 +388,23 @@ class Pledge(TimeStampedModel):
         blank=True,
         help_text="Amount in USD (automatically calculated)"
     )
+    conversion_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Exchange rate used for conversion (from currency to USD)"
+    )
+    conversion_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when the conversion rate was fetched"
+    )
+    conversion_source = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Source of the exchange rate (e.g., exchangerate-api.com, ECB)"
+    )
     donation_frequency = models.CharField(
         max_length=20,
         choices=FREQUENCY_CHOICES,
@@ -521,9 +538,22 @@ class Pledge(TimeStampedModel):
                 data = response.json()
                 if 'rates' in data and 'USD' in data['rates']:
                     from decimal import Decimal
+                    from datetime import datetime
                     rate = Decimal(str(data['rates']['USD']))  # Convert to Decimal to match amount type
                     self.usd_amount = self.amount * rate
-                    logger.info(f"Pledge {self.id}: Successfully converted {self.amount} {currency_code} = ${self.usd_amount} USD (rate: {rate})")
+                    self.conversion_rate = rate
+                    self.conversion_source = 'exchangerate-api.com'
+                    # Parse the date from the API response
+                    if 'date' in data:
+                        try:
+                            self.conversion_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+                        except (ValueError, TypeError):
+                            from datetime import date
+                            self.conversion_date = date.today()
+                    else:
+                        from datetime import date
+                        self.conversion_date = date.today()
+                    logger.info(f"Pledge {self.id}: Successfully converted {self.amount} {currency_code} = ${self.usd_amount} USD (rate: {rate} from exchangerate-api.com)")
                     return self.usd_amount
                 else:
                     logger.warning(f"Pledge {self.id}: USD rate not found in API response for {currency_code}")
@@ -536,12 +566,16 @@ class Pledge(TimeStampedModel):
         try:
             from forex_python.converter import CurrencyRates
             from decimal import Decimal
+            from datetime import date
             c = CurrencyRates()
             rate = c.get_rate(currency_code, 'USD')
             if rate:
                 rate_decimal = Decimal(str(rate))  # Convert to Decimal
                 self.usd_amount = self.amount * rate_decimal
-                logger.info(f"Pledge {self.id}: Successfully converted via forex-python: {self.amount} {currency_code} = ${self.usd_amount} USD")
+                self.conversion_rate = rate_decimal
+                self.conversion_source = 'ECB (via forex-python)'
+                self.conversion_date = date.today()
+                logger.info(f"Pledge {self.id}: Successfully converted via forex-python (ECB): {self.amount} {currency_code} = ${self.usd_amount} USD (rate: {rate_decimal})")
                 return self.usd_amount
         except Exception as e:
             logger.warning(f"Pledge {self.id}: forex-python failed for {currency_code}: {str(e)}")

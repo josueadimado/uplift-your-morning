@@ -121,6 +121,23 @@
                     <p class="text-xs mt-1" style="color: var(--text_light);">
                         Enter USD amount manually or click "Auto Convert" to calculate automatically
                     </p>
+                    {% if pledge.usd_amount and pledge.conversion_rate %}
+                    <div class="mt-2 p-2 bg-gray-50 rounded text-xs" style="background: var(--background_light);">
+                        <p style="color: var(--text_secondary);">
+                            <strong>Conversion Rate:</strong> 1 {{ pledge.get_currency_display_value }} = ${{ pledge.conversion_rate|floatformat:6 }} USD
+                        </p>
+                        {% if pledge.conversion_source %}
+                        <p style="color: var(--text_secondary);">
+                            <strong>Source:</strong> {{ pledge.conversion_source }}
+                        </p>
+                        {% endif %}
+                        {% if pledge.conversion_date %}
+                        <p style="color: var(--text_secondary);">
+                            <strong>Rate Date:</strong> {{ pledge.conversion_date|date:"F d, Y" }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% if pledge.donation_frequency %}
                 <div>
