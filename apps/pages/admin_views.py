@@ -1386,10 +1386,14 @@ class PledgeConvertToUSDView(StaffRequiredMixin, View):
                 logger.error(f"✗ Exception converting pledge {pledge.id}: {e}", exc_info=True)
         
         if failed_count > 0:
-            messages.warning(
-                request,
-                f'Converted {updated_count} pledge(s) to USD. {failed_count} failed. Check server logs for details.'
-            )
+            # Show first few error details in the message
+            error_preview = failed_details[:3]  # Show first 3 errors
+            error_msg = f'Converted {updated_count} pledge(s) to USD. {failed_count} failed.'
+            if error_preview:
+                error_msg += f' Issues: {"; ".join(error_preview)}'
+                if len(failed_details) > 3:
+                    error_msg += f' (and {len(failed_details) - 3} more)'
+            messages.warning(request, error_msg)
         else:
             messages.success(
                 request,
