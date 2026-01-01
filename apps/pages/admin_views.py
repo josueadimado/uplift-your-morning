@@ -1084,8 +1084,9 @@ class PledgeUpdateUSDView(StaffRequiredMixin, View):
                 # Trigger automatic conversion
                 result = pledge.convert_to_usd()
                 if result is not None:
-                    pledge.save(update_fields=['usd_amount'])
-                    messages.success(request, f'USD amount automatically converted: ${pledge.usd_amount:,.2f}')
+                    pledge.save(update_fields=['usd_amount', 'conversion_rate', 'conversion_date', 'conversion_source'])
+                    source_info = f" (Rate: {pledge.conversion_rate}, Source: {pledge.conversion_source})" if pledge.conversion_source else ""
+                    messages.success(request, f'USD amount automatically converted: ${pledge.usd_amount:,.2f}{source_info}')
                 else:
                     messages.warning(request, 'Automatic conversion failed. Please enter USD amount manually.')
             elif usd_amount:
