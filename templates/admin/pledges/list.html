@@ -202,6 +202,9 @@
         <table class="w-full">
             <thead class="bg-gray-50" style="background: var(--background_light);">
                 <tr>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary); width: 40px;">
+                        <input type="checkbox" id="selectAll" class="form-checkbox h-4 w-4" title="Select All">
+                    </th>
                     <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Pledger</th>
                     <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase hidden sm:table-cell" style="color: var(--text_secondary);">Amount</th>
                     <th class="px-3 sm:px-6 py-3 text-left text-xs font-semibold uppercase hidden md:table-cell" style="color: var(--text_secondary);">USD Amount</th>
@@ -214,6 +217,9 @@
             <tbody class="divide-y" style="border-color: var(--border);">
                 {% for pledge in pledges %}
                 <tr class="hover:bg-gray-50">
+                    <td class="px-3 sm:px-6 py-4">
+                        <input type="checkbox" name="pledge_ids" value="{{ pledge.pk }}" class="pledge-checkbox form-checkbox h-4 w-4">
+                    </td>
                     <td class="px-3 sm:px-6 py-4">
                         <div class="text-sm font-medium" style="color: var(--text);">{{ pledge.full_name }}</div>
                         {% if pledge.pledge_type == 'monetary' %}
@@ -334,7 +340,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">
+                    <td colspan="8" class="px-6 py-8 text-center text-sm" style="color: var(--text_secondary);">
                         No pledges found.
                     </td>
                 </tr>
@@ -343,6 +349,117 @@
         </table>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const pledgeCheckboxes = document.querySelectorAll('.pledge-checkbox');
+        const bulkActionsContainer = document.getElementById('bulkActionsContainer');
+        const bulkActionForm = document.getElementById('bulkActionForm');
+        const bulkActionSelect = document.getElementById('bulkActionSelect');
+        const bulkStatusSelect = document.getElementById('bulkStatusSelect');
+        const bulkActionSubmit = document.getElementById('bulkActionSubmit');
+        const bulkActionCancel = document.getElementById('bulkActionCancel');
+        const selectedCount = document.getElementById('selectedCount');
+
+        // Select All functionality
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                pledgeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBulkActions();
+            });
+        }
+
+        // Individual checkbox change
+        pledgeCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectAll();
+                updateBulkActions();
+            });
+        });
+
+        function updateSelectAll() {
+            if (selectAllCheckbox) {
+                const allChecked = Array.from(pledgeCheckboxes).every(cb => cb.checked);
+                const someChecked = Array.from(pledgeCheckboxes).some(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            }
+        }
+
+        function updateBulkActions() {
+            const checkedBoxes = document.querySelectorAll('.pledge-checkbox:checked');
+            const count = checkedBoxes.length;
+
+            if (count > 0) {
+                bulkActionsContainer.style.display = 'flex';
+                selectedCount.textContent = `${count} selected`;
+                bulkActionSubmit.disabled = false;
+            } else {
+                bulkActionsContainer.style.display = 'none';
+                bulkActionSubmit.disabled = true;
+            }
+        }
+
+        // Show/hide status select based on action
+        bulkActionSelect.addEventListener('change', function() {
+            if (this.value === 'update_status') {
+                bulkStatusSelect.style.display = 'block';
+                bulkStatusSelect.required = true;
+            } else {
+                bulkStatusSelect.style.display = 'none';
+                bulkStatusSelect.required = false;
+            }
+        });
+
+        // Form submission
+        bulkActionForm.addEventListener('submit', function(e) {
+            const checkedBoxes = document.querySelectorAll('.pledge-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one pledge.');
+                return false;
+            }
+
+            // Add checked pledge IDs to form
+            checkedBoxes.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'pledge_ids';
+                input.value = checkbox.value;
+                this.appendChild(input);
+            });
+
+            // Confirm delete action
+            if (bulkActionSelect.value === 'delete') {
+                if (!confirm(`Are you sure you want to delete ${checkedBoxes.length} pledge(s)? This action cannot be undone.`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            // Confirm status update
+            if (bulkActionSelect.value === 'update_status') {
+                const statusText = bulkStatusSelect.options[bulkStatusSelect.selectedIndex].text;
+                if (!confirm(`Are you sure you want to update ${checkedBoxes.length} pledge(s) to "${statusText}"?`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
+        // Cancel bulk actions
+        bulkActionCancel.addEventListener('click', function() {
+            pledgeCheckboxes.forEach(checkbox => checkbox.checked = false);
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            bulkActionsContainer.style.display = 'none';
+            bulkActionSelect.value = '';
+            bulkStatusSelect.style.display = 'none';
+        });
+    });
+</script>
 
 <!-- Pagination -->
 {% if page_obj.has_other_pages %}

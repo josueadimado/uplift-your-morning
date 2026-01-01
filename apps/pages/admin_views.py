@@ -1168,6 +1168,47 @@ class PledgeUpdateUSDView(StaffRequiredMixin, View):
         return redirect('manage:pledges_detail', pk=kwargs['pk'])
 
 
+class PledgeBulkActionView(StaffRequiredMixin, View):
+    """Handle bulk actions on pledges (status update, delete)."""
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        pledge_ids = request.POST.getlist('pledge_ids')
+        
+        if not pledge_ids:
+            messages.warning(request, 'No pledges selected.')
+            return redirect('manage:pledges_list')
+        
+        try:
+            pledges = Pledge.objects.filter(pk__in=pledge_ids)
+            
+            if action == 'delete':
+                count = pledges.count()
+                pledges.delete()
+                messages.success(request, f'Successfully deleted {count} pledge(s).')
+            
+            elif action == 'update_status':
+                new_status = request.POST.get('new_status')
+                if new_status in dict(Pledge.STATUS_CHOICES):
+                    count = pledges.update(status=new_status)
+                    # Set completed_date if status is completed
+                    if new_status == Pledge.STATUS_COMPLETED:
+                        from django.utils import timezone
+                        pledges.filter(completed_date__isnull=True).update(
+                            completed_date=timezone.now().date()
+                        )
+                    messages.success(request, f'Successfully updated status for {count} pledge(s) to {dict(Pledge.STATUS_CHOICES)[new_status]}.')
+                else:
+                    messages.error(request, 'Invalid status selected.')
+            
+            else:
+                messages.error(request, 'Invalid action selected.')
+                
+        except Exception as e:
+            messages.error(request, f'Error performing bulk action: {str(e)}')
+        
+        return redirect('manage:pledges_list')
+
+
 class PledgeDeleteView(StaffRequiredMixin, DeleteView):
     """Delete a pledge."""
     model = Pledge
