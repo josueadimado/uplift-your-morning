@@ -175,6 +175,12 @@ if not SKIP_STATIC_SCAN:
     if DEBUG and IS_RUNSERVER:
         # Use simple storage in development to avoid slow manifest generation
         STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+        # Optimize finders to only scan necessary directories
+        # This significantly speeds up runserver startup
+        STATICFILES_FINDERS = [
+            'django.contrib.staticfiles.finders.FileSystemFinder',  # Only scans STATICFILES_DIRS
+            # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',  # Disabled to speed up - only enable if needed
+        ]
 else:
     # Empty list to skip scanning during migrations and other non-static commands
     STATICFILES_DIRS = []
