@@ -1072,6 +1072,49 @@ class PledgeUpdateStatusView(StaffRequiredMixin, View):
         return redirect('manage:pledges_detail', pk=kwargs['pk'])
 
 
+class PledgeUpdateUSDView(StaffRequiredMixin, View):
+    """Update the USD amount manually or trigger automatic conversion."""
+    def post(self, request, *args, **kwargs):
+        try:
+            pledge = Pledge.objects.get(pk=kwargs['pk'])
+            usd_amount = request.POST.get('usd_amount', '').strip()
+            convert_auto = request.POST.get('convert_auto') == 'true'
+            
+            if convert_auto:
+                # Trigger automatic conversion
+                result = pledge.convert_to_usd()
+                if result is not None:
+                    pledge.save(update_fields=['usd_amount'])
+                    messages.success(request, f'USD amount automatically converted: ${pledge.usd_amount:,.2f}')
+                else:
+                    messages.warning(request, 'Automatic conversion failed. Please enter USD amount manually.')
+            elif usd_amount:
+                # Manual entry
+                try:
+                    from decimal import Decimal
+                    usd_value = Decimal(usd_amount)
+                    if usd_value < 0:
+                        messages.error(request, 'USD amount cannot be negative.')
+                    else:
+                        pledge.usd_amount = usd_value
+                        pledge.save(update_fields=['usd_amount'])
+                        messages.success(request, f'USD amount updated to ${pledge.usd_amount:,.2f}')
+                except (ValueError, Exception) as e:
+                    messages.error(request, f'Invalid USD amount: {str(e)}')
+            else:
+                # Clear USD amount
+                pledge.usd_amount = None
+                pledge.save(update_fields=['usd_amount'])
+                messages.success(request, 'USD amount cleared.')
+                
+        except Pledge.DoesNotExist:
+            messages.error(request, 'Pledge not found.')
+        except Exception as e:
+            messages.error(request, f'Error updating USD amount: {str(e)}')
+        
+        return redirect('manage:pledges_detail', pk=kwargs['pk'])
+
+
 class PledgeDeleteView(StaffRequiredMixin, DeleteView):
     """Delete a pledge."""
     model = Pledge

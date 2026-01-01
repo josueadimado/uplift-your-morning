@@ -520,7 +520,8 @@ class Pledge(TimeStampedModel):
             if response.status_code == 200:
                 data = response.json()
                 if 'rates' in data and 'USD' in data['rates']:
-                    rate = float(data['rates']['USD'])
+                    from decimal import Decimal
+                    rate = Decimal(str(data['rates']['USD']))  # Convert to Decimal to match amount type
                     self.usd_amount = self.amount * rate
                     logger.info(f"Pledge {self.id}: Successfully converted {self.amount} {currency_code} = ${self.usd_amount} USD (rate: {rate})")
                     return self.usd_amount
@@ -534,10 +535,12 @@ class Pledge(TimeStampedModel):
         # Fallback to forex-python (may not always be available)
         try:
             from forex_python.converter import CurrencyRates
+            from decimal import Decimal
             c = CurrencyRates()
             rate = c.get_rate(currency_code, 'USD')
             if rate:
-                self.usd_amount = self.amount * rate
+                rate_decimal = Decimal(str(rate))  # Convert to Decimal
+                self.usd_amount = self.amount * rate_decimal
                 logger.info(f"Pledge {self.id}: Successfully converted via forex-python: {self.amount} {currency_code} = ${self.usd_amount} USD")
                 return self.usd_amount
         except Exception as e:
