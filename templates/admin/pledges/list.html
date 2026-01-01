@@ -45,41 +45,99 @@
 </div>
 
 <!-- Analytics Section -->
-{% if country_stats or total_by_currency %}
+{% if country_stats or total_by_currency or conversion_rates or total_usd_amount %}
 <div class="bg-white rounded-lg shadow-sm border mb-6 p-4 sm:p-6" style="border-color: var(--border);">
-    <h2 class="text-lg font-semibold mb-4" style="color: var(--text);">Analytics</h2>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <h2 class="text-xl font-bold mb-6" style="color: var(--text);">📊 Analytics Dashboard</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <!-- Total by Currency -->
         {% if total_by_currency %}
-        <div>
-            <h3 class="text-sm font-semibold mb-3" style="color: var(--text_secondary);">Total Pledges by Currency</h3>
+        <div class="lg:col-span-1">
+            <h3 class="text-base font-semibold mb-4 pb-2 border-b" style="color: var(--text); border-color: var(--border);">
+                💰 Total Pledges by Currency
+            </h3>
             <div class="space-y-2">
                 {% for currency, amount in total_by_currency.items %}
-                <div class="flex justify-between items-center py-2 border-b" style="border-color: var(--border);">
-                    <span class="text-sm font-medium" style="color: var(--text);">{{ currency }}</span>
-                    <span class="text-sm font-semibold" style="color: var(--primary);">{{ amount|floatformat:2 }}</span>
+                <div class="flex justify-between items-center py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors" style="background: var(--background_light);">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold" style="color: var(--text);">{{ currency }}</span>
+                    </div>
+                    <span class="text-sm font-bold" style="color: var(--primary);">{{ amount|floatformat:2 }}</span>
                 </div>
                 {% endfor %}
-                <div class="flex justify-between items-center py-2 pt-3 border-t-2 font-semibold" style="border-color: var(--border);">
+                <div class="flex justify-between items-center py-3 px-3 mt-3 rounded-lg font-bold border-t-2" style="background: var(--background_tint); border-color: var(--border);">
                     <span class="text-base" style="color: var(--text);">Total (All Currencies)</span>
                     <span class="text-base" style="color: var(--primary);">{{ total_pledge_amount|floatformat:2 }}</span>
                 </div>
+                {% if total_usd_amount %}
+                <div class="flex justify-between items-center py-3 px-3 mt-2 rounded-lg font-bold" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <span class="text-base">Total in USD</span>
+                    <span class="text-base">${{ total_usd_amount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
             </div>
+        </div>
+        {% endif %}
+        
+        <!-- Conversion Rates -->
+        {% if conversion_rates %}
+        <div class="lg:col-span-1">
+            <h3 class="text-base font-semibold mb-4 pb-2 border-b" style="color: var(--text); border-color: var(--border);">
+                💱 Current Exchange Rates (to USD)
+            </h3>
+            <div class="space-y-2 max-h-96 overflow-y-auto">
+                {% for currency_code, rate_info in conversion_rates.items %}
+                <div class="py-2.5 px-3 rounded-lg border" style="border-color: var(--border); background: var(--background_light);">
+                    <div class="flex justify-between items-start mb-1">
+                        <div>
+                            <span class="text-sm font-semibold" style="color: var(--text);">{{ currency_code }}</span>
+                            <span class="text-xs ml-2" style="color: var(--text_light);">
+                                ({{ rate_info.count }} pledge{{ rate_info.count|pluralize }})
+                            </span>
+                        </div>
+                        <span class="text-sm font-bold" style="color: var(--primary);">
+                            ${{ rate_info.rate|floatformat:6 }}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 mt-1.5 text-xs" style="color: var(--text_light);">
+                        {% if rate_info.date %}
+                        <span>📅 {{ rate_info.date|date:"M d, Y" }}</span>
+                        {% endif %}
+                        {% if rate_info.source %}
+                        <span class="px-2 py-0.5 rounded text-xs" style="background: var(--background_tint);">
+                            {{ rate_info.source|truncatewords:2 }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="text-xs mt-3 italic" style="color: var(--text_light);">
+                Rates shown are from the most recent conversion for each currency
+            </p>
         </div>
         {% endif %}
         
         <!-- Top Countries -->
         {% if country_stats %}
-        <div>
-            <h3 class="text-sm font-semibold mb-3" style="color: var(--text_secondary);">Top Countries by Pledge Count</h3>
+        <div class="lg:col-span-1 {% if not total_by_currency and not conversion_rates %}lg:col-span-2{% endif %}">
+            <h3 class="text-base font-semibold mb-4 pb-2 border-b" style="color: var(--text); border-color: var(--border);">
+                🌍 Top Countries by Pledge Count
+            </h3>
             <div class="space-y-2">
                 {% for stat in country_stats %}
-                <div class="flex justify-between items-center py-2 border-b" style="border-color: var(--border);">
-                    <div>
-                        <span class="text-sm font-medium" style="color: var(--text);">{{ stat.country|default:"Unknown" }}</span>
-                        <span class="text-xs ml-2" style="color: var(--text_light);">({{ stat.count }} pledge{{ stat.count|pluralize }})</span>
+                <div class="flex justify-between items-center py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors" style="background: var(--background_light);">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold" style="color: var(--text);">{{ stat.country|default:"Unknown" }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--background_tint); color: var(--text_secondary);">
+                            {{ stat.count }} pledge{{ stat.count|pluralize }}
+                        </span>
                     </div>
+                    {% if stat.total_amount %}
                     <span class="text-sm font-semibold" style="color: var(--primary);">{{ stat.total_amount|floatformat:2 }}</span>
+                    {% else %}
+                    <span class="text-xs" style="color: var(--text_light);">—</span>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

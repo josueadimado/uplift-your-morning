@@ -1032,6 +1032,53 @@ class PledgeListView(StaffRequiredMixin, ListView):
         )['total'] or 0
         context['total_usd_amount'] = total_usd
         
+        # Conversion rates analytics - get average rates by currency
+        conversion_rates = {}
+        from django.db.models import Avg
+        for currency_code in ['GHS', 'GBP', 'EUR', 'NGN', 'ZAR', 'USD']:
+            # Get pledges with this currency that have conversion rates
+            currency_pledges = monetary_pledges.filter(
+                currency=currency_code,
+                conversion_rate__isnull=False
+            )
+            if currency_pledges.exists():
+                avg_rate = currency_pledges.aggregate(avg=Avg('conversion_rate'))['avg']
+                latest_pledge = currency_pledges.order_by('-conversion_date', '-created_at').first()
+                if latest_pledge and latest_pledge.conversion_rate:
+                    conversion_rates[currency_code] = {
+                        'rate': latest_pledge.conversion_rate,
+                        'date': latest_pledge.conversion_date,
+                        'source': latest_pledge.conversion_source,
+                        'count': currency_pledges.count()
+                    }
+        
+        # Also check for "OTHER" currencies
+        other_currency_pledges = monetary_pledges.filter(
+            currency=Pledge.CURRENCY_OTHER,
+            conversion_rate__isnull=False,
+            other_currency__isnull=False
+        )
+        for pledge in other_currency_pledges:
+            currency_code = pledge.other_currency.upper() if pledge.other_currency else None
+            if currency_code and currency_code not in conversion_rates:
+                latest = monetary_pledges.filter(
+                    currency=Pledge.CURRENCY_OTHER,
+                    other_currency__iexact=currency_code,
+                    conversion_rate__isnull=False
+                ).order_by('-conversion_date', '-created_at').first()
+                if latest:
+                    conversion_rates[currency_code] = {
+                        'rate': latest.conversion_rate,
+                        'date': latest.conversion_date,
+                        'source': latest.conversion_source,
+                        'count': monetary_pledges.filter(
+                            currency=Pledge.CURRENCY_OTHER,
+                            other_currency__iexact=currency_code
+                        ).count()
+                    }
+        
+        context['conversion_rates'] = conversion_rates
+        
         context['current_status'] = self.request.GET.get('status', '')
         context['search_query'] = self.request.GET.get('search', '')
         return context
