@@ -494,34 +494,33 @@ class Pledge(TimeStampedModel):
             self.usd_amount = self.amount
             return self.usd_amount
         
-        # Try forex-python first
-        try:
-            from forex_python.converter import CurrencyRates
-            c = CurrencyRates()
-            # Get exchange rate and convert
-            rate = c.get_rate(currency_code, 'USD')
-            if rate:
-                self.usd_amount = self.amount * rate
-                return self.usd_amount
-        except Exception as e:
-            # If forex-python fails, try fallback API
-            pass
-        
-        # Fallback to exchangerate-api.com
+        # Use exchangerate-api.com as primary method (more reliable, free, no API key)
         try:
             import requests
             response = requests.get(f'https://api.exchangerate-api.com/v4/latest/{currency_code}', timeout=10)
             if response.status_code == 200:
                 data = response.json()
                 if 'rates' in data and 'USD' in data['rates']:
-                    rate = data['rates']['USD']
+                    rate = float(data['rates']['USD'])
                     self.usd_amount = self.amount * rate
                     return self.usd_amount
         except Exception as e:
-            # Log error for debugging
+            # If exchangerate-api fails, try forex-python as fallback
+            pass
+        
+        # Fallback to forex-python (may not always be available)
+        try:
+            from forex_python.converter import CurrencyRates
+            c = CurrencyRates()
+            rate = c.get_rate(currency_code, 'USD')
+            if rate:
+                self.usd_amount = self.amount * rate
+                return self.usd_amount
+        except Exception:
+            # forex-python not available or failed
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Currency conversion failed for {currency_code}: {str(e)}")
+            logger.warning(f"Currency conversion failed for {currency_code}: Both APIs failed")
         
         # If all else fails, return None (conversion failed)
         self.usd_amount = None
