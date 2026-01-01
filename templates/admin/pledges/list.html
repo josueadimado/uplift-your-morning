@@ -3,6 +3,16 @@
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <h1 class="text-2xl font-bold" style="color: var(--text);">Pledges</h1>
     <div class="flex flex-wrap gap-2">
+        <a href="{% url 'manage:pledges_find_duplicates' %}" 
+           class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-yellow-600 hover:bg-yellow-700">
+            Find Duplicates
+        </a>
+        <form action="{% url 'manage:pledges_convert_to_usd' %}" method="post" class="inline-block">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-purple-600 hover:bg-purple-700">
+                Convert to USD
+            </button>
+        </form>
         <a href="{% url 'manage:pledges_export_csv' %}{% if current_status %}?status={{ current_status|urlencode }}{% endif %}{% if search_query %}{% if current_status %}&{% else %}?{% endif %}search={{ search_query|urlencode }}{% endif %}" 
            class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-green-600 hover:bg-green-700">
             Export CSV
@@ -126,6 +136,9 @@
                         {% if pledge.pledge_type == 'monetary' %}
                         <div class="text-xs sm:hidden" style="color: var(--text_light);">
                             {{ pledge.get_currency_display_value }} {{ pledge.amount|floatformat:2 }}
+                            {% if pledge.usd_amount %}
+                            <span class="text-xs text-gray-500">(${{ pledge.usd_amount|floatformat:2 }})</span>
+                            {% endif %}
                         </div>
                         {% else %}
                         <div class="text-xs sm:hidden" style="color: var(--text_light);">

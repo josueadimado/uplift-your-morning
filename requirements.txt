@@ -38,6 +38,9 @@ google-auth-oauthlib>=1.1.0
 openpyxl>=3.1.0
 reportlab>=4.0.0
 
+# For currency conversion
+forex-python>=1.6
+
 # For file storage (optional, for production)
 # boto3>=1.28.0  # For AWS S3
 # django-storages>=1.14.0

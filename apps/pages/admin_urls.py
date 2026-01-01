@@ -54,6 +54,9 @@ urlpatterns = [
     path('pledges/<int:pk>/delete/', admin_views.PledgeDeleteView.as_view(), name='pledges_delete'),
     path('pledges/export/csv/', admin_views.PledgeExportCSVView.as_view(), name='pledges_export_csv'),
     path('pledges/export/excel/', admin_views.PledgeExportExcelView.as_view(), name='pledges_export_excel'),
+    path('pledges/find-duplicates/', admin_views.PledgeFindDuplicatesView.as_view(), name='pledges_find_duplicates'),
+    path('pledges/remove-duplicates/', admin_views.PledgeRemoveDuplicatesView.as_view(), name='pledges_remove_duplicates'),
+    path('pledges/convert-to-usd/', admin_views.PledgeConvertToUSDView.as_view(), name='pledges_convert_to_usd'),
     
     # Testimonies
     path('testimonies/', admin_views.TestimonyListView.as_view(), name='testimonies_list'),

@@ -381,6 +381,13 @@ class Pledge(TimeStampedModel):
         blank=True,
         help_text="Specify currency if 'Other' is selected"
     )
+    usd_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Amount in USD (automatically calculated)"
+    )
     donation_frequency = models.CharField(
         max_length=20,
         choices=FREQUENCY_CHOICES,
@@ -466,6 +473,52 @@ class Pledge(TimeStampedModel):
         if self.country:
             return dict(countries).get(self.country, self.country)
         return None
+    
+    def convert_to_usd(self):
+        """Convert the pledge amount to USD using exchange rates."""
+        if not self.amount or self.pledge_type != self.PLEDGE_TYPE_MONETARY:
+            self.usd_amount = None
+            return None
+        
+        # If already in USD, no conversion needed
+        currency_code = self.other_currency.upper() if self.currency == self.CURRENCY_OTHER else self.currency
+        if currency_code == 'USD':
+            self.usd_amount = self.amount
+            return self.usd_amount
+        
+        try:
+            from forex_python.converter import CurrencyRates
+            c = CurrencyRates()
+            # Get exchange rate and convert
+            rate = c.get_rate(currency_code, 'USD')
+            self.usd_amount = self.amount * rate
+            return self.usd_amount
+        except Exception as e:
+            # If conversion fails, try using a fallback API
+            try:
+                import requests
+                # Use exchangerate-api.com (free, no API key needed)
+                response = requests.get(f'https://api.exchangerate-api.com/v4/latest/{currency_code}', timeout=5)
+                if response.status_code == 200:
+                    data = response.json()
+                    rate = data['rates'].get('USD', 1)
+                    self.usd_amount = self.amount * rate
+                    return self.usd_amount
+            except Exception:
+                pass
+            
+            # If all else fails, return None (conversion failed)
+            self.usd_amount = None
+            return None
+    
+    def save(self, *args, **kwargs):
+        """Override save to automatically convert to USD."""
+        # Convert to USD before saving
+        if self.pledge_type == self.PLEDGE_TYPE_MONETARY and self.amount:
+            self.convert_to_usd()
+        elif self.pledge_type != self.PLEDGE_TYPE_MONETARY:
+            self.usd_amount = None
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['-created_at']

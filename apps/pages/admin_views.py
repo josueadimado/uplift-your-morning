@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, View
 from django.conf import settings
 import requests
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import Sum, Q, Count
@@ -1026,6 +1026,12 @@ class PledgeListView(StaffRequiredMixin, ListView):
         # Total pledge amount (all currencies combined - approximate)
         context['total_pledge_amount'] = sum(total_by_currency.values())
         
+        # Total USD amount (sum of all usd_amount fields)
+        total_usd = monetary_pledges.filter(usd_amount__isnull=False).aggregate(
+            total=Sum('usd_amount')
+        )['total'] or 0
+        context['total_usd_amount'] = total_usd
+        
         context['current_status'] = self.request.GET.get('status', '')
         context['search_query'] = self.request.GET.get('search', '')
         return context
@@ -1223,6 +1229,119 @@ class PledgeExportExcelView(StaffRequiredMixin, View):
                 Q(country__icontains=search)
             )
         return queryset.order_by('-created_at')
+
+
+class PledgeFindDuplicatesView(StaffRequiredMixin, View):
+    """Find duplicate pledges based on email or name+email combination."""
+    def get(self, request, *args, **kwargs):
+        from django.db.models import Count
+        from collections import defaultdict
+        
+        # Find duplicates by email
+        email_duplicates = Pledge.objects.values('email').annotate(
+            count=Count('id')
+        ).filter(count__gt=1)
+        
+        # Find duplicates by name + email combination
+        name_email_duplicates = Pledge.objects.values('full_name', 'email').annotate(
+            count=Count('id')
+        ).filter(count__gt=1)
+        
+        # Group duplicates
+        duplicate_groups = defaultdict(list)
+        
+        for dup in email_duplicates:
+            pledges = Pledge.objects.filter(email=dup['email']).order_by('created_at')
+            if pledges.count() > 1:
+                duplicate_groups[dup['email']] = list(pledges)
+        
+        # Also check name+email combinations
+        for dup in name_email_duplicates:
+            key = f"{dup['full_name']}|{dup['email']}"
+            if key not in duplicate_groups:
+                pledges = Pledge.objects.filter(
+                    full_name=dup['full_name'],
+                    email=dup['email']
+                ).order_by('created_at')
+                if pledges.count() > 1:
+                    duplicate_groups[key] = list(pledges)
+        
+        context = {
+            'duplicate_groups': dict(duplicate_groups),
+            'total_duplicates': sum(len(group) - 1 for group in duplicate_groups.values()),
+        }
+        
+        return render(request, 'admin/pledges/find_duplicates.html', context)
+
+
+class PledgeRemoveDuplicatesView(StaffRequiredMixin, View):
+    """Remove duplicate pledges, keeping the oldest one."""
+    def post(self, request, *args, **kwargs):
+        from django.db.models import Count
+        from django.contrib import messages
+        
+        removed_count = 0
+        
+        # Find duplicates by email
+        email_duplicates = Pledge.objects.values('email').annotate(
+            count=Count('id')
+        ).filter(count__gt=1)
+        
+        for dup in email_duplicates:
+            pledges = list(Pledge.objects.filter(email=dup['email']).order_by('created_at'))
+            if len(pledges) > 1:
+                # Keep the first (oldest) one, delete the rest
+                for pledge in pledges[1:]:
+                    pledge.delete()
+                    removed_count += 1
+        
+        # Also check name+email combinations
+        name_email_duplicates = Pledge.objects.values('full_name', 'email').annotate(
+            count=Count('id')
+        ).filter(count__gt=1)
+        
+        for dup in name_email_duplicates:
+            pledges = list(Pledge.objects.filter(
+                full_name=dup['full_name'],
+                email=dup['email']
+            ).order_by('created_at'))
+            if len(pledges) > 1:
+                # Keep the first (oldest) one, delete the rest
+                for pledge in pledges[1:]:
+                    pledge.delete()
+                    removed_count += 1
+        
+        messages.success(request, f'Successfully removed {removed_count} duplicate pledge(s).')
+        return redirect('manage:pledges_list')
+
+
+class PledgeConvertToUSDView(StaffRequiredMixin, View):
+    """Convert all existing pledges to USD (update usd_amount field)."""
+    def post(self, request, *args, **kwargs):
+        from django.contrib import messages
+        
+        updated_count = 0
+        failed_count = 0
+        
+        monetary_pledges = Pledge.objects.filter(
+            pledge_type=Pledge.PLEDGE_TYPE_MONETARY,
+            amount__isnull=False
+        )
+        
+        for pledge in monetary_pledges:
+            try:
+                pledge.convert_to_usd()
+                pledge.save(update_fields=['usd_amount'])
+                updated_count += 1
+            except Exception as e:
+                failed_count += 1
+                print(f"Failed to convert pledge {pledge.id}: {e}")
+        
+        messages.success(
+            request,
+            f'Successfully converted {updated_count} pledge(s) to USD. {failed_count} failed.'
+        )
+        return redirect('manage:pledges_list')
 
 
 # ==================== TESTIMONIES ====================
