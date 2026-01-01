@@ -171,6 +171,23 @@
                         </div>
                         {% endif %}
                     </td>
+                    <td class="px-3 sm:px-6 py-4 hidden md:table-cell">
+                        {% if pledge.pledge_type == 'monetary' %}
+                            {% if pledge.usd_amount %}
+                            <div class="text-sm font-semibold" style="color: var(--primary);">
+                                ${{ pledge.usd_amount|floatformat:2 }}
+                            </div>
+                            {% else %}
+                            <div class="text-xs" style="color: var(--text_light);">
+                                <span class="text-gray-400 italic">Not converted</span>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="text-xs" style="color: var(--text_light);">
+                            <span class="text-gray-400">—</span>
+                        </div>
+                        {% endif %}
+                    </td>
                     <td class="px-3 sm:px-6 py-4 text-sm hidden md:table-cell" style="color: var(--text_secondary);">
                         {% if pledge.country %}{{ pledge.get_country_name }}{% else %}—{% endif %}
                     </td>
