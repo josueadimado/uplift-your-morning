@@ -1272,6 +1272,23 @@ class PledgeFindDuplicatesView(StaffRequiredMixin, View):
         }
         
         return render(request, 'admin/pledges/find_duplicates.html', context)
+    
+    def post(self, request, *args, **kwargs):
+        """Delete selected duplicate pledges."""
+        selected_ids = request.POST.getlist('pledge_ids')
+        removed_count = 0
+        
+        if selected_ids:
+            for pledge_id in selected_ids:
+                try:
+                    pledge = Pledge.objects.get(pk=pledge_id)
+                    pledge.delete()
+                    removed_count += 1
+                except Pledge.DoesNotExist:
+                    pass
+        
+        messages.success(request, f'Successfully deleted {removed_count} duplicate pledge(s).')
+        return redirect('manage:pledges_find_duplicates')
 
 
 class PledgeRemoveDuplicatesView(StaffRequiredMixin, View):

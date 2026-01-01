@@ -1,0 +1,222 @@
+{% extends 'admin/custom_base.html' %}
+{% block admin_content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-bold" style="color: var(--text);">Find Duplicate Pledges</h1>
+        <p class="text-sm mt-1" style="color: var(--text_light);">Review and delete duplicate pledge entries</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'manage:pledges_list' %}" 
+           class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-gray-600 hover:bg-gray-700">
+            Back to List
+        </a>
+        {% if total_duplicates > 0 %}
+        <form action="{% url 'manage:pledges_remove_duplicates' %}" method="post" class="inline-block">
+            {% csrf_token %}
+            <button type="submit" 
+                    onclick="return confirm('This will automatically delete all duplicates, keeping only the oldest entry for each duplicate group. Are you sure?');"
+                    class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-red-600 hover:bg-red-700">
+                Remove All Duplicates (Auto)
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+            <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if duplicate_groups %}
+<div class="mb-4 bg-white rounded-lg shadow-sm border p-4" style="border-color: var(--border);">
+    <p class="text-sm font-semibold" style="color: var(--text);">
+        Found <span class="text-lg" style="color: var(--primary);">{{ total_duplicates }}</span> duplicate pledge(s) across <span class="text-lg" style="color: var(--primary);">{{ duplicate_groups|length }}</span> duplicate group(s)
+    </p>
+</div>
+
+<form method="post" id="deleteForm">
+    {% csrf_token %}
+    
+    {% for group_key, pledges in duplicate_groups.items %}
+    <div class="bg-white rounded-lg shadow-sm border mb-6 p-4 sm:p-6" style="border-color: var(--border);">
+        <h2 class="text-lg font-semibold mb-4" style="color: var(--text);">
+            Duplicate Group: 
+            <span class="text-base font-normal" style="color: var(--text_secondary);">
+                {% if '|' in group_key %}
+                    {{ group_key|split:'|'|first }} ({{ group_key|split:'|'|last }})
+                {% else %}
+                    {{ group_key }}
+                {% endif %}
+            </span>
+        </h2>
+        <p class="text-sm mb-4" style="color: var(--text_light);">
+            {{ pledges|length }} duplicate(s) found. The first entry (oldest) is kept by default.
+        </p>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50" style="background: var(--background_light);">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">
+                            <input type="checkbox" 
+                                   class="group-checkbox" 
+                                   data-group="{{ forloop.counter0 }}"
+                                   onchange="toggleGroup({{ forloop.counter0 }})">
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Keep</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Name</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase hidden sm:table-cell" style="color: var(--text_secondary);">Email</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase hidden md:table-cell" style="color: var(--text_secondary);">Amount</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase hidden lg:table-cell" style="color: var(--text_secondary);">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase" style="color: var(--text_secondary);">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y" style="border-color: var(--border);">
+                    {% for pledge in pledges %}
+                    <tr class="hover:bg-gray-50 {% if forloop.first %}bg-green-50{% endif %}">
+                        <td class="px-4 py-4">
+                            {% if not forloop.first %}
+                            <input type="checkbox" 
+                                   name="pledge_ids" 
+                                   value="{{ pledge.id }}"
+                                   class="pledge-checkbox group-{{ forloop.parentloop.counter0 }}"
+                                   id="pledge_{{ pledge.id }}">
+                            {% else %}
+                            <span class="text-xs text-green-600 font-semibold">KEEP</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4">
+                            {% if forloop.first %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                ✓ Keep (Oldest)
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                Delete
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="text-sm font-medium" style="color: var(--text);">{{ pledge.full_name }}</div>
+                            {% if pledge.phone %}
+                            <div class="text-xs" style="color: var(--text_light);">{{ pledge.phone }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4 hidden sm:table-cell">
+                            <div class="text-sm" style="color: var(--text);">{{ pledge.email }}</div>
+                        </td>
+                        <td class="px-4 py-4 hidden md:table-cell">
+                            {% if pledge.pledge_type == 'monetary' %}
+                            <div class="text-sm font-semibold" style="color: var(--text);">
+                                {{ pledge.get_currency_display_value }} {{ pledge.amount|floatformat:2 }}
+                                {% if pledge.usd_amount %}
+                                <span class="text-xs text-gray-500">(${{ pledge.usd_amount|floatformat:2 }})</span>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">Non-Monetary</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4 hidden lg:table-cell">
+                            <div class="text-sm" style="color: var(--text);">{{ pledge.created_at|date:"M d, Y" }}</div>
+                            <div class="text-xs" style="color: var(--text_light);">{{ pledge.created_at|date:"H:i" }}</div>
+                        </td>
+                        <td class="px-4 py-4">
+                            {% if pledge.status == 'completed' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full" style="background: var(--background_tint); color: var(--primary);">
+                                {{ pledge.get_status_display }}
+                            </span>
+                            {% elif pledge.status == 'confirmed' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ pledge.get_status_display }}
+                            </span>
+                            {% elif pledge.status == 'cancelled' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                {{ pledge.get_status_display }}
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200" style="color: var(--text_secondary);">
+                                {{ pledge.get_status_display }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4">
+                            <a href="{% url 'manage:pledges_detail' pk=pledge.pk %}" 
+                               class="text-sm text-blue-600 hover:text-blue-800">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div class="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6" style="border-color: var(--border);">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold" style="color: var(--text);">
+                    Selected: <span id="selectedCount" class="text-lg" style="color: var(--primary);">0</span> duplicate(s) to delete
+                </p>
+                <p class="text-xs mt-1" style="color: var(--text_light);">
+                    Only duplicate entries (not the oldest) can be selected for deletion
+                </p>
+            </div>
+            <button type="submit" 
+                    onclick="return confirm('Are you sure you want to delete the selected duplicate pledges? This action cannot be undone.');"
+                    id="deleteButton"
+                    disabled
+                    class="px-6 py-2 rounded-lg text-sm text-white font-semibold bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                Delete Selected
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+    function toggleGroup(groupIndex) {
+        const checkboxes = document.querySelectorAll(`.group-${groupIndex}`);
+        const groupCheckbox = document.querySelector(`[data-group="${groupIndex}"]`);
+        checkboxes.forEach(cb => {
+            cb.checked = groupCheckbox.checked;
+        });
+        updateSelectedCount();
+    }
+    
+    function updateSelectedCount() {
+        const checked = document.querySelectorAll('input[name="pledge_ids"]:checked');
+        const count = checked.length;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('deleteButton').disabled = count === 0;
+    }
+    
+    // Add event listeners to all checkboxes
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('input[name="pledge_ids"]');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateSelectedCount);
+        });
+        updateSelectedCount();
+    });
+</script>
+
+{% else %}
+<div class="bg-white rounded-lg shadow-sm border p-8 text-center" style="border-color: var(--border);">
+    <p class="text-lg font-semibold mb-2" style="color: var(--text);">No Duplicates Found</p>
+    <p class="text-sm" style="color: var(--text_light);">All pledges are unique. No duplicate entries detected.</p>
+    <a href="{% url 'manage:pledges_list' %}" 
+       class="inline-block mt-4 px-4 py-2 rounded-lg text-sm text-white font-semibold bg-blue-600 hover:bg-blue-700">
+        Back to Pledges List
+    </a>
+</div>
+{% endif %}
+{% endblock %}
