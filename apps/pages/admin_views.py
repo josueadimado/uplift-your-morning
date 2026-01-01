@@ -1266,9 +1266,19 @@ class PledgeFindDuplicatesView(StaffRequiredMixin, View):
                 if pledges.count() > 1:
                     duplicate_groups[key] = list(pledges)
         
+        # Convert to list of dicts for better template handling
+        duplicate_groups_list = []
+        for key, pledges_list in duplicate_groups.items():
+            duplicate_groups_list.append({
+                'key': key,
+                'pledges': pledges_list,
+                'name': key.split('|')[0] if '|' in key else key,
+                'email': key.split('|')[1] if '|' in key else key,
+            })
+        
         context = {
-            'duplicate_groups': dict(duplicate_groups),
-            'total_duplicates': sum(len(group) - 1 for group in duplicate_groups.values()),
+            'duplicate_groups': duplicate_groups_list,
+            'total_duplicates': sum(len(group['pledges']) - 1 for group in duplicate_groups_list),
         }
         
         return render(request, 'admin/pledges/find_duplicates.html', context)
