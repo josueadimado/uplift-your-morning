@@ -1116,6 +1116,11 @@ class PledgeUpdateStatusView(StaffRequiredMixin, View):
                 messages.error(request, 'Invalid status selected.')
         except Pledge.DoesNotExist:
             messages.error(request, 'Pledge not found.')
+        
+        # Redirect back to list if coming from list page, otherwise to detail
+        redirect_to = request.POST.get('redirect_to', 'detail')
+        if redirect_to == 'list':
+            return redirect('manage:pledges_list')
         return redirect('manage:pledges_detail', pk=kwargs['pk'])
 
 
