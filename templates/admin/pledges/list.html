@@ -3,6 +3,30 @@
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <h1 class="text-2xl font-bold" style="color: var(--text);">Pledges</h1>
     <div class="flex flex-wrap gap-2">
+        <!-- Bulk Actions -->
+        <div class="flex items-center gap-2" id="bulkActionsContainer" style="display: none;">
+            <form method="post" action="{% url 'manage:pledges_bulk_action' %}" id="bulkActionForm" class="flex items-center gap-2">
+                {% csrf_token %}
+                <select name="action" id="bulkActionSelect" class="px-3 py-2 border rounded-lg text-sm" style="border-color: var(--border);">
+                    <option value="">Select Action...</option>
+                    <option value="update_status">Update Status</option>
+                    <option value="delete">Delete Selected</option>
+                </select>
+                <select name="new_status" id="bulkStatusSelect" class="px-3 py-2 border rounded-lg text-sm" style="border-color: var(--border); display: none;">
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <button type="submit" id="bulkActionSubmit" class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-blue-600 hover:bg-blue-700" disabled>
+                    Apply
+                </button>
+                <button type="button" id="bulkActionCancel" class="px-4 py-2 rounded-lg text-sm border font-semibold" style="border-color: var(--border);">
+                    Cancel
+                </button>
+            </form>
+            <span id="selectedCount" class="text-sm font-semibold" style="color: var(--text_secondary);"></span>
+        </div>
         <a href="{% url 'manage:pledges_find_duplicates' %}" 
            class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-yellow-600 hover:bg-yellow-700">
             Find Duplicates

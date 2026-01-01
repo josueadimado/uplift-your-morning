@@ -53,6 +53,7 @@ urlpatterns = [
     path('pledges/<int:pk>/update-status/', admin_views.PledgeUpdateStatusView.as_view(), name='pledges_update_status'),
     path('pledges/<int:pk>/update-usd/', admin_views.PledgeUpdateUSDView.as_view(), name='pledges_update_usd'),
     path('pledges/<int:pk>/delete/', admin_views.PledgeDeleteView.as_view(), name='pledges_delete'),
+    path('pledges/bulk-action/', admin_views.PledgeBulkActionView.as_view(), name='pledges_bulk_action'),
     path('pledges/export/csv/', admin_views.PledgeExportCSVView.as_view(), name='pledges_export_csv'),
     path('pledges/export/excel/', admin_views.PledgeExportExcelView.as_view(), name='pledges_export_excel'),
     path('pledges/find-duplicates/', admin_views.PledgeFindDuplicatesView.as_view(), name='pledges_find_duplicates'),
