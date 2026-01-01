@@ -43,20 +43,20 @@
 <form method="post" id="deleteForm">
     {% csrf_token %}
     
-    {% for group_key, pledges in duplicate_groups.items %}
+    {% for group in duplicate_groups %}
     <div class="bg-white rounded-lg shadow-sm border mb-6 p-4 sm:p-6" style="border-color: var(--border);">
         <h2 class="text-lg font-semibold mb-4" style="color: var(--text);">
             Duplicate Group: 
             <span class="text-base font-normal" style="color: var(--text_secondary);">
-                {% if '|' in group_key %}
-                    {{ group_key|split:'|'|first }} ({{ group_key|split:'|'|last }})
+                {% if '|' in group.key %}
+                    {{ group.name }} ({{ group.email }})
                 {% else %}
-                    {{ group_key }}
+                    {{ group.key }}
                 {% endif %}
             </span>
         </h2>
         <p class="text-sm mb-4" style="color: var(--text_light);">
-            {{ pledges|length }} duplicate(s) found. The first entry (oldest) is kept by default.
+            {{ group.pledges|length }} duplicate(s) found. The first entry (oldest) is kept by default.
         </p>
         
         <div class="overflow-x-auto">
@@ -79,7 +79,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y" style="border-color: var(--border);">
-                    {% for pledge in pledges %}
+                    {% for pledge in group.pledges %}
                     <tr class="hover:bg-gray-50 {% if forloop.first %}bg-green-50{% endif %}">
                         <td class="px-4 py-4">
                             {% if not forloop.first %}
