@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Access Analytics | Uplift Your Morning{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-16 mb-16 px-4">
+    <div class="bg-white rounded-lg shadow-lg p-8 border" style="border-color: var(--border);">
+        <div class="text-center mb-6">
+            <div class="inline-block p-4 rounded-full mb-4" style="background: var(--background_tint);">
+                <svg class="w-12 h-12" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2" style="color: var(--text);">Team Analytics Access</h1>
+            <p class="text-sm" style="color: var(--text_secondary);">Enter the access code to view attendance analytics</p>
+        </div>
+
+        {% if error %}
+        <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
+            <p class="text-sm text-red-800">{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <form method="get" action="{% url 'pages:attendance_analytics_public' %}">
+            <div class="mb-4">
+                <label for="code" class="block text-sm font-medium mb-2" style="color: var(--text);">Access Code</label>
+                <input type="text" 
+                       id="code" 
+                       name="code" 
+                       required
+                       autofocus
+                       class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0"
+                       style="border-color: var(--border); focus:ring-color: var(--primary);"
+                       placeholder="Enter access code">
+            </div>
+
+            <button type="submit" 
+                    class="w-full px-6 py-3 rounded-lg text-white font-semibold transition-colors shadow-sm"
+                    style="background: var(--primary);"
+                    onmouseover="this.style.background='var(--primary_hover)'"
+                    onmouseout="this.style.background='var(--primary)'">
+                Access Analytics
+            </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t text-center" style="border-color: var(--border);">
+            <p class="text-xs" style="color: var(--text_light);">
+                Need the access code? Contact your team administrator.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

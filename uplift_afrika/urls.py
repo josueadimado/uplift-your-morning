@@ -30,6 +30,9 @@ urlpatterns = [
 ]
 
 # Serve media files in development
-if settings.DEBUG:
+# Skip during management commands to avoid file scanning
+import sys
+IS_MANAGEMENT_CMD = len(sys.argv) > 1 and sys.argv[1] not in ['runserver', 'collectstatic', 'shell_plus']
+if settings.DEBUG and not IS_MANAGEMENT_CMD:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

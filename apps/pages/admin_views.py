@@ -23,7 +23,8 @@ import json
 from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory, FortyDaysNote, FortyDaysNoteCategory
 from apps.community.models import PrayerRequest, Testimony
-from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking, Pledge
+from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking, Pledge, AttendanceRecord
+from apps.pages import forms
 from apps.subscriptions.models import Subscriber, ScheduledNotification
 
 
@@ -2753,3 +2754,212 @@ class DevotionSeriesCreateAjaxView(StaffRequiredMixin, View):
             return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+# ==================== ATTENDANCE RECORDS ====================
+
+class AttendanceRecordListView(StaffRequiredMixin, ListView):
+    """List all attendance records with filters."""
+    model = AttendanceRecord
+    template_name = 'admin/attendance/list.html'
+    context_object_name = 'records'
+    paginate_by = 30
+    
+    def get_queryset(self):
+        queryset = AttendanceRecord.objects.all()
+        
+        # Filter by date range
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        
+        if date_from:
+            queryset = queryset.filter(date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(date__lte=date_to)
+        
+        return queryset.order_by('-date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        records = context['records']
+        
+        # Calculate totals
+        total_youtube_views = sum(r.youtube_views for r in records)
+        total_facebook_views = sum(r.facebook_views for r in records)
+        total_views = total_youtube_views + total_facebook_views
+        
+        # Calculate averages
+        if records:
+            avg_youtube_views = total_youtube_views / len(records)
+            avg_facebook_views = total_facebook_views / len(records)
+            avg_total_views = total_views / len(records)
+        else:
+            avg_youtube_views = avg_facebook_views = avg_total_views = 0
+        
+        context.update({
+            'total_youtube_views': total_youtube_views,
+            'total_facebook_views': total_facebook_views,
+            'total_views': total_views,
+            'avg_youtube_views': round(avg_youtube_views, 2),
+            'avg_facebook_views': round(avg_facebook_views, 2),
+            'avg_total_views': round(avg_total_views, 2),
+            'date_from': self.request.GET.get('date_from', ''),
+            'date_to': self.request.GET.get('date_to', ''),
+        })
+        return context
+
+
+class AttendanceRecordCreateView(StaffRequiredMixin, CreateView):
+    """Create a new attendance record."""
+    model = AttendanceRecord
+    form_class = forms.AttendanceRecordForm
+    template_name = 'admin/attendance/form.html'
+    success_url = reverse_lazy('manage:attendance_list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Record Attendance'
+        context['submit_button_text'] = 'Save Attendance Record'
+        return context
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Attendance record created successfully.')
+        return super().form_valid(form)
+
+
+class AttendanceRecordUpdateView(StaffRequiredMixin, UpdateView):
+    """Update an existing attendance record."""
+    model = AttendanceRecord
+    form_class = forms.AttendanceRecordForm
+    template_name = 'admin/attendance/form.html'
+    success_url = reverse_lazy('manage:attendance_list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Edit Attendance Record'
+        context['submit_button_text'] = 'Update Attendance Record'
+        return context
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Attendance record updated successfully.')
+        return super().form_valid(form)
+
+
+class AttendanceRecordDeleteView(StaffRequiredMixin, DeleteView):
+    """Delete an attendance record."""
+    model = AttendanceRecord
+    template_name = 'admin/attendance/delete.html'
+    success_url = reverse_lazy('manage:attendance_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Attendance record deleted successfully.')
+        return super().delete(request, *args, **kwargs)
+
+
+class AttendanceAnalyticsView(StaffRequiredMixin, View):
+    """Display analytics dashboard with charts for attendance data."""
+    template_name = 'admin/attendance/analytics.html'
+    
+    def get(self, request):
+        # Get date range from query params (default to last 30 days)
+        from datetime import datetime, timedelta
+        date_to = request.GET.get('date_to')
+        date_from = request.GET.get('date_from')
+        
+        if not date_to:
+            date_to = datetime.now().date()
+        else:
+            date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+        
+        if not date_from:
+            date_from = date_to - timedelta(days=30)
+        else:
+            date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+        
+        # Get records in date range
+        records = AttendanceRecord.objects.filter(
+            date__gte=date_from,
+            date__lte=date_to
+        ).order_by('date')
+        
+        # Prepare data for charts
+        dates = [r.date.strftime('%Y-%m-%d') for r in records]
+        youtube_views = [r.youtube_views for r in records]
+        facebook_views = [r.facebook_views for r in records]
+        total_views = [r.get_total_views() for r in records]
+        
+        # Convert to JSON for JavaScript
+        dates_json = json.dumps(dates)
+        youtube_views_json = json.dumps(youtube_views)
+        facebook_views_json = json.dumps(facebook_views)
+        total_views_json = json.dumps(total_views)
+        
+        # Calculate statistics
+        total_youtube = sum(youtube_views)
+        total_facebook = sum(facebook_views)
+        total_all = sum(total_views)
+        
+        avg_youtube = total_youtube / len(records) if records else 0
+        avg_facebook = total_facebook / len(records) if records else 0
+        avg_total = total_all / len(records) if records else 0
+        
+        # Find peak days
+        peak_day = None
+        peak_views = 0
+        for r in records:
+            total = r.get_total_views()
+            if total > peak_views:
+                peak_views = total
+                peak_day = r
+        
+        # Weekly aggregates
+        weekly_data = {}
+        for r in records:
+            week_start = r.date - timedelta(days=r.date.weekday())
+            week_key = week_start.strftime('%Y-%m-%d')
+            if week_key not in weekly_data:
+                weekly_data[week_key] = {
+                    'youtube': 0,
+                    'facebook': 0,
+                    'total': 0,
+                    'count': 0
+                }
+            weekly_data[week_key]['youtube'] += r.youtube_views
+            weekly_data[week_key]['facebook'] += r.facebook_views
+            weekly_data[week_key]['total'] += r.get_total_views()
+            weekly_data[week_key]['count'] += 1
+        
+        weekly_dates = sorted(weekly_data.keys())
+        weekly_youtube = [weekly_data[w]['youtube'] for w in weekly_dates]
+        weekly_facebook = [weekly_data[w]['facebook'] for w in weekly_dates]
+        weekly_total = [weekly_data[w]['total'] for w in weekly_dates]
+        
+        # Convert weekly data to JSON
+        weekly_dates_json = json.dumps(weekly_dates)
+        weekly_youtube_json = json.dumps(weekly_youtube)
+        weekly_facebook_json = json.dumps(weekly_facebook)
+        weekly_total_json = json.dumps(weekly_total)
+        
+        context = {
+            'records': records,
+            'dates': dates_json,
+            'youtube_views': youtube_views_json,
+            'facebook_views': facebook_views_json,
+            'total_views': total_views_json,
+            'weekly_dates': weekly_dates_json,
+            'weekly_youtube': weekly_youtube_json,
+            'weekly_facebook': weekly_facebook_json,
+            'weekly_total': weekly_total_json,
+            'total_youtube': total_youtube,
+            'total_facebook': total_facebook,
+            'total_all': total_all,
+            'avg_youtube': round(avg_youtube, 2),
+            'avg_facebook': round(avg_facebook, 2),
+            'avg_total': round(avg_total, 2),
+            'peak_day': peak_day,
+            'peak_views': peak_views,
+            'date_from': date_from.strftime('%Y-%m-%d'),
+            'date_to': date_to.strftime('%Y-%m-%d'),
+            'num_days': (date_to - date_from).days + 1,
+        }
+        return render(request, self.template_name, context)

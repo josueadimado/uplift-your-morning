@@ -110,5 +110,12 @@ urlpatterns = [
     path('notifications/<int:pk>/resume/', admin_views.NotificationResumeView.as_view(), name='notifications_resume'),
     path('notifications/<int:pk>/send-now/', admin_views.NotificationSendNowView.as_view(), name='notifications_send_now'),
     path('notifications/<int:pk>/delete/', admin_views.NotificationDeleteView.as_view(), name='notifications_delete'),
+    
+    # Attendance Records
+    path('attendance/', admin_views.AttendanceRecordListView.as_view(), name='attendance_list'),
+    path('attendance/create/', admin_views.AttendanceRecordCreateView.as_view(), name='attendance_create'),
+    path('attendance/<int:pk>/edit/', admin_views.AttendanceRecordUpdateView.as_view(), name='attendance_edit'),
+    path('attendance/<int:pk>/delete/', admin_views.AttendanceRecordDeleteView.as_view(), name='attendance_delete'),
+    path('attendance/analytics/', admin_views.AttendanceAnalyticsView.as_view(), name='attendance_analytics'),
 ]
 

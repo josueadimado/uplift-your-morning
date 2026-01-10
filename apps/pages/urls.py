@@ -15,5 +15,6 @@ urlpatterns = [
     path('donate/thanks/', views.DonationThanksView.as_view(), name='donate-thanks'),
     path('counseling/', views.CounselingBookingView.as_view(), name='counseling_booking'),
     path('pledge/', views.PledgeFormView.as_view(), name='pledge_form'),
+    path('attendance/analytics/', views.AttendanceAnalyticsPublicView.as_view(), name='attendance_analytics_public'),
 ]
 

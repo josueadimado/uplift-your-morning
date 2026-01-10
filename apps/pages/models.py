@@ -3,7 +3,11 @@ Models for static pages like Home, About, Contact, etc.
 """
 from django.db import models
 from apps.core.models import TimeStampedModel
-from django_countries import countries
+# Lazy import countries to speed up management commands
+try:
+    from django_countries import countries
+except ImportError:
+    countries = {}
 
 
 class ContactMessage(TimeStampedModel):
@@ -598,3 +602,82 @@ class Pledge(TimeStampedModel):
         ordering = ['-created_at']
         verbose_name = "Pledge"
         verbose_name_plural = "Pledges"
+
+
+class AttendanceRecord(TimeStampedModel):
+    """
+    Model for recording daily attendance/viewership data for "Uplift Your Morning"
+    on YouTube and Facebook platforms.
+    """
+    date = models.DateField(
+        unique=True,
+        help_text="Date for this attendance record (one record per day)"
+    )
+    
+    # YouTube metrics
+    youtube_views = models.IntegerField(
+        default=0,
+        help_text="Total views on YouTube for this day"
+    )
+    youtube_likes = models.IntegerField(
+        default=0,
+        blank=True,
+        help_text="Number of likes on YouTube (optional)"
+    )
+    youtube_comments = models.IntegerField(
+        default=0,
+        blank=True,
+        help_text="Number of comments on YouTube (optional)"
+    )
+    
+    # Facebook metrics
+    facebook_views = models.IntegerField(
+        default=0,
+        help_text="Total views on Facebook for this day"
+    )
+    facebook_reactions = models.IntegerField(
+        default=0,
+        blank=True,
+        help_text="Number of reactions on Facebook (optional)"
+    )
+    facebook_comments = models.IntegerField(
+        default=0,
+        blank=True,
+        help_text="Number of comments on Facebook (optional)"
+    )
+    facebook_shares = models.IntegerField(
+        default=0,
+        blank=True,
+        help_text="Number of shares on Facebook (optional)"
+    )
+    
+    # Additional notes
+    notes = models.TextField(
+        blank=True,
+        help_text="Any additional notes about this day's attendance"
+    )
+    
+    def __str__(self):
+        return f"Attendance - {self.date.strftime('%Y-%m-%d')}"
+    
+    def get_total_views(self):
+        """Calculate total views across all platforms."""
+        return self.youtube_views + self.facebook_views
+    
+    def get_total_engagement(self):
+        """Calculate total engagement (likes + reactions + comments + shares)."""
+        return (
+            self.youtube_likes + 
+            self.youtube_comments + 
+            self.facebook_reactions + 
+            self.facebook_comments + 
+            self.facebook_shares
+        )
+    
+    class Meta:
+        ordering = ['-date']
+        verbose_name = "Attendance Record"
+        verbose_name_plural = "Attendance Records"
+        indexes = [
+            models.Index(fields=['-date']),
+        ]

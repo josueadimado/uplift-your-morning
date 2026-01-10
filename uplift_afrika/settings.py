@@ -30,6 +30,9 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
+# Check if we're running a management command early (before INSTALLED_APPS)
+# This helps optimize app loading
+IS_MANAGEMENT_CMD_EARLY = len(sys.argv) > 1 and sys.argv[1] not in ['runserver', 'collectstatic', 'shell_plus']
 
 # Application definition
 
@@ -70,21 +73,44 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'uplift_afrika.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
+# Optimize template loading for management commands
+# Keep required context processors for Django admin, but skip directory scanning
+if IS_MANAGEMENT_CMD_EARLY:
+    # Skip template directory scanning during management commands
+    # But keep required context processors for Django admin
+    TEMPLATES = [
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [],  # Empty during management commands - no file scanning
+            'APP_DIRS': False,  # Disable app directory scanning - major speedup
+            'OPTIONS': {
+                'context_processors': [
+                    # Keep required ones for Django admin
+                    'django.template.context_processors.request',
+                    'django.contrib.auth.context_processors.auth',
+                    'django.contrib.messages.context_processors.messages',
+                ],
+                # Disable debug during management commands
+                'debug': False,
+            },
         },
-    },
-]
+    ]
+else:
+    TEMPLATES = [
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [BASE_DIR / 'templates'],
+            'APP_DIRS': True,
+            'OPTIONS': {
+                'context_processors': [
+                    'django.template.context_processors.debug',
+                    'django.template.context_processors.request',
+                    'django.contrib.auth.context_processors.auth',
+                    'django.contrib.messages.context_processors.messages',
+                ],
+            },
+        },
+    ]
 
 WSGI_APPLICATION = 'uplift_afrika.wsgi.application'
 
@@ -121,20 +147,28 @@ else:
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+# Use the early check for consistency
+IS_MANAGEMENT_CMD = IS_MANAGEMENT_CMD_EARLY
+
+# Disable password validators during management commands to speed up startup
+# They're not needed for makemigrations, migrate, etc.
+if IS_MANAGEMENT_CMD:
+    AUTH_PASSWORD_VALIDATORS = []
+else:
+    AUTH_PASSWORD_VALIDATORS = [
+        {
+            'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        },
+    ]
 
 
 # Internationalization
@@ -155,35 +189,45 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Optimize static files scanning - only scan when actually needed
-# This significantly speeds up Django command execution (makemigrations, migrate, etc.)
-# Skip static files scanning for non-static commands to speed up startup
-SKIP_STATIC_SCAN = any(cmd in sys.argv for cmd in ['makemigrations', 'migrate', 'shell', 'dbshell', 'test', 'check', 'collectstatic'])
+# Aggressively optimize static files scanning for management commands
+# Completely disable file scanning during makemigrations, migrate, etc.
+SKIP_STATIC_SCAN = any(cmd in sys.argv for cmd in ['makemigrations', 'migrate', 'shell', 'dbshell', 'test', 'check'])
 
 # For runserver, we need static files but can optimize the scanning
-# Check if we're running runserver and optimize accordingly
 IS_RUNSERVER = 'runserver' in sys.argv
 
-if not SKIP_STATIC_SCAN:
-    # Always include static directory
+# Use the early check for consistency (already defined above)
+# IS_MANAGEMENT_CMD is already set from IS_MANAGEMENT_CMD_EARLY
+
+# Completely disable static file operations during management commands
+if SKIP_STATIC_SCAN or IS_MANAGEMENT_CMD_EARLY:
+    # Empty directories and finders to prevent ANY file scanning
+    STATICFILES_DIRS = []
+    STATICFILES_FINDERS = []  # Disable all finders - no file scanning at all
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+elif not SKIP_STATIC_SCAN:
+    # Only scan when actually needed (runserver, collectstatic)
     STATICFILES_DIRS = [
         BASE_DIR / 'static',
     ]
     
     # In development with runserver, use a faster static files storage
-    # This avoids slow file scanning on every request
     if DEBUG and IS_RUNSERVER:
-        # Use simple storage in development to avoid slow manifest generation
         STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
         # Optimize finders to only scan necessary directories
-        # This significantly speeds up runserver startup
         STATICFILES_FINDERS = [
             'django.contrib.staticfiles.finders.FileSystemFinder',  # Only scans STATICFILES_DIRS
-            # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',  # Disabled to speed up - only enable if needed
+            # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',  # Disabled to speed up
         ]
-else:
-    # Empty list to skip scanning during migrations and other non-static commands
-    STATICFILES_DIRS = []
+    else:
+        # Default finders for collectstatic
+        STATICFILES_FINDERS = [
+            'django.contrib.staticfiles.finders.FileSystemFinder',
+            'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+        ]
+
+# Template optimization is already handled above during TEMPLATES definition
+# No need to modify it here
 
 # WhiteNoise configuration for efficient static file serving
 # Disable in development for faster startup - only enable in production after collectstatic
@@ -194,8 +238,14 @@ if not DEBUG:
 # In DEBUG mode, Django will use default storage (faster for development)
 
 # Media files (user uploads)
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Skip media file operations during management commands
+if not IS_MANAGEMENT_CMD_EARLY:
+    MEDIA_URL = 'media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+else:
+    # Minimal config during management commands
+    MEDIA_URL = 'media/'
+    MEDIA_ROOT = BASE_DIR / 'media'  # Still set but won't be accessed
 
 # Caching configuration for better performance
 # Use LocMemCache for both development and production to support analytics rate limiting
@@ -223,13 +273,19 @@ PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY', default='')
 PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='')
 
 # Django REST Framework settings
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-}
+# Only load full REST framework settings if not running management commands
+# This speeds up makemigrations, migrate, etc.
+if not IS_MANAGEMENT_CMD:
+    REST_FRAMEWORK = {
+        'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.AllowAny',
+        ],
+        'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+        'PAGE_SIZE': 20,
+    }
+else:
+    # Minimal REST framework config for management commands
+    REST_FRAMEWORK = {}
 
 # Email configuration (for counseling booking notifications)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
@@ -254,3 +310,8 @@ TWILIO_WHATSAPP_FROM = config('TWILIO_WHATSAPP_FROM', default='whatsapp:+1415523
 # Google Calendar configuration
 GOOGLE_CALENDAR_ENABLED = config('GOOGLE_CALENDAR_ENABLED', default=False, cast=bool)
 GOOGLE_CALENDAR_EMAIL = config('GOOGLE_CALENDAR_EMAIL', default='godswilltk@gmail.com')
+
+# Attendance Analytics Access Code
+# Set this in your .env file: ATTENDANCE_ANALYTICS_CODE=your-secret-code
+# If not set, defaults to 'uplift2024' (change this to something more secure)
+ATTENDANCE_ANALYTICS_CODE = config('ATTENDANCE_ANALYTICS_CODE', default='uplift2024')

@@ -476,6 +476,14 @@
                         </div>
                     </div>
                     
+                    <!-- Team Analytics (with access code) -->
+                    <a href="{% url 'pages:attendance_analytics_public' %}" 
+                       class="nav-link font-semibold transition-colors px-2 py-2" 
+                       style="font-size: 15px; color: var(--text);"
+                       title="Team Analytics - Access code required">
+                        Analytics
+                    </a>
+                    
                     <div class="flex items-center space-x-2.5 ml-5 pl-5 border-l" style="border-color: var(--border);">
                         {% if request.user.is_authenticated and request.user.is_staff %}
                             <a href="{% url 'pages:admin_dashboard' %}"
@@ -604,6 +612,13 @@
                        onmouseover="this.style.background='var(--primary_hover)'" 
                        onmouseout="this.style.background='var(--primary)'">
                         Subscribe
+                    </a>
+                    <a href="{% url 'pages:attendance_analytics_public' %}" 
+                       class="block px-4 py-3 rounded-md text-center font-semibold transition-colors"
+                       style="background: var(--background_light); color: var(--primary); font-size: 16px; border: 1px solid var(--border);"
+                       onmouseover="this.style.background='var(--background_tint)'" 
+                       onmouseout="this.style.background='var(--background_light)'">
+                        Analytics
                     </a>
                 </div>
             </div>

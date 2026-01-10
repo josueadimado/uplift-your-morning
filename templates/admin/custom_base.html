@@ -217,6 +217,18 @@
                     </div>
 
                     <div class="pt-4">
+                        <p class="px-4 py-2 text-xs font-semibold uppercase tracking-wider mb-2 nav-section-title" style="color: var(--text_light); letter-spacing: 0.1em;">Analytics</p>
+                        <a href="{% url 'manage:attendance_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}"
+                           style="{% if 'attendance' in request.resolver_match.url_name %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Attendance</span>
+                        </a>
+                    </div>
+
+                    <div class="pt-4">
                         <p class="px-4 py-2 text-xs font-semibold uppercase tracking-wider mb-2 nav-section-title" style="color: var(--text_light); letter-spacing: 0.1em;">Settings</p>
                         <a href="{% url 'manage:sitesettings_edit' %}"
                            class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if 'sitesettings' in request.resolver_match.url_name %}active{% endif %}"

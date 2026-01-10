@@ -2,7 +2,7 @@
 Forms for pages app.
 """
 from django import forms
-from .models import CounselingBooking, Pledge
+from .models import CounselingBooking, Pledge, AttendanceRecord
 from django.utils import timezone
 from datetime import date, time
 from django_countries import countries
@@ -230,4 +230,65 @@ class PledgeForm(forms.ModelForm):
             cleaned_data['phone'] = phone
         
         return cleaned_data
+
+
+class AttendanceRecordForm(forms.ModelForm):
+    """Form for recording daily attendance data."""
+    
+    class Meta:
+        model = AttendanceRecord
+        fields = [
+            'date', 'youtube_views', 'youtube_likes', 'youtube_comments',
+            'facebook_views', 'facebook_reactions', 'facebook_comments', 'facebook_shares',
+            'notes'
+        ]
+        widgets = {
+            'date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'required': True
+            }),
+            'youtube_views': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'min': '0',
+                'required': True
+            }),
+            'youtube_likes': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'min': '0'
+            }),
+            'youtube_comments': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'min': '0'
+            }),
+            'facebook_views': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'min': '0',
+                'required': True
+            }),
+            'facebook_reactions': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'min': '0'
+            }),
+            'facebook_comments': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'min': '0'
+            }),
+            'facebook_shares': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'min': '0'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 3,
+                'placeholder': 'Any additional notes about this day\'s attendance (optional)'
+            }),
+        }
+    
+    def clean_date(self):
+        """Ensure date is not in the future."""
+        date_value = self.cleaned_data.get('date')
+        if date_value and date_value > date.today():
+            raise forms.ValidationError("Date cannot be in the future.")
+        return date_value
 

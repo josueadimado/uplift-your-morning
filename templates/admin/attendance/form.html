@@ -1,0 +1,95 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">
+        {% if object %}Edit Attendance Record{% else %}Record Attendance{% endif %}
+    </h1>
+    <p class="text-sm mt-1" style="color: var(--text_secondary);">
+        {% if object %}Update attendance data for {{ object.date|date:"M d, Y" }}{% else %}Record daily attendance/viewership data for Uplift Your Morning{% endif %}
+    </p>
+</div>
+
+<form method="post" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+    {% csrf_token %}
+    
+    <div class="space-y-6">
+        <!-- Date -->
+        <div>
+            <label for="{{ form.date.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Date *</label>
+            {{ form.date }}
+            {% if form.date.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.date.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- YouTube Section -->
+        <div class="border rounded-lg p-4" style="border-color: var(--border); background: #FFF5F5;">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: #FF0000;">
+                <span>📺</span> YouTube Metrics
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="{{ form.youtube_views.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Views *</label>
+                    {{ form.youtube_views }}
+                    {% if form.youtube_views.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ form.youtube_views.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.youtube_likes.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Likes</label>
+                    {{ form.youtube_likes }}
+                </div>
+                <div>
+                    <label for="{{ form.youtube_comments.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Comments</label>
+                    {{ form.youtube_comments }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Facebook Section -->
+        <div class="border rounded-lg p-4" style="border-color: var(--border); background: #F0F4FF;">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: #1877F2;">
+                <span>📘</span> Facebook Metrics
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label for="{{ form.facebook_views.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Views *</label>
+                    {{ form.facebook_views }}
+                    {% if form.facebook_views.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ form.facebook_views.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.facebook_reactions.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Reactions</label>
+                    {{ form.facebook_reactions }}
+                </div>
+                <div>
+                    <label for="{{ form.facebook_comments.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Comments</label>
+                    {{ form.facebook_comments }}
+                </div>
+                <div>
+                    <label for="{{ form.facebook_shares.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Shares</label>
+                    {{ form.facebook_shares }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Notes</label>
+            {{ form.notes }}
+        </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="mt-6 flex gap-4">
+        <button type="submit" class="px-6 py-2.5 rounded-lg text-white font-semibold bg-blue-600 hover:bg-blue-700">
+            {% if object %}Update Record{% else %}Save Record{% endif %}
+        </button>
+        <a href="{% url 'manage:attendance_list' %}" class="px-6 py-2.5 rounded-lg border font-semibold" style="border-color: var(--border);">
+            Cancel
+        </a>
+    </div>
+</form>
+{% endblock %}

@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import requests
-from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, PageView
+from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, PageView, AttendanceRecord
 from .forms import CounselingBookingForm
 from apps.devotions.models import Devotion
 from apps.events.models import Event
@@ -616,3 +616,153 @@ class PledgeFormView(TemplateView):
             context = self.get_context_data(**kwargs)
             context['form'] = form
             return self.render_to_response(context)
+
+
+class AttendanceAnalyticsPublicView(TemplateView):
+    """
+    Public view for attendance analytics - accessible to team without login.
+    Mobile-friendly with responsive charts.
+    Requires access code for security.
+    """
+    template_name = 'pages/attendance_analytics.html'
+    access_code_template = 'pages/attendance_analytics_access.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Check access code before allowing access."""
+        from django.conf import settings
+        from django.contrib import messages
+        
+        # Check if access code is provided in session or query parameter
+        access_code = request.GET.get('code', '')
+        session_code = request.session.get('attendance_analytics_authenticated', False)
+        
+        # Get the required access code from settings
+        required_code = getattr(settings, 'ATTENDANCE_ANALYTICS_CODE', 'uplift2024')
+        
+        # If code is provided in URL, validate it
+        if access_code:
+            if access_code == required_code:
+                # Store in session for future visits
+                request.session['attendance_analytics_authenticated'] = True
+                request.session.set_expiry(86400 * 7)  # 7 days
+                messages.success(request, 'Access granted! You can now view the analytics.')
+                return super().dispatch(request, *args, **kwargs)
+            else:
+                messages.error(request, 'Invalid access code. Please try again.')
+                return render(request, self.access_code_template, {
+                    'error': 'Invalid access code. Please try again.'
+                })
+        
+        # Check if already authenticated via session
+        if session_code:
+            return super().dispatch(request, *args, **kwargs)
+        
+        # Show access code form
+        return render(request, self.access_code_template)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        import json
+        from datetime import datetime, timedelta
+        
+        # Get date range from query params (default to last 30 days)
+        date_to = self.request.GET.get('date_to')
+        date_from = self.request.GET.get('date_from')
+        
+        if not date_to:
+            date_to = datetime.now().date()
+        else:
+            date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+        
+        if not date_from:
+            date_from = date_to - timedelta(days=30)
+        else:
+            date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+        
+        # Get records in date range
+        records = AttendanceRecord.objects.filter(
+            date__gte=date_from,
+            date__lte=date_to
+        ).order_by('date')
+        
+        # Prepare data for charts
+        dates = [r.date.strftime('%Y-%m-%d') for r in records]
+        youtube_views = [r.youtube_views for r in records]
+        facebook_views = [r.facebook_views for r in records]
+        total_views = [r.get_total_views() for r in records]
+        
+        # Convert to JSON for JavaScript
+        dates_json = json.dumps(dates)
+        youtube_views_json = json.dumps(youtube_views)
+        facebook_views_json = json.dumps(facebook_views)
+        total_views_json = json.dumps(total_views)
+        
+        # Calculate statistics
+        total_youtube = sum(youtube_views)
+        total_facebook = sum(facebook_views)
+        total_all = sum(total_views)
+        
+        avg_youtube = total_youtube / len(records) if records else 0
+        avg_facebook = total_facebook / len(records) if records else 0
+        avg_total = total_all / len(records) if records else 0
+        
+        # Find peak days
+        peak_day = None
+        peak_views = 0
+        for r in records:
+            total = r.get_total_views()
+            if total > peak_views:
+                peak_views = total
+                peak_day = r
+        
+        # Weekly aggregates
+        weekly_data = {}
+        for r in records:
+            week_start = r.date - timedelta(days=r.date.weekday())
+            week_key = week_start.strftime('%Y-%m-%d')
+            if week_key not in weekly_data:
+                weekly_data[week_key] = {
+                    'youtube': 0,
+                    'facebook': 0,
+                    'total': 0,
+                    'count': 0
+                }
+            weekly_data[week_key]['youtube'] += r.youtube_views
+            weekly_data[week_key]['facebook'] += r.facebook_views
+            weekly_data[week_key]['total'] += r.get_total_views()
+            weekly_data[week_key]['count'] += 1
+        
+        weekly_dates = sorted(weekly_data.keys())
+        weekly_youtube = [weekly_data[w]['youtube'] for w in weekly_dates]
+        weekly_facebook = [weekly_data[w]['facebook'] for w in weekly_dates]
+        weekly_total = [weekly_data[w]['total'] for w in weekly_dates]
+        
+        # Convert weekly data to JSON
+        weekly_dates_json = json.dumps(weekly_dates)
+        weekly_youtube_json = json.dumps(weekly_youtube)
+        weekly_facebook_json = json.dumps(weekly_facebook)
+        weekly_total_json = json.dumps(weekly_total)
+        
+        context.update({
+            'records': records,
+            'dates': dates_json,
+            'youtube_views': youtube_views_json,
+            'facebook_views': facebook_views_json,
+            'total_views': total_views_json,
+            'weekly_dates': weekly_dates_json,
+            'weekly_youtube': weekly_youtube_json,
+            'weekly_facebook': weekly_facebook_json,
+            'weekly_total': weekly_total_json,
+            'total_youtube': total_youtube,
+            'total_facebook': total_facebook,
+            'total_all': total_all,
+            'avg_youtube': round(avg_youtube, 2),
+            'avg_facebook': round(avg_facebook, 2),
+            'avg_total': round(avg_total, 2),
+            'peak_day': peak_day,
+            'peak_views': peak_views,
+            'date_from': date_from.strftime('%Y-%m-%d'),
+            'date_to': date_to.strftime('%Y-%m-%d'),
+            'num_days': (date_to - date_from).days + 1,
+        })
+        return context

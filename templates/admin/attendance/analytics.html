@@ -1,0 +1,343 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <h1 class="text-2xl font-bold" style="color: var(--text);">📊 Attendance Analytics</h1>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'manage:attendance_list' %}" 
+           class="px-4 py-2 rounded-lg text-sm border font-semibold" style="border-color: var(--border);">
+            ← Back to List
+        </a>
+        <a href="{% url 'manage:attendance_create' %}" 
+           class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-blue-600 hover:bg-blue-700">
+            + Record Attendance
+        </a>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="bg-white rounded-lg shadow-sm p-4 border mb-6" style="border-color: var(--border);">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label for="date_from" class="block text-sm font-medium mb-2" style="color: var(--text);">From Date</label>
+            <input type="date" name="date_from" id="date_from" value="{{ date_from }}" 
+                   class="w-full px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+        </div>
+        <div class="flex-1 min-w-[200px]">
+            <label for="date_to" class="block text-sm font-medium mb-2" style="color: var(--text);">To Date</label>
+            <input type="date" name="date_to" id="date_to" value="{{ date_to }}" 
+                   class="w-full px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+        </div>
+        <div>
+            <button type="submit" class="px-4 py-2 rounded-lg text-sm text-white font-semibold bg-blue-600 hover:bg-blue-700">
+                Update Range
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Total YouTube Views</p>
+        <p class="text-2xl font-bold mt-1" style="color: #FF0000;">{{ total_youtube|floatformat:0 }}</p>
+        <p class="text-xs mt-1" style="color: var(--text_secondary);">Avg: {{ avg_youtube|floatformat:0 }}/day</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Total Facebook Views</p>
+        <p class="text-2xl font-bold mt-1" style="color: #1877F2;">{{ total_facebook|floatformat:0 }}</p>
+        <p class="text-xs mt-1" style="color: var(--text_secondary);">Avg: {{ avg_facebook|floatformat:0 }}/day</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Total Views</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--primary);">{{ total_all|floatformat:0 }}</p>
+        <p class="text-xs mt-1" style="color: var(--text_secondary);">Avg: {{ avg_total|floatformat:0 }}/day</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4 border" style="border-color: var(--border);">
+        <p class="text-sm" style="color: var(--text_light);">Days Recorded</p>
+        <p class="text-2xl font-bold mt-1" style="color: var(--text_secondary);">{{ num_days }}</p>
+        {% if peak_day %}
+        <p class="text-xs mt-1" style="color: var(--text_secondary);">Peak: {{ peak_day.date|date:"M d" }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if peak_day %}
+<!-- Peak Day Highlight -->
+<div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-sm p-4 mb-6 text-white">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm opacity-90">🏆 Peak Day</p>
+            <p class="text-xl font-bold mt-1">{{ peak_day.date|date:"F d, Y" }}</p>
+            <p class="text-sm mt-1 opacity-90">{{ peak_views|floatformat:0 }} total views</p>
+        </div>
+        <div class="text-right">
+            <p class="text-sm opacity-90">YouTube: {{ peak_day.youtube_views|floatformat:0 }}</p>
+            <p class="text-sm opacity-90">Facebook: {{ peak_day.facebook_views|floatformat:0 }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if records %}
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Daily Views Chart -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+        <h2 class="text-lg font-semibold mb-4" style="color: var(--text);">Daily Views Trend</h2>
+        <div style="position: relative; height: 300px;">
+            <canvas id="dailyViewsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Platform Comparison Chart -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
+        <h2 class="text-lg font-semibold mb-4" style="color: var(--text);">Platform Comparison</h2>
+        <div style="position: relative; height: 300px;">
+            <canvas id="platformChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Weekly Aggregates Chart -->
+<div class="bg-white rounded-lg shadow-sm p-6 border mb-6" style="border-color: var(--border);">
+    <h2 class="text-lg font-semibold mb-4" style="color: var(--text);">Weekly Views Summary</h2>
+    <div style="position: relative; height: 300px;">
+        <canvas id="weeklyChart"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// Wait for DOM and Chart.js to be ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if Chart is available
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js library failed to load');
+        return;
+    }
+
+    // Check if we have data
+    const hasData = {{ records|length }} > 0;
+    if (!hasData) {
+        console.log('No attendance records to display');
+        // Show message in chart containers
+        const chartContainers = document.querySelectorAll('[id$="Chart"]');
+        chartContainers.forEach(container => {
+            const parent = container.closest('.bg-white');
+            if (parent) {
+                parent.innerHTML = '<p class="text-center text-gray-500 py-8">No data available for the selected date range.</p>';
+            }
+        });
+        return;
+    }
+
+    // Parse JSON data safely
+    let dates, youtube_views, facebook_views, total_views, weekly_dates, weekly_youtube, weekly_facebook, weekly_total;
+    try {
+        dates = {{ dates|safe }};
+        youtube_views = {{ youtube_views|safe }};
+        facebook_views = {{ facebook_views|safe }};
+        total_views = {{ total_views|safe }};
+        weekly_dates = {{ weekly_dates|safe }};
+        weekly_youtube = {{ weekly_youtube|safe }};
+        weekly_facebook = {{ weekly_facebook|safe }};
+        weekly_total = {{ weekly_total|safe }};
+    } catch (e) {
+        console.error('Error parsing chart data:', e);
+        return;
+    }
+
+    // Daily Views Line Chart
+    const dailyCtx = document.getElementById('dailyViewsChart');
+    if (!dailyCtx) {
+        console.error('dailyViewsChart canvas not found');
+        return;
+    }
+    
+    const dailyChart = new Chart(dailyCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: dates || [],
+        datasets: [
+            {
+                label: 'YouTube Views',
+                data: youtube_views || [],
+                borderColor: '#FF0000',
+                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Facebook Views',
+                data: facebook_views || [],
+                borderColor: '#1877F2',
+                backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Total Views',
+                data: total_views || [],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true,
+                borderWidth: 2
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0
+                }
+            }
+        }
+    }
+});
+
+    // Platform Comparison Bar Chart
+    const platformCtx = document.getElementById('platformChart');
+    if (!platformCtx) {
+        console.error('platformChart canvas not found');
+        return;
+    }
+    
+    const platformChart = new Chart(platformCtx.getContext('2d'), {
+    type: 'bar',
+        data: {
+            labels: ['YouTube', 'Facebook', 'Total'],
+            datasets: [{
+                label: 'Total Views',
+                data: [
+                    {{ total_youtube|default:0 }},
+                    {{ total_facebook|default:0 }},
+                    {{ total_all|default:0 }}
+                ],
+            backgroundColor: [
+                '#FF0000',
+                '#1877F2',
+                '#667eea'
+            ],
+            borderRadius: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                    callback: function(value) {
+                        return value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+    // Weekly Aggregates Chart
+    const weeklyCtx = document.getElementById('weeklyChart');
+    if (!weeklyCtx) {
+        console.error('weeklyChart canvas not found');
+        return;
+    }
+    
+    const weeklyChart = new Chart(weeklyCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: weekly_dates || [],
+        datasets: [
+            {
+                label: 'YouTube',
+                data: weekly_youtube || [],
+                backgroundColor: '#FF0000',
+                borderRadius: 4
+            },
+            {
+                label: 'Facebook',
+                data: weekly_facebook || [],
+                backgroundColor: '#1877F2',
+                borderRadius: 4
+            },
+            {
+                label: 'Total',
+                data: weekly_total || [],
+                backgroundColor: '#667eea',
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+            }
+        },
+        scales: {
+            x: {
+                stacked: false,
+            },
+            y: {
+                beginAtZero: true,
+                stacked: false,
+                ticks: {
+                    precision: 0,
+                    callback: function(value) {
+                        return value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+    });
+}); // End DOMContentLoaded
+</script>
+
+{% if not records %}
+<div class="bg-white rounded-lg shadow-sm p-8 border text-center" style="border-color: var(--border);">
+    <p class="text-lg" style="color: var(--text_secondary);">No attendance records found for the selected date range.</p>
+    <a href="{% url 'manage:attendance_create' %}" class="inline-block mt-4 px-6 py-2 rounded-lg text-white font-semibold bg-blue-600 hover:bg-blue-700">
+        Record Your First Attendance
+    </a>
+</div>
+{% endif %}
+{% endblock %}
