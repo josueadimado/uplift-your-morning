@@ -29,8 +29,8 @@ class ScheduledNotificationAdmin(admin.ModelAdmin):
     """
     Admin interface for managing scheduled notifications.
     """
-    list_display = ['title', 'scheduled_date', 'scheduled_time', 'status', 'is_paused', 'send_to_email', 'send_to_whatsapp', 'created_at']
-    list_filter = ['status', 'is_paused', 'send_to_email', 'send_to_whatsapp', 'scheduled_date', 'created_at']
+    list_display = ['title', 'scheduled_date', 'scheduled_time', 'status', 'is_paused', 'send_to_email', 'send_to_sms', 'send_to_whatsapp', 'created_at']
+    list_filter = ['status', 'is_paused', 'send_to_email', 'send_to_sms', 'send_to_whatsapp', 'scheduled_date', 'created_at']
     search_fields = ['title', 'notes']
     readonly_fields = ['created_at', 'updated_at', 'sent_at', 'email_sent_count', 'email_failed_count', 'sms_sent_count', 'sms_failed_count']
     fieldsets = (
@@ -41,7 +41,7 @@ class ScheduledNotificationAdmin(admin.ModelAdmin):
             'fields': ('scheduled_date', 'scheduled_time', 'is_paused', 'status')
         }),
         ('Recipients', {
-            'fields': ('send_to_email', 'send_to_whatsapp', 'only_daily_devotion_subscribers')
+            'fields': ('send_to_email', 'send_to_sms', 'send_to_whatsapp', 'only_daily_devotion_subscribers')
         }),
         ('Statistics', {
             'fields': ('sent_at', 'email_sent_count', 'email_failed_count', 'sms_sent_count', 'sms_failed_count'),

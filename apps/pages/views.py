@@ -58,7 +58,7 @@ class HomeView(TemplateView):
         context['featured_testimonies'] = Testimony.objects.filter(
             is_approved=True,
             featured=True
-        ).only('id', 'title', 'content', 'author_name', 'author_location', 'created_at')[:5]
+        ).only('id', 'name', 'country', 'testimony', 'created_at')[:5]
         
         # Check if we're in the active 40 Days period
         forty_days_config = FortyDaysConfig.objects.filter(is_active=True).first()
@@ -407,8 +407,10 @@ class DonationCheckoutView(View):
             return redirect('pages:donate')
 
         try:
-            amount_pesewas = int(float(amount_ghs) * 100)
-        except ValueError:
+            from decimal import Decimal, InvalidOperation
+            amount_ghs_decimal = Decimal(amount_ghs)
+            amount_pesewas = int(amount_ghs_decimal * 100)
+        except (ValueError, InvalidOperation):
             messages.error(request, 'Please enter a valid amount.')
             return redirect('pages:donate')
 
@@ -463,7 +465,7 @@ class DonationCheckoutView(View):
             Donation.objects.create(
                 name=name,
                 email=email,
-                amount_ghs=amount_ghs,
+                amount_ghs=amount_ghs_decimal,
                 paystack_reference=paystack_ref,
                 status=Donation.STATUS_PENDING,
                 note=reference or '',

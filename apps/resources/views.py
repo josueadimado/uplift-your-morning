@@ -36,10 +36,10 @@ class ResourceListView(ListView):
         # Search functionality
         search = self.request.GET.get('search')
         if search:
+            from django.db.models import Q
             queryset = queryset.filter(
-                title__icontains=search
-            ) | queryset.filter(
-                description__icontains=search
+                Q(title__icontains=search) |
+                Q(description__icontains=search)
             )
         
         return queryset.order_by('-created_at')
@@ -118,12 +118,11 @@ class FortyDaysNoteListView(ListView):
         # Search functionality
         search = self.request.GET.get('search')
         if search:
+            from django.db.models import Q
             queryset = queryset.filter(
-                title__icontains=search
-            ) | queryset.filter(
-                content__icontains=search
-            ) | queryset.filter(
-                expert_name__icontains=search
+                Q(title__icontains=search) |
+                Q(content__icontains=search) |
+                Q(expert_name__icontains=search)
             )
         
         return queryset.order_by('-session_date', '-created_at')

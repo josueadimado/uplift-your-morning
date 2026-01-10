@@ -36,12 +36,11 @@ class DevotionListView(ListView):
         # Search functionality
         search = self.request.GET.get('search')
         if search:
+            from django.db.models import Q
             queryset = queryset.filter(
-                title__icontains=search
-            ) | queryset.filter(
-                body__icontains=search
-            ) | queryset.filter(
-                scripture_reference__icontains=search
+                Q(title__icontains=search) |
+                Q(body__icontains=search) |
+                Q(scripture_reference__icontains=search)
             )
         
         return queryset.order_by('-publish_date')

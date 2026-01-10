@@ -227,8 +227,10 @@ def unsubscribe(request):
         phone = request.POST.get('phone', '').strip()
         
         if email:
+            # Normalize email (lowercase) to match how it's stored in subscribe
+            email_normalized = email.lower()
             subscriber = Subscriber.objects.filter(
-                email=email,
+                email=email_normalized,
                 channel=Subscriber.CHANNEL_EMAIL
             ).first()
             if subscriber:
@@ -239,9 +241,12 @@ def unsubscribe(request):
                 messages.error(request, 'Email address not found in our subscription list.')
         
         elif phone:
+            # Normalize phone number (remove spaces and common separators, but preserve +)
+            # to match how it's stored in subscribe
+            phone_normalized = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
             # Try to find subscriber by phone (could be SMS or WhatsApp)
             subscriber = Subscriber.objects.filter(
-                phone=phone
+                phone=phone_normalized
             ).first()
             if subscriber:
                 subscriber.is_active = False

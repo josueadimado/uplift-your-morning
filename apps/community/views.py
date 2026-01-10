@@ -1,12 +1,15 @@
 """
 Views for community features (prayer requests and testimonies).
 """
+import logging
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, CreateView
 from django.contrib import messages
 from django_countries import countries
 from .models import PrayerRequest, Testimony
 from .notifications import send_prayer_request_notification, send_testimony_notification
+
+logger = logging.getLogger(__name__)
 
 
 class PrayerRequestCreateView(CreateView):
@@ -24,15 +27,15 @@ class PrayerRequestCreateView(CreateView):
         """
         response = super().form_valid(form)
         # Send email notification to admin
-        print(f"DEBUG: Attempting to send prayer request notification for: {self.object.id}")
         try:
             send_prayer_request_notification(self.object)
-            print(f"DEBUG: Notification function completed for prayer request: {self.object.id}")
+            logger.info(f"Prayer request notification sent successfully for ID: {self.object.id}")
         except Exception as e:
             # Don't break the submission if notification fails, but log the error
-            print(f"DEBUG: Exception in prayer request notification: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.error(
+                f"Failed to send prayer request notification for ID: {self.object.id}",
+                exc_info=True
+            )
         messages.success(
             self.request,
             'Thank you for sharing your prayer request. We will be praying for you!'
@@ -92,15 +95,15 @@ class TestimonyCreateView(CreateView):
         """
         response = super().form_valid(form)
         # Send email notification to admin
-        print(f"DEBUG: Attempting to send testimony notification for: {self.object.id}")
         try:
             send_testimony_notification(self.object)
-            print(f"DEBUG: Notification function completed for testimony: {self.object.id}")
+            logger.info(f"Testimony notification sent successfully for ID: {self.object.id}")
         except Exception as e:
             # Don't break the submission if notification fails, but log the error
-            print(f"DEBUG: Exception in testimony notification: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.error(
+                f"Failed to send testimony notification for ID: {self.object.id}",
+                exc_info=True
+            )
         
         # Customize success message based on public preference
         if self.object.is_public:
