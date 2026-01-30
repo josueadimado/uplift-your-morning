@@ -29,10 +29,14 @@ urlpatterns = [
     path('api/', include('apps.api.urls', namespace='api')),
 ]
 
-# Serve media files in development
+# Serve media and static files in development
 # Skip during management commands to avoid file scanning
 import sys
 IS_MANAGEMENT_CMD = len(sys.argv) > 1 and sys.argv[1] not in ['runserver', 'collectstatic', 'shell_plus']
 if settings.DEBUG and not IS_MANAGEMENT_CMD:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # In DEBUG, only serve STATIC_ROOT if it has content (e.g. after collectstatic).
+    # Otherwise staticfiles will serve from finders (admin + STATICFILES_DIRS) automatically.
+    import os
+    if os.path.isdir(settings.STATIC_ROOT) and os.listdir(settings.STATIC_ROOT):
+        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

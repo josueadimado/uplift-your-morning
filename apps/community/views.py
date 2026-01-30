@@ -5,7 +5,6 @@ import logging
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, CreateView
 from django.contrib import messages
-from django_countries import countries
 from .models import PrayerRequest, Testimony
 from .notifications import send_prayer_request_notification, send_testimony_notification
 
@@ -84,7 +83,9 @@ class TestimonyCreateView(CreateView):
     def get_context_data(self, **kwargs):
         """
         Add full list of countries for the country dropdown.
+        Lazy-import so django_countries isn't loaded at server startup.
         """
+        from django_countries import countries
         context = super().get_context_data(**kwargs)
         context['countries'] = countries
         return context

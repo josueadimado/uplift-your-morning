@@ -1,0 +1,126 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">Questions</h1>
+    <p class="text-base" style="color: var(--text_secondary);">Manage questions submitted by visitors</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Total Questions</p>
+        <p class="text-2xl font-bold" style="color: var(--text);">{{ total }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Pending</p>
+        <p class="text-2xl font-bold" style="color: #f59e0b;">{{ pending_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+        <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Answered</p>
+        <p class="text-2xl font-bold" style="color: #10b981;">{{ answered_count }}</p>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="bg-white rounded-lg shadow p-4 mb-6 border" style="border-color: var(--border);">
+    <form method="get" class="flex flex-col sm:flex-row gap-4 flex-wrap">
+        <input type="text"
+               name="search"
+               value="{{ request.GET.search }}"
+               placeholder="Search by name, email, or question..."
+               class="flex-1 min-w-0 px-4 py-2 border rounded-lg"
+               style="border-color: var(--border);">
+        <select name="status" class="px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+            <option value="">All Statuses</option>
+            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="answered" {% if request.GET.status == 'answered' %}selected{% endif %}>Answered</option>
+        </select>
+        <select name="category" class="px-4 py-2 border rounded-lg" style="border-color: var(--border);">
+            <option value="">All Categories</option>
+            <option value="edify" {% if request.GET.category == 'edify' %}selected{% endif %}>Edify</option>
+            <option value="access_hour" {% if request.GET.category == 'access_hour' %}selected{% endif %}>Access Hour</option>
+            <option value="uplift_your_morning" {% if request.GET.category == 'uplift_your_morning' %}selected{% endif %}>Uplift Your Morning</option>
+            <option value="general" {% if request.GET.category == 'general' %}selected{% endif %}>General</option>
+            <option value="other" {% if request.GET.category == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        <button type="submit"
+                class="px-6 py-2 rounded-lg font-semibold text-white"
+                style="background: var(--primary);">
+            Filter
+        </button>
+    </form>
+</div>
+
+<!-- Questions Table -->
+<div class="bg-white rounded-lg shadow border overflow-hidden" style="border-color: var(--border);">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead style="background: var(--background_light);">
+                <tr>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Name</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Category</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Question (preview)</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Status</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Submitted</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold" style="color: var(--text);">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr class="border-t" style="border-color: var(--border);">
+                    <td class="px-4 py-3 text-sm" style="color: var(--text);">{{ q.name }}</td>
+                    <td class="px-4 py-3 text-sm" style="color: var(--text_secondary);">{{ q.get_category_display }}</td>
+                    <td class="px-4 py-3 text-sm max-w-xs truncate" style="color: var(--text_secondary);" title="{{ q.question }}">{{ q.question|truncatewords:12 }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded text-xs font-semibold
+                            {% if q.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ q.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm" style="color: var(--text_secondary);">{{ q.created_at|date:"M d, Y" }}</td>
+                    <td class="px-4 py-3">
+                        <a href="{% url 'manage:question_detail' q.pk %}"
+                           class="text-sm font-semibold"
+                           style="color: var(--primary);">
+                            View / Reply
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-sm" style="color: var(--text_secondary);">
+                        No questions found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+    <div class="px-4 py-3 border-t flex justify-between items-center" style="border-color: var(--border);">
+        <div class="text-sm" style="color: var(--text_secondary);">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </div>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+               class="px-3 py-1 rounded border text-sm"
+               style="border-color: var(--border); color: var(--text);">
+                Previous
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+               class="px-3 py-1 rounded border text-sm"
+               style="border-color: var(--border); color: var(--text);">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

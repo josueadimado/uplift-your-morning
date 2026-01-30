@@ -23,7 +23,7 @@ import json
 from apps.events.models import Event
 from apps.resources.models import Resource, ResourceCategory, FortyDaysNote, FortyDaysNoteCategory
 from apps.community.models import PrayerRequest, Testimony
-from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking, Pledge, AttendanceRecord
+from apps.pages.models import Donation, FortyDaysConfig, SiteSettings, CounselingBooking, Pledge, AttendanceRecord, Question, CoordinatorApplication
 from apps.pages import forms
 from apps.subscriptions.models import Subscriber, ScheduledNotification
 
@@ -2711,6 +2711,107 @@ class CounselingBookingRejectView(StaffRequiredMixin, View):
         
         messages.success(request, 'Booking rejected successfully.')
         return redirect('manage:counseling_detail', pk=pk)
+
+
+# ==================== QUESTIONS ====================
+
+class QuestionListView(StaffRequiredMixin, ListView):
+    """List all submitted questions with filters."""
+    model = Question
+    template_name = 'admin/questions/list.html'
+    context_object_name = 'questions'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Question.objects.all()
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        category = self.request.GET.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(question__icontains=search)
+            )
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = Question.objects.count()
+        context['pending_count'] = Question.objects.filter(status=Question.STATUS_PENDING).count()
+        context['answered_count'] = Question.objects.filter(status=Question.STATUS_ANSWERED).count()
+        return context
+
+
+class QuestionDetailView(StaffRequiredMixin, DetailView):
+    """View a question and add/edit reply."""
+    model = Question
+    template_name = 'admin/questions/detail.html'
+    context_object_name = 'question'
+
+
+class QuestionReplyView(StaffRequiredMixin, View):
+    """Save a reply to a question and mark as answered."""
+    def post(self, request, pk):
+        question = get_object_or_404(Question, pk=pk)
+        reply_text = (request.POST.get('reply') or '').strip()
+        if not reply_text:
+            messages.error(request, 'Please enter a reply.')
+            return redirect('manage:question_detail', pk=pk)
+        question.reply = reply_text
+        question.status = Question.STATUS_ANSWERED
+        question.replied_at = timezone.now()
+        question.save()
+        messages.success(request, 'Reply saved and question marked as answered.')
+        return redirect('manage:question_detail', pk=pk)
+
+
+# ==================== COORDINATOR APPLICATIONS ====================
+
+class CoordinatorApplicationListView(StaffRequiredMixin, ListView):
+    """List all coordinator applications with filters."""
+    model = CoordinatorApplication
+    template_name = 'admin/coordinator_applications/list.html'
+    context_object_name = 'applications'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = CoordinatorApplication.objects.all()
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        app_type = self.request.GET.get('type')
+        if app_type:
+            queryset = queryset.filter(application_type=app_type)
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone__icontains=search) |
+                Q(campus_name__icontains=search) |
+                Q(organisation_name__icontains=search)
+            )
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = CoordinatorApplication.objects.count()
+        context['pending_count'] = CoordinatorApplication.objects.filter(status=CoordinatorApplication.STATUS_PENDING).count()
+        context['student_count'] = CoordinatorApplication.objects.filter(application_type=CoordinatorApplication.TYPE_STUDENT).count()
+        context['professional_count'] = CoordinatorApplication.objects.filter(application_type=CoordinatorApplication.TYPE_PROFESSIONAL).count()
+        return context
+
+
+class CoordinatorApplicationDetailView(StaffRequiredMixin, DetailView):
+    """View coordinator application details."""
+    model = CoordinatorApplication
+    template_name = 'admin/coordinator_applications/detail.html'
+    context_object_name = 'application'
 
 
 # ==================== DEVOTION SERIES AJAX ====================

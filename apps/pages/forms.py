@@ -2,10 +2,15 @@
 Forms for pages app.
 """
 from django import forms
-from .models import CounselingBooking, Pledge, AttendanceRecord
+from .models import CounselingBooking, Pledge, AttendanceRecord, Question, CoordinatorApplication
 from django.utils import timezone
 from datetime import date, time
-from django_countries import countries
+
+
+def _get_country_choices():
+    """Lazy-load country choices so django_countries isn't loaded at server startup."""
+    from django_countries import countries
+    return [('', 'Select your country...')] + list(countries)
 
 
 class CounselingBookingForm(forms.ModelForm):
@@ -89,11 +94,152 @@ class CounselingBookingForm(forms.ModelForm):
         return 30
 
 
+class QuestionForm(forms.ModelForm):
+    """Form for visitors to submit questions by topic (Edify, Access Hour, Uplift Your Morning, General, Other)."""
+    class Meta:
+        model = Question
+        fields = ['category', 'name', 'email', 'question']
+        widgets = {
+            'category': forms.Select(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'required': True,
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'Your name',
+                'required': True,
+                'autocomplete': 'name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'your.email@example.com',
+                'required': True,
+                'autocomplete': 'email',
+            }),
+            'question': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 5,
+                'placeholder': 'Type your question here. We will reply based on the topic you selected.',
+                'required': True,
+            }),
+        }
+
+
+def _get_country_choices_for_coordinator():
+    """Lazy-load country choices for coordinator form."""
+    from django_countries import countries
+    return [('', 'Select your country...')] + list(countries)
+
+
+class CoordinatorApplicationForm(forms.ModelForm):
+    """Form for applying as Campus Coordinator (Student Movement) or Professional Coordinator (Professional Forum)."""
+    country = forms.ChoiceField(
+        choices=_get_country_choices_for_coordinator,
+        required=True,
+        widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border rounded-lg', 'required': True}),
+    )
+
+    class Meta:
+        model = CoordinatorApplication
+        fields = [
+            'application_type', 'name', 'email', 'phone',
+            'campus_name', 'program_of_study', 'year_of_study', 'additional_student_info',
+            'role_or_profession', 'organisation_name', 'years_experience', 'linkedin_url', 'additional_professional_info',
+            'profile_message',
+        ]
+        widgets = {
+            'application_type': forms.Select(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'required': True,
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'Your full name',
+                'autocomplete': 'name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'your.email@example.com',
+                'autocomplete': 'email',
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': '+233 57 912 4333',
+                'autocomplete': 'tel',
+            }),
+            'campus_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'e.g. University of Ghana, KNUST',
+            }),
+            'program_of_study': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'e.g. Computer Science, Medicine, Business Administration',
+            }),
+            'year_of_study': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'e.g. Year 2, Final year',
+            }),
+            'additional_student_info': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 4,
+                'placeholder': 'Leadership experience, clubs, expected graduation, interests, or anything else relevant as a student.',
+            }),
+            'role_or_profession': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'e.g. Software Engineer, Medical Doctor, Teacher',
+            }),
+            'organisation_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'Employer or organisation name',
+            }),
+            'years_experience': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'e.g. 5 years, 10+',
+            }),
+            'linkedin_url': forms.URLInput(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'placeholder': 'https://linkedin.com/in/yourprofile (optional)',
+            }),
+            'additional_professional_info': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 4,
+                'placeholder': 'Industry, key skills, career highlights, or anything else relevant to your professional profile.',
+            }),
+            'profile_message': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2.5 border rounded-lg',
+                'rows': 4,
+                'placeholder': 'Why do you want to serve as coordinator and what do you hope to contribute?',
+            }),
+        }
+
+    def clean(self):
+        data = super().clean()
+        app_type = data.get('application_type')
+        if app_type == CoordinatorApplication.TYPE_STUDENT:
+            if not data.get('campus_name'):
+                self.add_error('campus_name', 'Please enter your campus or institution name.')
+            if not data.get('program_of_study'):
+                self.add_error('program_of_study', 'Please enter your program of study.')
+        elif app_type == CoordinatorApplication.TYPE_PROFESSIONAL:
+            if not data.get('role_or_profession'):
+                self.add_error('role_or_profession', 'Please enter your role or profession.')
+            if not data.get('organisation_name'):
+                self.add_error('organisation_name', 'Please enter your organisation name.')
+        return data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.country = self.cleaned_data.get('country', '')
+        if commit:
+            instance.save()
+        return instance
+
+
 class PledgeForm(forms.ModelForm):
     """Form for submitting pledge commitments (monetary or non-monetary)."""
     
     country = forms.ChoiceField(
-        choices=[('', 'Select your country...')] + list(countries),
+        choices=_get_country_choices,
         required=False,
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-2.5 border rounded-lg',

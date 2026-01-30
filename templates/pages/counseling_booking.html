@@ -6,8 +6,15 @@
 {% block meta_description %}Book a one-on-one counseling session with our team. Submit your request and we'll confirm your appointment time.{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
+    #phone-wrapper { position: relative; width: 100%; }
+    .iti { width: 100%; display: block; }
+    .iti__flag-container { z-index: 10; }
+    .iti input { width: 100% !important; padding-left: 52px !important; }
+    .iti__selected-flag { padding: 0 8px 0 12px; }
+    .iti__country-list { z-index: 9999; }
     .flatpickr-calendar {
         font-family: inherit;
         border-radius: 0.5rem;
@@ -106,12 +113,14 @@
                         
                         <div>
                             <label for="{{ form.phone.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Phone Number *</label>
-                            {{ form.phone }}
+                            <div id="phone-wrapper">
+                                {{ form.phone }}
+                            </div>
                             {% if form.phone.errors %}
                             <p class="text-sm text-red-600 mt-1">{{ form.phone.errors.0 }}</p>
                             {% endif %}
                             <p class="text-xs mt-1" style="color: var(--text_light);">
-                                Please enter your full number with country code, e.g. +233 20 123 4567.
+                                Select your country and enter your phone number.
                             </p>
                         </div>
                         
@@ -230,16 +239,44 @@
     </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    // Initialize date picker
     document.addEventListener('DOMContentLoaded', function() {
+        // Date picker
         const dateInput = document.getElementById('{{ form.preferred_date.id_for_label }}');
         if (dateInput) {
             flatpickr(dateInput, {
                 minDate: 'today',
                 dateFormat: 'Y-m-d',
-                disableMobile: true, // Use native picker on mobile
+                disableMobile: true,
+            });
+        }
+        // International phone input
+        const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+        if (phoneInput && typeof window.intlTelInput !== 'undefined' && !phoneInput.closest('.iti')) {
+            phoneInput.type = 'tel';
+            phoneInput.setAttribute('autocomplete', 'tel');
+            var iti = window.intlTelInput(phoneInput, {
+                initialCountry: "gh",
+                preferredCountries: ['gh', 'ng', 'us', 'gb', 'za', 'ke', 'tz'],
+                separateDialCode: true,
+                nationalMode: false,
+                autoPlaceholder: "polite",
+                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
+                geoIpLookup: function(cb) {
+                    fetch("https://ipapi.co/json/").then(function(r) { return r.json(); })
+                        .then(function(d) { cb(d && d.country_code ? d.country_code.toLowerCase() : "gh"); })
+                        .catch(function() { cb("gh"); });
+                },
+            });
+            phoneInput.addEventListener('blur', function() {
+                if (phoneInput.value && iti.isValidNumber()) phoneInput.value = iti.getNumber();
+            });
+            phoneInput.closest('form').addEventListener('submit', function() {
+                if (phoneInput.value && iti) {
+                    try { if (iti.isValidNumber()) phoneInput.value = iti.getNumber(); else { var n = iti.getNumber(); if (n) phoneInput.value = n; } } catch(e) {}
+                }
             });
         }
     });

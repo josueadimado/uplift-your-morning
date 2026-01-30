@@ -96,6 +96,15 @@ urlpatterns = [
     path('counseling/<int:pk>/approve/', admin_views.CounselingBookingApproveView.as_view(), name='counseling_approve'),
     path('counseling/<int:pk>/reject/', admin_views.CounselingBookingRejectView.as_view(), name='counseling_reject'),
     
+    # Questions
+    path('questions/', admin_views.QuestionListView.as_view(), name='questions_list'),
+    path('questions/<int:pk>/', admin_views.QuestionDetailView.as_view(), name='question_detail'),
+    path('questions/<int:pk>/reply/', admin_views.QuestionReplyView.as_view(), name='question_reply'),
+    
+    # Coordinator Applications
+    path('coordinator-applications/', admin_views.CoordinatorApplicationListView.as_view(), name='coordinator_applications_list'),
+    path('coordinator-applications/<int:pk>/', admin_views.CoordinatorApplicationDetailView.as_view(), name='coordinator_application_detail'),
+    
     # Subscribers
     path('subscribers/', admin_views.SubscriberListView.as_view(), name='subscribers_list'),
     path('subscribers/<int:pk>/activate/', admin_views.SubscriberActivateView.as_view(), name='subscribers_activate'),

@@ -6,7 +6,7 @@ Also sends admin notifications when new bookings are submitted.
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
-from .models import CounselingBooking, Pledge
+from .models import CounselingBooking, Pledge, Question, CoordinatorApplication
 import requests
 from decouple import config
 
@@ -82,6 +82,108 @@ You can review and approve this booking in the admin dashboard.
             print(f"Email backend: {settings.EMAIL_BACKEND}")
             print(f"Email host: {getattr(settings, 'EMAIL_HOST', 'Not set')}")
             print(f"Email user: {getattr(settings, 'EMAIL_HOST_USER', 'Not set')}")
+
+
+def send_question_submission_notification(question):
+    """
+    Send email notification to admin when a new question is submitted.
+    """
+    subject = f'New Question ({question.get_category_display()}) - Uplift Your Morning'
+    message = f"""
+A new question has been submitted on Uplift Your Morning.
+
+Topic: {question.get_category_display()}
+Name: {question.name}
+Email: {question.email}
+
+Question:
+{question.question}
+
+Submitted: {question.created_at.strftime('%B %d, %Y at %I:%M %p')}
+
+---
+You can view and reply to this question in the admin dashboard.
+"""
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@upliftyourmorning.com',
+            [ADMIN_NOTIFICATION_EMAIL],
+            fail_silently=False,
+        )
+        if settings.DEBUG:
+            print(f"✓ Question submission notification email sent to {ADMIN_NOTIFICATION_EMAIL}")
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error("Failed to send question submission notification: %s", str(e))
+        if settings.DEBUG:
+            print(f"ERROR: Question notification failed: {e}")
+
+
+def send_coordinator_application_notification(application):
+    """
+    Send email notification to admin when a new coordinator application is submitted.
+    """
+    subject = f'New Coordinator Application ({application.get_application_type_display()}) - Uplift Your Morning'
+    lines = [
+        "A new coordinator application has been submitted on Uplift Your Morning.",
+        "",
+        f"Type: {application.get_application_type_display()}",
+        f"Name: {application.name}",
+        f"Country: {application.country or 'Not provided'}",
+        f"Email: {application.email}",
+        f"Phone: {application.phone}",
+        "",
+    ]
+    if application.application_type == CoordinatorApplication.TYPE_STUDENT:
+        lines.extend([
+            "--- Student / Campus details ---",
+            f"Campus: {application.campus_name or '—'}",
+            f"Program of study: {application.program_of_study or '—'}",
+            f"Year of study: {application.year_of_study or '—'}",
+            f"Additional (leadership, clubs, etc.): {application.additional_student_info or '—'}",
+            "",
+        ])
+    else:
+        lines.extend([
+            "--- Professional details ---",
+            f"Role/Profession: {application.role_or_profession or '—'}",
+            f"Organisation: {application.organisation_name or '—'}",
+            f"Years of experience: {application.years_experience or '—'}",
+            f"LinkedIn: {application.linkedin_url or '—'}",
+            f"Additional (industry, skills, etc.): {application.additional_professional_info or '—'}",
+            "",
+        ])
+    lines.extend([
+        "Why they want to serve / contribution:",
+        application.profile_message or "—",
+        "",
+        f"Submitted: {application.created_at.strftime('%B %d, %Y at %I:%M %p')}",
+        "Status: Pending",
+        "",
+        "---",
+        "You can review and manage this application in the admin dashboard.",
+        "Contact: +233 57 912 4333 (WhatsApp / phone)",
+    ])
+    message = "\n".join(lines)
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@upliftyourmorning.com',
+            [ADMIN_NOTIFICATION_EMAIL],
+            fail_silently=False,
+        )
+        if settings.DEBUG:
+            print(f"✓ Coordinator application notification sent to {ADMIN_NOTIFICATION_EMAIL}")
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error("Failed to send coordinator application notification: %s", str(e))
+        if settings.DEBUG:
+            print(f"ERROR: Coordinator application notification failed: {e}")
 
 
 def send_booking_approval_notifications(booking):

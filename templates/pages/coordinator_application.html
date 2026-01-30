@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Join the Movement – Campus & Professional Coordinators | Uplift Your Morning{% endblock %}
+
+{% block meta_description %}Apply to become an UPLIFT Campus Coordinator (Student Movement) or UPLIFT Professional Coordinator (Professional Forum). Mobilize, lead, and build communities of excellence.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
+<style>
+    #phone-wrapper { position: relative; width: 100%; }
+    .iti { width: 100%; display: block; }
+    .iti__flag-container { z-index: 10; }
+    .iti input { width: 100% !important; padding-left: 52px !important; }
+    .iti__selected-flag { padding: 0 8px 0 12px; }
+    .iti__country-list { z-index: 9999; }
+    @media screen and (max-width: 640px) {
+        input, select, textarea, button[type="submit"] { font-size: 16px !important; min-height: 44px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-8 sm:py-12 md:py-16" style="background: #FFFFFF;">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-10 sm:mb-14">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4" style="color: var(--text);">Join the Movement</h1>
+            <p class="text-lg sm:text-xl leading-relaxed font-medium max-w-2xl mx-auto" style="color: var(--text_secondary);">
+                Apply as a Campus Coordinator (UPLIFT Student Movement) or Professional Coordinator (UPLIFT Professional Forum). We’re looking for committed leaders ready to mobilize and build communities of excellence.
+            </p>
+        </div>
+
+        <!-- Two movements overview -->
+        <div class="grid md:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-14">
+            <!-- UPLIFT Student Movement -->
+            <div class="rounded-2xl border-2 p-6 sm:p-8 flex flex-col" style="border-color: #7c3aed; background: linear-gradient(135deg, rgba(124, 58, 237, 0.06) 0%, rgba(255,255,255,0) 100%);">
+                <h2 class="text-xl sm:text-2xl font-bold mb-2" style="color: #7c3aed;">UPLIFT Student Movement</h2>
+                <p class="text-base font-semibold mb-4" style="color: var(--text);">Inspiring Leaders. Building Movements.</p>
+                <p class="text-sm font-semibold mb-2 uppercase tracking-wide" style="color: var(--text_secondary);">Role: UPLIFT Campus Coordinator</p>
+                <ul class="space-y-2 text-sm sm:text-base font-medium mb-4" style="color: var(--text);">
+                    <li class="flex items-start"><span class="mr-2" style="color: #7c3aed;">•</span> Mobilize students across your campus.</li>
+                    <li class="flex items-start"><span class="mr-2" style="color: #7c3aed;">•</span> Empower rising leaders.</li>
+                    <li class="flex items-start"><span class="mr-2" style="color: #7c3aed;">•</span> Lead with conviction and purpose.</li>
+                </ul>
+                <p class="text-xs sm:text-sm font-medium mt-auto" style="color: var(--text_secondary);">Two coordinators per campus • Interview required • Serious commitment only</p>
+            </div>
+
+            <!-- UPLIFT Professional Forum -->
+            <div class="rounded-2xl border-2 p-6 sm:p-8 flex flex-col" style="border-color: var(--primary); background: linear-gradient(135deg, rgba(7, 89, 68, 0.06) 0%, rgba(255,255,255,0) 100%);">
+                <h2 class="text-xl sm:text-2xl font-bold mb-2" style="color: var(--primary);">UPLIFT Professional Forum</h2>
+                <p class="text-base font-semibold mb-4" style="color: var(--text);">Building Communities of Excellence Across Professions</p>
+                <p class="text-sm font-semibold mb-2 uppercase tracking-wide" style="color: var(--text_secondary);">Role: UPLIFT Professional Coordinator</p>
+                <ul class="space-y-2 text-sm sm:text-base font-medium mb-4" style="color: var(--text);">
+                    <li class="flex items-start"><span class="mr-2" style="color: var(--primary);">•</span> Coordinate professionals within your field.</li>
+                    <li class="flex items-start"><span class="mr-2" style="color: var(--primary);">•</span> Drive meaningful, impact-driven projects.</li>
+                    <li class="flex items-start"><span class="mr-2" style="color: var(--primary);">•</span> Mentor and develop the next generation.</li>
+                </ul>
+                <p class="text-xs sm:text-sm font-medium mt-auto" style="color: var(--text_secondary);">Two coordinators per profession • Interview required • Serious commitment only</p>
+            </div>
+        </div>
+
+        <!-- Application form -->
+        <div class="bg-white rounded-2xl shadow-lg border p-6 sm:p-8 md:p-10" style="border-color: var(--border);">
+            <h2 class="text-xl sm:text-2xl font-bold mb-2" style="color: var(--text);">Apply now</h2>
+            <p class="text-base font-medium mb-6" style="color: var(--text_secondary);">Fill in your details below. You can also reach us on WhatsApp: <a href="https://wa.me/233579124333" target="_blank" rel="noopener noreferrer" class="font-semibold" style="color: var(--primary);">+233 57 912 4333</a>.</p>
+
+            <form method="post" class="space-y-6" id="coordinator-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <ul class="list-disc list-inside text-sm text-red-800">
+                        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div>
+                    <label for="{{ form.application_type.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">I am applying for *</label>
+                    {{ form.application_type }}
+                    {% if form.application_type.errors %}<p class="text-sm text-red-600 mt-1">{{ form.application_type.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Full name *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<p class="text-sm text-red-600 mt-1">{{ form.name.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.country.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Country *</label>
+                        {{ form.country }}
+                        {% if form.country.errors %}<p class="text-sm text-red-600 mt-1">{{ form.country.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Email *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<p class="text-sm text-red-600 mt-1">{{ form.email.errors.0 }}</p>{% endif %}
+                    </div>
+                <div>
+                    <label for="{{ form.phone.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Phone (with country code) *</label>
+                    <div id="phone-wrapper">
+                        {{ form.phone }}
+                    </div>
+                    {% if form.phone.errors %}<p class="text-sm text-red-600 mt-1">{{ form.phone.errors.0 }}</p>{% endif %}
+                    <p class="text-xs mt-1" style="color: var(--text_light);">Select your country and enter your phone number.</p>
+                </div>
+                </div>
+
+                <!-- Student Movement fields -->
+                <div id="student-fields" class="coordinator-type-section border rounded-xl p-6" style="border-color: rgba(124, 58, 237, 0.3); background: rgba(124, 58, 237, 0.04);">
+                    <h3 class="text-lg font-bold mb-4" style="color: #7c3aed;">Student / Campus details</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="{{ form.campus_name.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Campus / institution name *</label>
+                            {{ form.campus_name }}
+                            {% if form.campus_name.errors %}<p class="text-sm text-red-600 mt-1">{{ form.campus_name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.program_of_study.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Program of study *</label>
+                                {{ form.program_of_study }}
+                                {% if form.program_of_study.errors %}<p class="text-sm text-red-600 mt-1">{{ form.program_of_study.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.year_of_study.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Year of study</label>
+                                {{ form.year_of_study }}
+                                {% if form.year_of_study.errors %}<p class="text-sm text-red-600 mt-1">{{ form.year_of_study.errors.0 }}</p>{% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="{{ form.additional_student_info.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Anything else (leadership, clubs, graduation, interests)</label>
+                            {{ form.additional_student_info }}
+                            {% if form.additional_student_info.errors %}<p class="text-sm text-red-600 mt-1">{{ form.additional_student_info.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Forum fields -->
+                <div id="professional-fields" class="coordinator-type-section border rounded-xl p-6" style="border-color: rgba(7, 89, 68, 0.3); background: rgba(7, 89, 68, 0.04);">
+                    <h3 class="text-lg font-bold mb-4" style="color: var(--primary);">Professional details</h3>
+                    <div class="space-y-4">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.role_or_profession.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Role or profession *</label>
+                                {{ form.role_or_profession }}
+                                {% if form.role_or_profession.errors %}<p class="text-sm text-red-600 mt-1">{{ form.role_or_profession.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.organisation_name.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Organisation name *</label>
+                                {{ form.organisation_name }}
+                                {% if form.organisation_name.errors %}<p class="text-sm text-red-600 mt-1">{{ form.organisation_name.errors.0 }}</p>{% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="{{ form.years_experience.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Years of experience</label>
+                            {{ form.years_experience }}
+                            {% if form.years_experience.errors %}<p class="text-sm text-red-600 mt-1">{{ form.years_experience.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.linkedin_url.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">LinkedIn profile (optional)</label>
+                            {{ form.linkedin_url }}
+                            {% if form.linkedin_url.errors %}<p class="text-sm text-red-600 mt-1">{{ form.linkedin_url.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.additional_professional_info.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Anything else (industry, skills, career highlights)</label>
+                            {{ form.additional_professional_info }}
+                            {% if form.additional_professional_info.errors %}<p class="text-sm text-red-600 mt-1">{{ form.additional_professional_info.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.profile_message.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Why do you want to serve as coordinator and what do you hope to contribute? *</label>
+                    {{ form.profile_message }}
+                    {% if form.profile_message.errors %}<p class="text-sm text-red-600 mt-1">{{ form.profile_message.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <button type="submit" class="w-full px-6 py-3.5 rounded-lg font-semibold text-white transition-all shadow-sm hover:shadow-md" style="background: var(--primary); font-size: 16px;" onmouseover="this.style.background='var(--primary_hover)'" onmouseout="this.style.background='var(--primary)'">
+                        Submit Application
+                    </button>
+                    <p class="text-xs text-center mt-3" style="color: var(--text_light);">We’ll review your application and be in touch. You can also send your profile via WhatsApp to +233 57 912 4333.</p>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var applicationType = document.getElementById('id_application_type');
+    var studentFields = document.getElementById('student-fields');
+    var professionalFields = document.getElementById('professional-fields');
+    if (applicationType && studentFields && professionalFields) {
+        function toggleSections() {
+            var value = applicationType.value;
+            studentFields.style.display = value === 'student' ? 'block' : 'none';
+            professionalFields.style.display = value === 'professional' ? 'block' : 'none';
+        }
+        applicationType.addEventListener('change', toggleSections);
+        toggleSections();
+    }
+    var phoneInput = document.getElementById('id_phone');
+    if (phoneInput && typeof window.intlTelInput !== 'undefined' && !phoneInput.closest('.iti')) {
+        phoneInput.type = 'tel';
+        phoneInput.setAttribute('autocomplete', 'tel');
+        var iti = window.intlTelInput(phoneInput, {
+            initialCountry: "gh",
+            preferredCountries: ['gh', 'ng', 'us', 'gb', 'za', 'ke', 'tz'],
+            separateDialCode: true,
+            nationalMode: false,
+            autoPlaceholder: "polite",
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
+            geoIpLookup: function(cb) {
+                fetch("https://ipapi.co/json/").then(function(r) { return r.json(); })
+                    .then(function(d) { cb(d && d.country_code ? d.country_code.toLowerCase() : "gh"); })
+                    .catch(function() { cb("gh"); });
+            },
+        });
+        phoneInput.addEventListener('blur', function() {
+            if (phoneInput.value && iti.isValidNumber()) phoneInput.value = iti.getNumber();
+        });
+        var form = phoneInput.closest('form');
+        if (form) form.addEventListener('submit', function() {
+            if (phoneInput.value && iti) {
+                try { if (iti.isValidNumber()) phoneInput.value = iti.getNumber(); else { var n = iti.getNumber(); if (n) phoneInput.value = n; } } catch(e) {}
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

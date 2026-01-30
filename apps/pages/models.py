@@ -3,11 +3,6 @@ Models for static pages like Home, About, Contact, etc.
 """
 from django.db import models
 from apps.core.models import TimeStampedModel
-# Lazy import countries to speed up management commands
-try:
-    from django_countries import countries
-except ImportError:
-    countries = {}
 
 
 class ContactMessage(TimeStampedModel):
@@ -161,6 +156,130 @@ class CounselingBooking(TimeStampedModel):
     
     def __str__(self):
         return f"{self.full_name} - {self.preferred_date} ({self.status})"
+
+
+class Question(TimeStampedModel):
+    """
+    Questions submitted by visitors, categorized by topic.
+    Staff can reply in the admin; replies can be sent to the submitter (e.g. by email).
+    """
+    CATEGORY_EDIFY = 'edify'
+    CATEGORY_ACCESS_HOUR = 'access_hour'
+    CATEGORY_UPLIFT_YOUR_MORNING = 'uplift_your_morning'
+    CATEGORY_GENERAL = 'general'
+    CATEGORY_OTHER = 'other'
+
+    CATEGORY_CHOICES = [
+        (CATEGORY_EDIFY, 'Edify'),
+        (CATEGORY_ACCESS_HOUR, 'Access Hour'),
+        (CATEGORY_UPLIFT_YOUR_MORNING, 'Uplift Your Morning'),
+        (CATEGORY_GENERAL, 'General'),
+        (CATEGORY_OTHER, 'Other'),
+    ]
+
+    STATUS_PENDING = 'pending'
+    STATUS_ANSWERED = 'answered'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_ANSWERED, 'Answered'),
+    ]
+
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+    question = models.TextField(help_text="The question or message from the visitor")
+
+    # Staff reply (filled in via admin)
+    reply = models.TextField(blank=True, help_text="Your reply to the question")
+    replied_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Question'
+        verbose_name_plural = 'Questions'
+
+    def __str__(self):
+        return f"{self.name} – {self.get_category_display()} ({self.status})"
+
+
+class CoordinatorApplication(TimeStampedModel):
+    """
+    Applications for UPLIFT Student Movement (Campus Coordinator) or
+    UPLIFT Professional Forum (Professional Coordinator).
+    """
+    TYPE_STUDENT = 'student'
+    TYPE_PROFESSIONAL = 'professional'
+
+    TYPE_CHOICES = [
+        (TYPE_STUDENT, 'UPLIFT Student Movement (Campus Coordinator)'),
+        (TYPE_PROFESSIONAL, 'UPLIFT Professional Forum (Professional Coordinator)'),
+    ]
+
+    STATUS_PENDING = 'pending'
+    STATUS_CONTACTED = 'contacted'
+    STATUS_INTERVIEWED = 'interviewed'
+    STATUS_ACCEPTED = 'accepted'
+    STATUS_DECLINED = 'declined'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_CONTACTED, 'Contacted'),
+        (STATUS_INTERVIEWED, 'Interviewed'),
+        (STATUS_ACCEPTED, 'Accepted'),
+        (STATUS_DECLINED, 'Declined'),
+    ]
+
+    application_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    name = models.CharField(max_length=200)
+    country = models.CharField(max_length=200, blank=True, help_text="Country of residence")
+    email = models.EmailField()
+    phone = models.CharField(max_length=50)
+
+    # Student Movement (Campus Coordinator) fields
+    campus_name = models.CharField(max_length=255, blank=True, help_text="Name of campus / institution")
+    program_of_study = models.CharField(max_length=255, blank=True, help_text="Program or course of study")
+    year_of_study = models.CharField(max_length=100, blank=True, help_text="e.g. Year 2, Final year")
+    additional_student_info = models.TextField(
+        blank=True,
+        help_text="Leadership experience, interests, expected graduation, or anything else relevant as a student",
+    )
+
+    # Professional Forum fields
+    role_or_profession = models.CharField(max_length=255, blank=True, help_text="Job title or profession")
+    organisation_name = models.CharField(max_length=255, blank=True, help_text="Employer or organisation name")
+    years_experience = models.CharField(max_length=100, blank=True, help_text="e.g. 5 years, 10+")
+    linkedin_url = models.URLField(blank=True, help_text="LinkedIn profile (optional)")
+    additional_professional_info = models.TextField(
+        blank=True,
+        help_text="Industry, key skills, career highlights, or anything else relevant to your professional profile",
+    )
+
+    # Legacy: kept for backward compatibility; new submissions use campus_name / organisation_name
+    campus_or_profession = models.CharField(max_length=255, blank=True)
+
+    profile_message = models.TextField(
+        help_text="Why you want to serve as coordinator and what you hope to contribute",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+    )
+    admin_notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Coordinator Application'
+        verbose_name_plural = 'Coordinator Applications'
+
+    def __str__(self):
+        return f"{self.name} – {self.get_application_type_display()} ({self.status})"
 
 
 class FortyDaysConfig(TimeStampedModel):
@@ -492,6 +611,7 @@ class Pledge(TimeStampedModel):
     def get_country_name(self):
         """Get the country name from the country code."""
         if self.country:
+            from django_countries import countries
             return dict(countries).get(self.country, self.country)
         return None
     

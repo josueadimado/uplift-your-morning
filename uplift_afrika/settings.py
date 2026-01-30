@@ -214,10 +214,10 @@ elif not SKIP_STATIC_SCAN:
     # In development with runserver, use a faster static files storage
     if DEBUG and IS_RUNSERVER:
         STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-        # Optimize finders to only scan necessary directories
+        # Include AppDirectoriesFinder so admin (and other app) static files are found and served
         STATICFILES_FINDERS = [
-            'django.contrib.staticfiles.finders.FileSystemFinder',  # Only scans STATICFILES_DIRS
-            # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',  # Disabled to speed up
+            'django.contrib.staticfiles.finders.FileSystemFinder',
+            'django.contrib.staticfiles.finders.AppDirectoriesFinder',
         ]
     else:
         # Default finders for collectstatic

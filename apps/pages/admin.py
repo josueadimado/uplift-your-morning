@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, PageView
+from django.utils import timezone
+from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, PageView, Question, CoordinatorApplication
 
 
 @admin.register(ContactMessage)
@@ -98,6 +99,80 @@ class CounselingBookingAdmin(admin.ModelAdmin):
         count = queryset.filter(status=CounselingBooking.STATUS_PENDING).update(status=CounselingBooking.STATUS_REJECTED)
         self.message_user(request, f'{count} booking(s) rejected.')
     reject_bookings.short_description = "Reject selected bookings"
+
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'category', 'status', 'created_at']
+    list_filter = ['category', 'status', 'created_at']
+    search_fields = ['name', 'email', 'question', 'reply']
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('Submission', {
+            'fields': ('category', 'name', 'email', 'question')
+        }),
+        ('Your Reply', {
+            'fields': ('reply', 'replied_at', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if change and form.cleaned_data.get('reply') and not obj.replied_at:
+            obj.replied_at = timezone.now()
+        if change and form.cleaned_data.get('reply'):
+            obj.status = Question.STATUS_ANSWERED
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(CoordinatorApplication)
+class CoordinatorApplicationAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'country', 'application_type', 'campus_or_role_display', 'status', 'created_at']
+    list_filter = ['application_type', 'status', 'created_at']
+    search_fields = [
+        'name', 'email', 'phone', 'country',
+        'campus_name', 'program_of_study', 'role_or_profession', 'organisation_name',
+        'profile_message', 'additional_student_info', 'additional_professional_info',
+    ]
+    readonly_fields = ['created_at', 'updated_at']
+
+    def campus_or_role_display(self, obj):
+        if obj.application_type == CoordinatorApplication.TYPE_STUDENT:
+            return obj.campus_name or obj.campus_or_profession or '—'
+        return obj.role_or_profession or obj.organisation_name or obj.campus_or_profession or '—'
+    campus_or_role_display.short_description = 'Campus / Role'
+
+    fieldsets = (
+        ('Type & Contact', {
+            'fields': ('application_type', 'name', 'country', 'email', 'phone')
+        }),
+        ('Student (Campus Coordinator)', {
+            'fields': ('campus_name', 'program_of_study', 'year_of_study', 'additional_student_info'),
+            'classes': ('collapse',)
+        }),
+        ('Professional', {
+            'fields': ('role_or_profession', 'organisation_name', 'years_experience', 'linkedin_url', 'additional_professional_info'),
+            'classes': ('collapse',)
+        }),
+        ('Motivation', {
+            'fields': ('profile_message',)
+        }),
+        ('Status', {
+            'fields': ('status', 'admin_notes')
+        }),
+        ('Legacy', {
+            'fields': ('campus_or_profession',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(PageView)

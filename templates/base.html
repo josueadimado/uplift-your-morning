@@ -472,6 +472,8 @@
                         <div class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-gray-100 dropdown-menu py-2">
                             <a href="{% url 'community:testimonies' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Testimonies</a>
                             <a href="{% url 'community:prayer-request' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Prayer Requests</a>
+                            <a href="{% url 'pages:question_submit' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Submit a Question</a>
+                            <a href="{% url 'pages:coordinator_application' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Join the Movement (Campus &amp; Professional)</a>
                             <a href="{% url 'pages:counseling_booking' %}" class="dropdown-item block px-4 py-3 transition-colors" style="font-size: 16px; color: var(--text);">Book Counseling</a>
                         </div>
                     </div>
@@ -567,6 +569,8 @@
                     <div class="text-sm font-semibold uppercase tracking-wide mb-2" style="font-size: 16px; color: var(--text_light);">Community</div>
                     <a href="{% url 'community:testimonies' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Testimonies</a>
                     <a href="{% url 'community:prayer-request' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Prayer Requests</a>
+                    <a href="{% url 'pages:question_submit' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Submit a Question</a>
+                    <a href="{% url 'pages:coordinator_application' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Join the Movement</a>
                     <a href="{% url 'pages:counseling_booking' %}" class="block px-4 py-2.5 font-medium transition-colors rounded-lg" style="font-size: 16px; color: var(--text);">Book Counseling</a>
                 </div>
                 
@@ -854,6 +858,8 @@
                         <ul class="space-y-2 sm:space-y-3">
                             <li><a href="{% url 'pages:donate' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Give / Donate</a></li>
                             <li><a href="{% url 'pages:pledge_form' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Make a Pledge</a></li>
+                            <li><a href="{% url 'pages:question_submit' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Submit a Question</a></li>
+                            <li><a href="{% url 'pages:coordinator_application' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Join the Movement</a></li>
                             <li><a href="{% url 'community:testimonies' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Share a Testimony</a></li>
                             <li><a href="{% url 'community:prayer-request' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Send a Prayer Request</a></li>
                             <li><a href="{% url 'subscriptions:subscribe' %}" class="transition-colors" style="color: var(--footer_text_light); font-size: 15px;" onmouseover="this.style.color='var(--footer_text)'" onmouseout="this.style.color='var(--footer_text_light)'">Email & WhatsApp Subscription</a></li>

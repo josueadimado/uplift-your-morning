@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Submit a Question - Uplift Your Morning{% endblock %}
+
+{% block meta_description %}Submit your question about Edify, Access Hour, Uplift Your Morning, or general topics. We'll reply based on the topic you select.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Mobile: prevent zoom on input focus (iOS) and ensure touch-friendly targets */
+    @media screen and (max-width: 640px) {
+        input, select, textarea, button[type="submit"] { font-size: 16px !important; min-height: 44px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-8 sm:py-12 md:py-16" style="background: #FFFFFF;">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-8 sm:mb-12">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4" style="color: var(--text);">Submit a Question</h1>
+            <p class="text-lg sm:text-xl leading-relaxed font-medium" style="color: var(--text_secondary);">
+                Have a question about Edify, Access Hour, Uplift Your Morning, or something general? Choose a topic below and we'll reply based on your selection.
+            </p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-2xl shadow-lg border p-6 sm:p-8 md:p-10" style="border-color: var(--border);">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <ul class="list-disc list-inside text-sm text-red-800">
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Topic / Category *</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.category.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-xs mt-1" style="color: var(--text_light);">Select the topic that best fits your question so we can route it to the right team.</p>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Your Name *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Email Address *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs mt-1" style="color: var(--text_light);">We'll send our reply to this address.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.question.id_for_label }}" class="block text-sm font-semibold mb-2" style="color: var(--text);">Your Question *</label>
+                    {{ form.question }}
+                    {% if form.question.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.question.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="border-t pt-6" style="border-color: var(--border);">
+                    <button type="submit" 
+                            class="w-full px-6 py-3.5 rounded-lg font-semibold text-white transition-all shadow-sm hover:shadow-md"
+                            style="background: var(--primary); font-size: 16px;"
+                            onmouseover="this.style.background='var(--primary_hover)'"
+                            onmouseout="this.style.background='var(--primary)'">
+                        Submit Question
+                    </button>
+                    <p class="text-xs text-center mt-3" style="color: var(--text_light);">
+                        We'll review your question and reply based on the topic you selected.
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- What happens next -->
+        <div class="mt-8 sm:mt-10 bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
+            <h3 class="font-semibold mb-2" style="color: var(--text);">What happens next?</h3>
+            <ul class="space-y-2 text-sm" style="color: var(--text_secondary);">
+                <li class="flex items-start">
+                    <span class="mr-2">1.</span>
+                    <span>Submit your question and choose a topic (Edify, Access Hour, Uplift Your Morning, General, or Other).</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">2.</span>
+                    <span>Our team will review and reply based on the topic you selected.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">3.</span>
+                    <span>We'll respond to the email address you provide.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}

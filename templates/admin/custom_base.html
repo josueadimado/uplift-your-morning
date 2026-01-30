@@ -174,6 +174,22 @@
                             </svg>
                             <span>Counseling Bookings</span>
                         </a>
+                        <a href="{% url 'manage:questions_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if request.resolver_match.url_name == 'questions_list' or request.resolver_match.url_name == 'question_detail' or request.resolver_match.url_name == 'question_reply' %}active{% endif %}"
+                           style="{% if request.resolver_match.url_name == 'questions_list' or request.resolver_match.url_name == 'question_detail' or request.resolver_match.url_name == 'question_reply' %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Questions</span>
+                        </a>
+                        <a href="{% url 'manage:coordinator_applications_list' %}" 
+                           class="nav-item flex items-center space-x-3 px-4 py-2.5 {% if request.resolver_match.url_name == 'coordinator_applications_list' or request.resolver_match.url_name == 'coordinator_application_detail' %}active{% endif %}"
+                           style="{% if request.resolver_match.url_name == 'coordinator_applications_list' or request.resolver_match.url_name == 'coordinator_application_detail' %}color: var(--primary); font-weight: 600;{% else %}color: var(--text_secondary);{% endif %}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Coordinator Applications</span>
+                        </a>
                     </div>
 
                     <div class="pt-4">

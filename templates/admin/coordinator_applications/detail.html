@@ -1,0 +1,162 @@
+{% extends 'admin/custom_base.html' %}
+
+{% block admin_content %}
+<div class="mb-6">
+    <a href="{% url 'manage:coordinator_applications_list' %}"
+       class="inline-flex items-center text-sm font-semibold mb-4"
+       style="color: var(--primary);">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Applications
+    </a>
+    <h1 class="text-2xl sm:text-3xl font-bold mb-2" style="color: var(--text);">{{ application.name }}</h1>
+    <p class="text-sm sm:text-base" style="color: var(--text_secondary);">{{ application.get_application_type_display }} · {{ application.created_at|date:"F d, Y g:i A" }}</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Contact -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Contact Information</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Name</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Email</p>
+                    <a href="mailto:{{ application.email }}" style="color: var(--primary);">{{ application.email }}</a>
+                </div>
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Phone</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.phone }}</p>
+                </div>
+                {% if application.country %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Country</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.country }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Student-specific or Professional-specific -->
+        {% if application.application_type == 'student' %}
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Student / Campus Details</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% if application.campus_name %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Campus / Institution</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.campus_name }}</p>
+                </div>
+                {% endif %}
+                {% if application.program_of_study %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Program of Study</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.program_of_study }}</p>
+                </div>
+                {% endif %}
+                {% if application.year_of_study %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Year of Study</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.year_of_study }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% if application.additional_student_info %}
+            <div class="mt-4">
+                <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Additional Info</p>
+                <p class="text-base whitespace-pre-wrap" style="color: var(--text);">{{ application.additional_student_info }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Professional Details</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% if application.role_or_profession %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Role / Profession</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.role_or_profession }}</p>
+                </div>
+                {% endif %}
+                {% if application.organisation_name %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Organisation</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.organisation_name }}</p>
+                </div>
+                {% endif %}
+                {% if application.years_experience %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Experience</p>
+                    <p class="text-base" style="color: var(--text);">{{ application.years_experience }}</p>
+                </div>
+                {% endif %}
+                {% if application.linkedin_url %}
+                <div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">LinkedIn</p>
+                    <a href="{{ application.linkedin_url }}" target="_blank" rel="noopener" style="color: var(--primary);">{{ application.linkedin_url|truncatechars:40 }}</a>
+                </div>
+                {% endif %}
+            </div>
+            {% if application.additional_professional_info %}
+            <div class="mt-4">
+                <p class="text-sm font-medium mb-1" style="color: var(--text_secondary);">Additional Info</p>
+                <p class="text-base whitespace-pre-wrap" style="color: var(--text);">{{ application.additional_professional_info }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Profile message -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Why they want to serve</h2>
+            <p class="text-base whitespace-pre-wrap" style="color: var(--text);">{{ application.profile_message }}</p>
+        </div>
+
+        <!-- Admin notes -->
+        {% if application.admin_notes %}
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Admin Notes</h2>
+            <p class="text-base whitespace-pre-wrap" style="color: var(--text);">{{ application.admin_notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Status -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Status</h2>
+            <span class="px-3 py-1 rounded text-sm font-semibold
+                {% if application.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif application.status == 'contacted' %}bg-blue-100 text-blue-800
+                {% elif application.status == 'interviewed' %}bg-indigo-100 text-indigo-800
+                {% elif application.status == 'accepted' %}bg-green-100 text-green-800
+                {% elif application.status == 'declined' %}bg-red-100 text-red-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ application.get_status_display }}
+            </span>
+            <p class="text-sm mt-3" style="color: var(--text_secondary);">To change status, use <a href="{% url 'admin:pages_coordinatorapplication_change' application.pk %}" style="color: var(--primary);">Django Admin</a>.</p>
+        </div>
+
+        <!-- Timestamps -->
+        <div class="bg-white rounded-lg shadow p-6 border" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text);">Timestamps</h2>
+            <div class="space-y-2 text-sm">
+                <div>
+                    <p class="font-medium mb-1" style="color: var(--text_secondary);">Applied</p>
+                    <p style="color: var(--text);">{{ application.created_at|date:"F d, Y g:i A" }}</p>
+                </div>
+                <div>
+                    <p class="font-medium mb-1" style="color: var(--text_secondary);">Last Updated</p>
+                    <p style="color: var(--text);">{{ application.updated_at|date:"F d, Y g:i A" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

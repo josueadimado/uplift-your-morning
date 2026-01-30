@@ -10,8 +10,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import requests
-from .models import ContactMessage, Donation, FortyDaysConfig, SiteSettings, CounselingBooking, PageView, AttendanceRecord
-from .forms import CounselingBookingForm
+from .models import (
+    ContactMessage, Donation, FortyDaysConfig, SiteSettings,
+    CounselingBooking, PageView, AttendanceRecord, Question, CoordinatorApplication,
+)
+from .forms import CounselingBookingForm, QuestionForm, CoordinatorApplicationForm
 from apps.devotions.models import Devotion
 from apps.events.models import Event
 from apps.resources.models import Resource
@@ -218,6 +221,15 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         approved_counseling = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_APPROVED).count()
         completed_counseling = CounselingBooking.objects.filter(status=CounselingBooking.STATUS_COMPLETED).count()
 
+        # Questions (from Submit a Question)
+        total_questions = Question.objects.count()
+        pending_questions = Question.objects.filter(status=Question.STATUS_PENDING).count()
+        answered_questions = Question.objects.filter(status=Question.STATUS_ANSWERED).count()
+
+        # Coordinator Applications (Join the Movement)
+        total_coordinator_apps = CoordinatorApplication.objects.count()
+        pending_coordinator_apps = CoordinatorApplication.objects.filter(status=CoordinatorApplication.STATUS_PENDING).count()
+
         # Subscriptions
         from apps.subscriptions.models import Subscriber
         total_subscribers = Subscriber.objects.count()
@@ -301,6 +313,8 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         # Show all donations to ensure nothing is missed
         context['recent_donations'] = Donation.objects.all().order_by('-created_at')
         context['recent_counseling'] = CounselingBooking.objects.order_by('-created_at')[:5]
+        context['recent_questions'] = Question.objects.order_by('-created_at')[:5]
+        context['recent_coordinator_apps'] = CoordinatorApplication.objects.order_by('-created_at')[:5]
         context['recent_subscribers'] = recent_subscribers
         context['all_subscribers'] = all_subscribers
 
@@ -334,6 +348,15 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 'pending': pending_counseling,
                 'approved': approved_counseling,
                 'completed': completed_counseling,
+            },
+            'questions': {
+                'total': total_questions,
+                'pending': pending_questions,
+                'answered': answered_questions,
+            },
+            'coordinator_apps': {
+                'total': total_coordinator_apps,
+                'pending': pending_coordinator_apps,
             },
             'subscriptions': {
                 'total': total_subscribers,
@@ -618,6 +641,73 @@ class PledgeFormView(TemplateView):
             context = self.get_context_data(**kwargs)
             context['form'] = form
             return self.render_to_response(context)
+
+
+class QuestionSubmitView(TemplateView):
+    """
+    View for visitors to submit questions by topic (Edify, Access Hour, Uplift Your Morning, General, Other).
+    Staff can reply in the admin.
+    """
+    template_name = 'pages/question_submit.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = QuestionForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = QuestionForm(request.POST)
+        if form.is_valid():
+            question = form.save(commit=False)
+            question.status = Question.STATUS_PENDING
+            question.save()
+            from .notifications import send_question_submission_notification
+            try:
+                send_question_submission_notification(question)
+            except Exception:
+                pass
+            messages.success(
+                request,
+                'Thank you! Your question has been submitted. We will reply based on the topic you selected.'
+            )
+            return redirect('pages:question_submit')
+        messages.error(request, 'Please correct the errors below.')
+        context = self.get_context_data(**kwargs)
+        context['form'] = form
+        return self.render_to_response(context)
+
+
+class CoordinatorApplicationView(TemplateView):
+    """
+    Apply as UPLIFT Campus Coordinator (Student Movement) or UPLIFT Professional Coordinator (Professional Forum).
+    """
+    template_name = 'pages/coordinator_application.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CoordinatorApplicationForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = CoordinatorApplicationForm(request.POST)
+        if form.is_valid():
+            application = form.save(commit=False)
+            application.status = CoordinatorApplication.STATUS_PENDING
+            application.save()
+            from .notifications import send_coordinator_application_notification
+            try:
+                send_coordinator_application_notification(application)
+            except Exception:
+                pass
+            messages.success(
+                request,
+                'Thank you! Your application has been submitted. We will review it and be in touch. You can also reach us on WhatsApp: +233 57 912 4333.'
+            )
+            return redirect('pages:coordinator_application')
+        messages.error(request, 'Please correct the errors below.')
+        context = self.get_context_data(**kwargs)
+        context['form'] = form
+        return self.render_to_response(context)
 
 
 class AttendanceAnalyticsPublicView(TemplateView):
