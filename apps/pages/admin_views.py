@@ -2773,7 +2773,7 @@ class QuestionReplyView(StaffRequiredMixin, View):
 # ==================== COORDINATOR APPLICATIONS ====================
 
 class CoordinatorApplicationListView(StaffRequiredMixin, ListView):
-    """List all coordinator applications with filters."""
+    """List all movement applications (Student Movement / Professional Forum) with filters."""
     model = CoordinatorApplication
     template_name = 'admin/coordinator_applications/list.html'
     context_object_name = 'applications'
@@ -2808,7 +2808,7 @@ class CoordinatorApplicationListView(StaffRequiredMixin, ListView):
 
 
 class CoordinatorApplicationDetailView(StaffRequiredMixin, DetailView):
-    """View coordinator application details."""
+    """View movement application details."""
     model = CoordinatorApplication
     template_name = 'admin/coordinator_applications/detail.html'
     context_object_name = 'application'

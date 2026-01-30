@@ -210,15 +210,14 @@ class Question(TimeStampedModel):
 
 class CoordinatorApplication(TimeStampedModel):
     """
-    Applications for UPLIFT Student Movement (Campus Coordinator) or
-    UPLIFT Professional Forum (Professional Coordinator).
+    Applications for UPLIFT Student Movement or UPLIFT Professional Forum (Professional Movement).
     """
     TYPE_STUDENT = 'student'
     TYPE_PROFESSIONAL = 'professional'
 
     TYPE_CHOICES = [
-        (TYPE_STUDENT, 'UPLIFT Student Movement (Campus Coordinator)'),
-        (TYPE_PROFESSIONAL, 'UPLIFT Professional Forum (Professional Coordinator)'),
+        (TYPE_STUDENT, 'UPLIFT Student Movement'),
+        (TYPE_PROFESSIONAL, 'UPLIFT Professional Forum'),
     ]
 
     STATUS_PENDING = 'pending'
@@ -241,7 +240,7 @@ class CoordinatorApplication(TimeStampedModel):
     email = models.EmailField()
     phone = models.CharField(max_length=50)
 
-    # Student Movement (Campus Coordinator) fields
+    # Student Movement fields
     campus_name = models.CharField(max_length=255, blank=True, help_text="Name of campus / institution")
     program_of_study = models.CharField(max_length=255, blank=True, help_text="Program or course of study")
     year_of_study = models.CharField(max_length=100, blank=True, help_text="e.g. Year 2, Final year")
@@ -264,7 +263,7 @@ class CoordinatorApplication(TimeStampedModel):
     campus_or_profession = models.CharField(max_length=255, blank=True)
 
     profile_message = models.TextField(
-        help_text="Why you want to serve as coordinator and what you hope to contribute",
+        help_text="Why you want to be part of this group and what you hope to gain or contribute",
     )
     status = models.CharField(
         max_length=20,
@@ -275,8 +274,8 @@ class CoordinatorApplication(TimeStampedModel):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Coordinator Application'
-        verbose_name_plural = 'Coordinator Applications'
+        verbose_name = 'Movement Application'
+        verbose_name_plural = 'Movement Applications'
 
     def __str__(self):
         return f"{self.name} – {self.get_application_type_display()} ({self.status})"

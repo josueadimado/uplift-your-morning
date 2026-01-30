@@ -150,7 +150,7 @@ class CoordinatorApplicationAdmin(admin.ModelAdmin):
         ('Type & Contact', {
             'fields': ('application_type', 'name', 'country', 'email', 'phone')
         }),
-        ('Student (Campus Coordinator)', {
+        ('Student Movement', {
             'fields': ('campus_name', 'program_of_study', 'year_of_study', 'additional_student_info'),
             'classes': ('collapse',)
         }),

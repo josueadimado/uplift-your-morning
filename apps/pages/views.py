@@ -679,7 +679,7 @@ class QuestionSubmitView(TemplateView):
 
 class CoordinatorApplicationView(TemplateView):
     """
-    Apply as UPLIFT Campus Coordinator (Student Movement) or UPLIFT Professional Coordinator (Professional Forum).
+    Join the UPLIFT Student Movement or UPLIFT Professional Forum as a member.
     """
     template_name = 'pages/coordinator_application.html'
 

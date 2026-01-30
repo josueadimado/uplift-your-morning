@@ -124,11 +124,11 @@ You can view and reply to this question in the admin dashboard.
 
 def send_coordinator_application_notification(application):
     """
-    Send email notification to admin when a new coordinator application is submitted.
+    Send email notification to admin when a new movement application is submitted.
     """
-    subject = f'New Coordinator Application ({application.get_application_type_display()}) - Uplift Your Morning'
+    subject = f'New Movement Application ({application.get_application_type_display()}) - Uplift Your Morning'
     lines = [
-        "A new coordinator application has been submitted on Uplift Your Morning.",
+        "A new movement application has been submitted on Uplift Your Morning.",
         "",
         f"Type: {application.get_application_type_display()}",
         f"Name: {application.name}",
@@ -157,7 +157,7 @@ def send_coordinator_application_notification(application):
             "",
         ])
     lines.extend([
-        "Why they want to serve / contribution:",
+        "Why they want to be part of this group / what they hope to gain or contribute:",
         application.profile_message or "—",
         "",
         f"Submitted: {application.created_at.strftime('%B %d, %Y at %I:%M %p')}",
@@ -177,13 +177,13 @@ def send_coordinator_application_notification(application):
             fail_silently=False,
         )
         if settings.DEBUG:
-            print(f"✓ Coordinator application notification sent to {ADMIN_NOTIFICATION_EMAIL}")
+            print(f"✓ Movement application notification sent to {ADMIN_NOTIFICATION_EMAIL}")
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
-        logger.error("Failed to send coordinator application notification: %s", str(e))
+        logger.error("Failed to send movement application notification: %s", str(e))
         if settings.DEBUG:
-            print(f"ERROR: Coordinator application notification failed: {e}")
+            print(f"ERROR: Movement application notification failed: {e}")
 
 
 def send_booking_approval_notifications(booking):

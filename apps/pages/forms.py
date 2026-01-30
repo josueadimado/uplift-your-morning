@@ -132,7 +132,7 @@ def _get_country_choices_for_coordinator():
 
 
 class CoordinatorApplicationForm(forms.ModelForm):
-    """Form for applying as Campus Coordinator (Student Movement) or Professional Coordinator (Professional Forum)."""
+    """Form for joining the UPLIFT Student Movement or UPLIFT Professional Forum as a member."""
     country = forms.ChoiceField(
         choices=_get_country_choices_for_coordinator,
         required=True,
@@ -208,7 +208,7 @@ class CoordinatorApplicationForm(forms.ModelForm):
             'profile_message': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-2.5 border rounded-lg',
                 'rows': 4,
-                'placeholder': 'Why do you want to serve as coordinator and what do you hope to contribute?',
+                'placeholder': 'Why do you want to be part of this group and what do you hope to gain or contribute?',
             }),
         }
 
