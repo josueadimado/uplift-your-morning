@@ -134,20 +134,21 @@ class HomeView(TemplateView):
         context['evening_time_cat'] = '8:00 PM'
         context['evening_time_eat'] = '9:00 PM'
         
-        # Get site settings (Zoom link for all programs)
+        # Get site settings (Zoom for Access Hour/Edify/40 Days; Facebook for Uplift Your Morning)
         site_settings, _ = SiteSettings.objects.get_or_create(pk=1)
         zoom_link = site_settings.zoom_link
         context['global_zoom_link'] = zoom_link
+        context['uplift_morning_facebook_url'] = site_settings.uplift_morning_facebook_url or ''
         
-        # Time-based logic for showing Zoom buttons
+        # Time-based logic for live buttons
         accra_tz = zoneinfo.ZoneInfo("Africa/Accra")
         now_accra = timezone.now().astimezone(accra_tz)
         current_weekday = now_accra.weekday()  # 0=Monday, 6=Sunday
         
-        # Uplift Your Morning: 5:00-5:30am GMT (Monday-Sunday, all days)
+        # Uplift Your Morning: 5:00-5:30am (Ghana time) – show Facebook + YouTube live only in this window (no Zoom)
         morning_start = now_accra.replace(hour=5, minute=0, second=0, microsecond=0)
         morning_end = now_accra.replace(hour=5, minute=30, second=0, microsecond=0)
-        context['show_uplift_zoom'] = (morning_start <= now_accra <= morning_end) and bool(zoom_link)
+        context['show_uplift_live'] = morning_start <= now_accra <= morning_end
         
         # Access Hour: 6:00-7:00pm GMT (Wednesday only, weekday=2)
         evening_start = now_accra.replace(hour=18, minute=0, second=0, microsecond=0)

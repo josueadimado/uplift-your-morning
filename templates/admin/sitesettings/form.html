@@ -3,17 +3,23 @@
 {% block admin_content %}
 <div class="mb-6">
     <h1 class="text-2xl font-bold" style="color: var(--text);">Site Settings</h1>
-    <p class="text-sm mt-1" style="color: var(--text_secondary);">Configure site-wide settings like Zoom links used for all programs</p>
+    <p class="text-sm mt-1" style="color: var(--text_secondary);">Configure site-wide settings: Zoom (Access Hour, Edify, 40 Days) and Uplift Your Morning live links</p>
 </div>
 
 <form method="post" class="bg-white rounded-lg shadow-sm p-6 border" style="border-color: var(--border);">
     {% csrf_token %}
     <div class="space-y-6">
         <div>
-            <label for="{{ form.zoom_link.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Zoom Meeting Link *</label>
+            <label for="{{ form.zoom_link.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Zoom Meeting Link</label>
             {{ form.zoom_link }}
             {% if form.zoom_link.errors %}<p class="text-sm text-red-600 mt-1">{{ form.zoom_link.errors.0 }}</p>{% endif %}
-            <p class="text-xs mt-1" style="color: var(--text_light);">This Zoom link will be used for all programs: Uplift Your Morning, Access Hour, Edify, and 40 Days sessions.</p>
+            <p class="text-xs mt-1" style="color: var(--text_light);">Used for Access Hour, Edify, and 40 Days only. Uplift Your Morning no longer uses Zoom.</p>
+        </div>
+        <div>
+            <label for="{{ form.uplift_morning_facebook_url.id_for_label }}" class="block text-sm font-medium mb-2" style="color: var(--text);">Uplift Your Morning – Facebook Live URL</label>
+            {{ form.uplift_morning_facebook_url }}
+            {% if form.uplift_morning_facebook_url.errors %}<p class="text-sm text-red-600 mt-1">{{ form.uplift_morning_facebook_url.errors.0 }}</p>{% endif %}
+            <p class="text-xs mt-1" style="color: var(--text_light);">Shown every morning during the live window (5:00–5:30 AM Ghana time). Leave blank to hide the Facebook button.</p>
         </div>
     </div>
     <div class="mt-6 flex items-center space-x-4">

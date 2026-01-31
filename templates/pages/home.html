@@ -357,14 +357,14 @@
             <div class="hero-content-inner">
                 <h2>Start Your Day With Uplift Your Morning</h2>
                 <p>Live morning devotion every weekday, 5:00–5:30am GMT (7:00 AM CAT / 8:00 AM EAT) – worship, Word and prayer.</p>
-                {% if show_uplift_zoom and global_zoom_link %}
-                <a href="{{ global_zoom_link }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
-                    JOIN ON ZOOM
+                <a href="https://www.youtube.com/@GodswillTKMensah/live" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                    {% if show_uplift_live %}JOIN LIVE (YouTube){% else %}Watch on YouTube{% endif %}
+                </a>
+                {% if uplift_morning_facebook_url %}
+                <a href="{{ uplift_morning_facebook_url }}" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
+                    {% if show_uplift_live %}JOIN LIVE (Facebook){% else %}Watch on Facebook{% endif %}
                 </a>
                 {% endif %}
-                <a href="https://www.youtube.com/@GodswillTKMensah/live" target="_blank" rel="noopener noreferrer" style="margin-right: 12px;">
-                    JOIN LIVE AT 5:00AM GMT
-                </a>
                 <a href="{% url 'devotions:today' %}">
                     READ TODAY'S DEVOTION
                 </a>

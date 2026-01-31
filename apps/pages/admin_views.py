@@ -1856,7 +1856,7 @@ class SiteSettingsUpdateView(StaffRequiredMixin, UpdateView):
     """Update site settings (singleton model)."""
     model = SiteSettings
     template_name = 'admin/sitesettings/form.html'
-    fields = ['zoom_link']
+    fields = ['zoom_link', 'uplift_morning_facebook_url']
     success_url = reverse_lazy('manage:sitesettings_edit')
 
     def get_object(self, queryset=None):

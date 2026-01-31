@@ -142,10 +142,9 @@ class TodayDevotionView(DetailView):
         is_live_time = live_start <= now_accra <= live_end
 
         context["is_live_time"] = is_live_time
-        # Zoom link is only shown during live time; YouTube and Facebook are always available
+        # Uplift Your Morning: no Zoom; show YouTube + Facebook live only during 5:00–5:30 AM
         site_settings, _ = SiteSettings.objects.get_or_create(pk=1)
-        context["global_zoom_link"] = site_settings.zoom_link
-        context["show_zoom_link"] = is_live_time and bool(site_settings.zoom_link)
+        context["uplift_morning_facebook_url"] = site_settings.uplift_morning_facebook_url or ""
 
         return context
 

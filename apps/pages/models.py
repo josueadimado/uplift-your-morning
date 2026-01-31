@@ -62,11 +62,15 @@ class Donation(TimeStampedModel):
 class SiteSettings(TimeStampedModel):
     """
     Site-wide settings that should only have one instance.
-    Stores general configuration like Zoom links used across all programs.
+    Stores general configuration like Zoom (Access Hour, Edify, 40 Days) and Uplift Your Morning live links.
     """
     zoom_link = models.URLField(
         blank=True,
-        help_text="Zoom meeting link used for all programs (Uplift Your Morning, Access Hour, Edify, 40 Days)"
+        help_text="Zoom meeting link for Access Hour, Edify, 40 Days (not used for Uplift Your Morning)"
+    )
+    uplift_morning_facebook_url = models.URLField(
+        blank=True,
+        help_text="Facebook live URL for Uplift Your Morning (5:00–5:30 AM). Shown every morning during the live window."
     )
     
     def __str__(self):
@@ -80,6 +84,7 @@ class SiteSettings(TimeStampedModel):
     def delete(self, *args, **kwargs):
         # Prevent deletion - just clear the fields instead
         self.zoom_link = ''
+        self.uplift_morning_facebook_url = ''
         self.save()
     
     class Meta:
