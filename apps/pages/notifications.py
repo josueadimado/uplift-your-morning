@@ -122,6 +122,59 @@ You can view and reply to this question in the admin dashboard.
             print(f"ERROR: Question notification failed: {e}")
 
 
+# WhatsApp group invite links for Student Movement and Professional Forum (used in applicant confirmation email)
+WHATSAPP_STUDENT_GROUP_URL = 'https://chat.whatsapp.com/BaWlQ5VN1Tk7sx1Vc8ynTu?mode=gi_t'
+WHATSAPP_PROFESSIONAL_GROUP_URL = 'https://chat.whatsapp.com/Gu9eJ330aEPJbaaoLVPyi9?mode=gi_t'
+
+
+def send_coordinator_application_confirmation_email(application):
+    """
+    Send confirmation email to the applicant with the WhatsApp group link for their movement.
+    """
+    if not application.email:
+        return
+    if application.application_type == CoordinatorApplication.TYPE_STUDENT:
+        whatsapp_url = WHATSAPP_STUDENT_GROUP_URL
+        group_name = 'Uplift Student Movement Official'
+        movement_name = 'UPLIFT Student Movement'
+    else:
+        whatsapp_url = WHATSAPP_PROFESSIONAL_GROUP_URL
+        group_name = 'Uplift Professional Forum Official'
+        movement_name = 'UPLIFT Professional Forum'
+
+    subject = f'Thank you for joining {movement_name} – Uplift Your Morning'
+    message = f"""Hi {application.name},
+
+Thank you for applying to join {movement_name}. Your application has been received and we'll be in touch soon.
+
+In the meantime, join your WhatsApp group to connect with the community:
+
+{group_name}
+{whatsapp_url}
+
+If you have any questions, you can reach us on WhatsApp: +233 57 912 4333.
+
+Blessings,
+The Uplift Your Morning Team
+"""
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@upliftyourmorning.com',
+            [application.email],
+            fail_silently=False,
+        )
+        if settings.DEBUG:
+            print(f"✓ Movement application confirmation email sent to {application.email}")
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error("Failed to send movement application confirmation email: %s", str(e))
+        if settings.DEBUG:
+            print(f"ERROR: Movement application confirmation email failed: {e}")
+
+
 def send_coordinator_application_notification(application):
     """
     Send email notification to admin when a new movement application is submitted.

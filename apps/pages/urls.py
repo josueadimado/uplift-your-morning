@@ -16,6 +16,7 @@ urlpatterns = [
     path('counseling/', views.CounselingBookingView.as_view(), name='counseling_booking'),
     path('questions/', views.QuestionSubmitView.as_view(), name='question_submit'),
     path('join-the-movement/', views.CoordinatorApplicationView.as_view(), name='coordinator_application'),
+    path('join-the-movement/success/<str:application_type>/', views.CoordinatorApplicationSuccessView.as_view(), name='coordinator_application_success'),
     path('pledge/', views.PledgeFormView.as_view(), name='pledge_form'),
     path('attendance/analytics/', views.AttendanceAnalyticsPublicView.as_view(), name='attendance_analytics_public'),
 ]

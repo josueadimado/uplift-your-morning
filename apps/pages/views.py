@@ -695,20 +695,44 @@ class CoordinatorApplicationView(TemplateView):
             application = form.save(commit=False)
             application.status = CoordinatorApplication.STATUS_PENDING
             application.save()
-            from .notifications import send_coordinator_application_notification
+            from .notifications import send_coordinator_application_notification, send_coordinator_application_confirmation_email
             try:
                 send_coordinator_application_notification(application)
             except Exception:
                 pass
-            messages.success(
-                request,
-                'Thank you! Your application has been submitted. We will review it and be in touch. You can also reach us on WhatsApp: +233 57 912 4333.'
-            )
-            return redirect('pages:coordinator_application')
+            try:
+                send_coordinator_application_confirmation_email(application)
+            except Exception:
+                pass
+            # Redirect to thank-you page with WhatsApp link for their group (student or professional)
+            type_param = 'student' if application.application_type == CoordinatorApplication.TYPE_STUDENT else 'professional'
+            return redirect('pages:coordinator_application_success', application_type=type_param)
         messages.error(request, 'Please correct the errors below.')
         context = self.get_context_data(**kwargs)
         context['form'] = form
         return self.render_to_response(context)
+
+
+class CoordinatorApplicationSuccessView(TemplateView):
+    """
+    Thank-you page after submitting a movement application.
+    Shows the appropriate WhatsApp group link (Student Movement or Professional Forum).
+    """
+    template_name = 'pages/coordinator_application_success.html'
+
+    def get_context_data(self, **kwargs):
+        from .notifications import WHATSAPP_STUDENT_GROUP_URL, WHATSAPP_PROFESSIONAL_GROUP_URL
+        context = super().get_context_data(**kwargs)
+        application_type = self.kwargs.get('application_type', 'student')
+        if application_type == 'professional':
+            context['whatsapp_url'] = WHATSAPP_PROFESSIONAL_GROUP_URL
+            context['group_name'] = 'Uplift Professional Forum Official'
+            context['movement_name'] = 'UPLIFT Professional Forum'
+        else:
+            context['whatsapp_url'] = WHATSAPP_STUDENT_GROUP_URL
+            context['group_name'] = 'Uplift Student Movement Official'
+            context['movement_name'] = 'UPLIFT Student Movement'
+        return context
 
 
 class AttendanceAnalyticsPublicView(TemplateView):
