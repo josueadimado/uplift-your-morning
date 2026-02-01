@@ -152,7 +152,7 @@ In the meantime, join your WhatsApp group to connect with the community:
 {group_name}
 {whatsapp_url}
 
-If you have any questions, you can reach us on WhatsApp: +233 57 912 4333.
+If you have any questions, you can reach us on WhatsApp: +233 59 148 5783.
 
 Blessings,
 The Uplift Your Morning Team
@@ -218,7 +218,7 @@ def send_coordinator_application_notification(application):
         "",
         "---",
         "You can review and manage this application in the admin dashboard.",
-        "Contact: +233 57 912 4333 (WhatsApp / phone)",
+        "Contact: +233 59 148 5783 (WhatsApp / phone)",
     ])
     message = "\n".join(lines)
     try:

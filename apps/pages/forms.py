@@ -164,7 +164,7 @@ class CoordinatorApplicationForm(forms.ModelForm):
             }),
             'phone': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2.5 border rounded-lg',
-                'placeholder': '+233 57 912 4333',
+                'placeholder': '+233 59 148 5783',
                 'autocomplete': 'tel',
             }),
             'campus_name': forms.TextInput(attrs={
